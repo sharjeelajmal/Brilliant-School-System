@@ -1,114 +1,129 @@
 "use client";
-import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React from 'react';
+import { motion } from 'framer-motion';
 import { 
-  LayoutGrid, 
-  ClipboardList, 
+  LayoutDashboard, 
+  FileText, 
   Users, 
+  Wallet, 
   Settings, 
-  ChevronLeft,
-  GraduationCap
-} from 'lucide-react'; 
+  LogOut, 
+  ChevronLeft, 
+  ChevronRight,
+  UserPlus 
+} from 'lucide-react';
 
 interface SidebarProps {
   isOpen: boolean;
-  setIsOpen: (val: boolean) => void;
+  setIsOpen: (value: boolean) => void;
   activePage: string;
-  setActivePage: (val: string) => void;
+  setActivePage: (page: string) => void;
 }
 
 export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: SidebarProps) => {
-  const [hoveredItem, setHoveredItem] = useState<string | null>(null);
-
+  
   const menuItems = [
-    { id: 'overview', name: 'Overview', icon: <LayoutGrid size={20} /> },
-    { id: 'forms', name: 'Forms', icon: <ClipboardList size={20} /> },
-    { id: 'students', name: 'Students', icon: <Users size={20} /> },
-    { id: 'settings', name: 'Settings', icon: <Settings size={20} /> },
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
+    { id: 'forms', label: 'Student Admission', icon: FileText },
+    { id: 'teachers', label: 'Teacher Hiring', icon: UserPlus },
+    { id: 'students', label: 'Students List', icon: Users },
+    { id: 'finance', label: 'Fee & Finance', icon: Wallet },
+    { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <motion.aside 
+    <motion.div 
+      // FIX 1: 'overflow-hidden' hata diya taake button aur tooltip bahar nazar aa sakein
       initial={false}
-      // CHANGE: Width 280px se 240px kar di gayi hai
-      animate={{ width: isOpen ? '240px' : '80px' }}
-      className="bg-white border-r border-gray-100 h-screen sticky top-0 flex flex-col shadow-[10px_0_30px_rgba(0,0,0,0.02)] z-30 font-['Montserrat'] flex-shrink-0"
+      animate={{ width: isOpen ? 250 : 80 }} 
+      transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} 
+      className="h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50"
     >
-      {/* Sidebar Header */}
-      <div className="p-5 flex items-center justify-between mb-6">
-        <AnimatePresence>
-          {isOpen && (
-            <motion.div 
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -10 }}
-              className="flex items-center gap-2 overflow-hidden whitespace-nowrap"
-            >
-              <div className="w-8 h-8 bg-[#B70003] rounded-lg flex items-center justify-center text-white flex-shrink-0">
-                <GraduationCap size={18} />
-              </div>
-              <span className="font-bold text-lg tracking-tight text-[#191919]">EduSmart</span>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Toggle Button - FIX 2: Ab ye poora nazar aayega */}
+      <button 
+        onClick={() => setIsOpen(!isOpen)}
+        className="absolute -right-3 top-9 bg-[#B70003] text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform z-[100] cursor-pointer flex items-center justify-center border-2 border-white"
+      >
+        {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
+      </button>
+
+      {/* Logo Area */}
+      <div className={`p-6 flex items-center gap-3 transition-all ${!isOpen && 'justify-center'}`}>
+        <div className="w-10 h-10 bg-[#B70003] rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20">
+          E
+        </div>
         
-        <button 
-          onClick={() => setIsOpen(!isOpen)}
-          className="w-8 h-8 bg-gray-50 rounded-lg flex items-center justify-center text-[#B70003] cursor-pointer hover:bg-[#B70003] hover:text-white transition-all duration-300 flex-shrink-0"
+        {/* Text Fade Animation - Sirf yahan overflow hidden lagaya hai */}
+        <motion.div 
+          animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }}
+          className="whitespace-nowrap overflow-hidden"
         >
-          <motion.div animate={{ rotate: isOpen ? 0 : 180 }}>
-            <ChevronLeft size={18} />
-          </motion.div>
-        </button>
+          <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">EduSmart</h1>
+          <p className="text-[9px] font-bold text-[#B70003] tracking-widest uppercase">System</p>
+        </motion.div>
       </div>
 
-      {/* Navigation */}
-      <nav className="flex-1 px-3 space-y-2 overflow-y-auto overflow-x-hidden">
+      {/* Menu Items */}
+      <div className="flex-1 px-3 space-y-2 mt-4">
         {menuItems.map((item) => (
-          <div key={item.id} className="relative flex items-center">
-            <motion.div
+          <div key={item.id} className="relative group">
+            
+            <button
               onClick={() => setActivePage(item.id)}
-              onMouseEnter={() => setHoveredItem(item.id)}
-              onMouseLeave={() => setHoveredItem(null)}
-              className={`flex items-center w-full gap-3 p-3 rounded-xl cursor-pointer transition-all relative overflow-hidden group ${
-                activePage === item.id 
-                ? 'bg-[#B70003] text-white shadow-lg shadow-red-900/20' 
-                : 'text-gray-400 hover:bg-gray-50 hover:text-[#B70003]'
-              }`}
+              className={`
+                w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 relative group cursor-pointer
+                ${activePage === item.id 
+                  ? 'bg-[#B70003] text-white shadow-md shadow-red-200' 
+                  : 'text-gray-500 hover:bg-red-50 hover:text-[#B70003]'
+                }
+                ${!isOpen && 'justify-center'}
+              `}
             >
-              <div className={`flex-shrink-0 ${activePage === item.id ? 'scale-110' : 'group-hover:scale-110'} transition-transform duration-300`}>
-                {item.icon}
-              </div>
+              <item.icon size={20} strokeWidth={activePage === item.id ? 2.5 : 2} className="flex-shrink-0" />
               
-              {isOpen && (
-                <motion.span 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="font-semibold text-[13px] whitespace-nowrap"
-                >
-                  {item.name}
-                </motion.span>
-              )}
-
-              {activePage === item.id && (
-                <motion.div layoutId="activeNav" className="absolute left-0 w-1 h-5 bg-white rounded-r-full" />
-              )}
-            </motion.div>
-
-            {/* Hover Tooltip (When Closed) */}
-            {!isOpen && hoveredItem === item.id && (
-              <motion.div 
-                initial={{ opacity: 0, x: 10 }}
-                animate={{ opacity: 1, x: 20 }}
-                className="absolute left-full ml-4 px-3 py-1.5 bg-[#191919] text-white text-[11px] font-bold rounded-md whitespace-nowrap z-50 shadow-xl"
+              {/* Text smoothness */}
+              <motion.span 
+                animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }}
+                className="font-bold text-xs whitespace-nowrap overflow-hidden"
               >
-                {item.name}
-                <div className="absolute left-[-4px] top-1/2 -translate-y-1/2 w-2 h-2 bg-[#191919] rotate-45" />
-              </motion.div>
+                {item.label}
+              </motion.span>
+            </button>
+
+            {/* --- FIX 3: WHITE TOOLTIP (Ab ye sidebar ke bahar show hoga) --- */}
+            {!isOpen && (
+              <div className="absolute left-[70px] top-1/2 -translate-y-1/2 bg-white text-[#191919] text-xs font-bold px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-[0_5px_15px_-3px_rgba(0,0,0,0.1)] border border-gray-100 z-[9999]">
+                {item.label}
+                {/* Arrow (White) */}
+                <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white border-l border-b border-gray-100 rotate-45"></div>
+              </div>
             )}
+
           </div>
         ))}
-      </nav>
-    </motion.aside>
+      </div>
+
+      {/* Logout */}
+      <div className="p-3 mb-2 relative group">
+        <button className={`w-full flex items-center gap-3 p-3 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-red-600 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
+          <LogOut size={20} />
+          <motion.span 
+             animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }}
+             className="font-bold text-xs whitespace-nowrap overflow-hidden"
+          >
+            Logout
+          </motion.span>
+        </button>
+
+        {/* Logout Tooltip */}
+        {!isOpen && (
+           <div className="absolute left-[70px] top-1/2 -translate-y-1/2 bg-white text-red-600 text-xs font-bold px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none shadow-[0_5px_15px_-3px_rgba(0,0,0,0.1)] border border-gray-100 z-[9999]">
+             Logout
+             <div className="absolute left-[-5px] top-1/2 -translate-y-1/2 w-2.5 h-2.5 bg-white border-l border-b border-gray-100 rotate-45"></div>
+           </div>
+        )}
+      </div>
+
+    </motion.div>
   );
 };

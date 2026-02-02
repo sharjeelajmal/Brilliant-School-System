@@ -1,16 +1,16 @@
 "use client";
-import React, { useState, useEffect, Suspense } from 'react'; // Suspense import kiya
+import React, { useState, useEffect, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Overview } from '@/components/dashboard/Overview';
 import AdmissionForm from '@/components/forms/AdmissionForm';
+import TeacherHiringForm from '@/components/forms/TeacherHiringForm'; // Import New Form
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-// --- 1. Asli Logic ko aik alag component mein rakhein ---
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
   
-  const searchParams = useSearchParams(); // Ye hook yahan use ho raha hai
+  const searchParams = useSearchParams();
   const router = useRouter();
   const tab = searchParams.get('tab') || 'overview';
   
@@ -50,7 +50,7 @@ function DashboardContent() {
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-[#191919] tracking-tighter leading-none mb-3 uppercase">
-              {activePage}
+              {activePage.replace('-', ' ')}
             </h1>
             <div className="h-1.5 w-20 bg-[#B70003] rounded-full" />
           </div>
@@ -78,6 +78,15 @@ function DashboardContent() {
              >
                <AdmissionForm />
              </motion.div>
+          ) : activePage === 'teachers' ? (  // <-- NEW ROUTE ADDED HERE
+             <motion.div 
+               key="teachers"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+             >
+               <TeacherHiringForm />
+             </motion.div>
           ) : (
              <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">Content Module Locked</div>
           )}
@@ -87,15 +96,9 @@ function DashboardContent() {
   );
 }
 
-// --- 2. Export Component jo Suspense mein wrap kare ---
 export default function DashboardPage() {
   return (
-    // Ye Suspense boundary build error ko solve karegi
-    <Suspense fallback={
-      <div className="flex items-center justify-center min-h-screen bg-[#FDFDFD]">
-        <div className="text-[#B70003] font-bold text-xl animate-pulse">Loading Dashboard...</div>
-      </div>
-    }>
+    <Suspense fallback={<div className="flex items-center justify-center min-h-screen bg-[#FDFDFD]"><div className="text-[#B70003] font-bold text-xl animate-pulse">Loading...</div></div>}>
       <DashboardContent />
     </Suspense>
   );

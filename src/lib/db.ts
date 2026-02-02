@@ -23,34 +23,26 @@ if (!cached) {
 
 export async function connectDB() {
   if (cached.conn) {
-    console.log("⚡ Using existing MongoDB connection");
     return cached.conn;
   }
 
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
-      serverSelectionTimeoutMS: 5000, // 5 second mein fail ho jaye agar connect na ho
-      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     };
 
-    console.log("⏳ Attempting to connect to MongoDB...");
-    
-    cached.promise = mongoose.connect(MONGODB_URI!, opts)
-      .then((mongoose) => {
-        console.log("✅ MongoDB Connected Successfully!");
-        return mongoose;
-      })
-      .catch((err) => {
-        console.error("❌ MongoDB Connection Error Details:", err);
-        throw err;
-      });
+    // Ab hum direct connect kar rahay hain, DNS lookup ki zaroorat nahi
+    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+      console.log("✅ MongoDB Connected Successfully!");
+      return mongoose;
+    });
   }
 
   try {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
+    console.error("❌ Database Connection Failed:", e);
     throw e;
   }
 
