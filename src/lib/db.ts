@@ -23,7 +23,6 @@ if (!cached) {
 
 export async function connectDB() {
   if (cached.conn) {
-    // Agar pehle se connect hai to ye log karega
     console.log("⚡ Using existing MongoDB connection");
     return cached.conn;
   }
@@ -31,20 +30,27 @@ export async function connectDB() {
   if (!cached.promise) {
     const opts = {
       bufferCommands: false,
+      serverSelectionTimeoutMS: 5000, // 5 second mein fail ho jaye agar connect na ho
+      socketTimeoutMS: 45000, // Close sockets after 45 seconds of inactivity
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
-      // Jab naya connection banega to ye log karega
-      console.log("✅ New MongoDB connection established");
-      return mongoose;
-    });
+    console.log("⏳ Attempting to connect to MongoDB...");
+    
+    cached.promise = mongoose.connect(MONGODB_URI!, opts)
+      .then((mongoose) => {
+        console.log("✅ MongoDB Connected Successfully!");
+        return mongoose;
+      })
+      .catch((err) => {
+        console.error("❌ MongoDB Connection Error Details:", err);
+        throw err;
+      });
   }
 
   try {
     cached.conn = await cached.promise;
   } catch (e) {
     cached.promise = null;
-    console.error("❌ MongoDB connection error:", e);
     throw e;
   }
 

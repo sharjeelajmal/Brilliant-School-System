@@ -1,19 +1,21 @@
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react'; // Suspense import kiya
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Overview } from '@/components/dashboard/Overview';
 import AdmissionForm from '@/components/forms/AdmissionForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 
-export default function DashboardPage() {
-  const [isOpen, setIsOpen] = useState(true); // Default
-  const searchParams = useSearchParams();
+// --- 1. Asli Logic ko aik alag component mein rakhein ---
+function DashboardContent() {
+  const [isOpen, setIsOpen] = useState(true);
+  
+  const searchParams = useSearchParams(); // Ye hook yahan use ho raha hai
   const router = useRouter();
   const tab = searchParams.get('tab') || 'overview';
+  
   const [activePage, setActivePage] = useState(tab);
 
-  // CHANGE: LocalStorage se Sidebar State Load karna
   useEffect(() => {
     const savedState = localStorage.getItem('sidebarOpen');
     if (savedState !== null) {
@@ -21,7 +23,6 @@ export default function DashboardPage() {
     }
   }, []);
 
-  // CHANGE: Jab bhi sidebar toggle ho, usey save karna
   const handleSidebarToggle = (state: boolean) => {
     setIsOpen(state);
     localStorage.setItem('sidebarOpen', JSON.stringify(state));
@@ -40,7 +41,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen bg-[#FDFDFD] font-['Montserrat'] overflow-hidden">
       <Sidebar 
         isOpen={isOpen} 
-        setIsOpen={handleSidebarToggle} // Updated handler pass kiya
+        setIsOpen={handleSidebarToggle} 
         activePage={activePage} 
         setActivePage={handlePageChange} 
       />
@@ -83,5 +84,19 @@ export default function DashboardPage() {
         </AnimatePresence>
       </main>
     </div>
+  );
+}
+
+// --- 2. Export Component jo Suspense mein wrap kare ---
+export default function DashboardPage() {
+  return (
+    // Ye Suspense boundary build error ko solve karegi
+    <Suspense fallback={
+      <div className="flex items-center justify-center min-h-screen bg-[#FDFDFD]">
+        <div className="text-[#B70003] font-bold text-xl animate-pulse">Loading Dashboard...</div>
+      </div>
+    }>
+      <DashboardContent />
+    </Suspense>
   );
 }
