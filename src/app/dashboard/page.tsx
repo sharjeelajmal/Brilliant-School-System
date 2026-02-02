@@ -1,0 +1,87 @@
+"use client";
+import React, { useState, useEffect } from 'react';
+import { Sidebar } from '@/components/layout/Sidebar';
+import { Overview } from '@/components/dashboard/Overview';
+import AdmissionForm from '@/components/forms/AdmissionForm';
+import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams, useRouter } from 'next/navigation';
+
+export default function DashboardPage() {
+  const [isOpen, setIsOpen] = useState(true); // Default
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tab = searchParams.get('tab') || 'overview';
+  const [activePage, setActivePage] = useState(tab);
+
+  // CHANGE: LocalStorage se Sidebar State Load karna
+  useEffect(() => {
+    const savedState = localStorage.getItem('sidebarOpen');
+    if (savedState !== null) {
+      setIsOpen(JSON.parse(savedState));
+    }
+  }, []);
+
+  // CHANGE: Jab bhi sidebar toggle ho, usey save karna
+  const handleSidebarToggle = (state: boolean) => {
+    setIsOpen(state);
+    localStorage.setItem('sidebarOpen', JSON.stringify(state));
+  };
+
+  const handlePageChange = (page: string) => {
+    setActivePage(page);
+    router.push(`/dashboard?tab=${page}`);
+  };
+
+  useEffect(() => {
+    setActivePage(tab);
+  }, [tab]);
+
+  return (
+    <div className="flex min-h-screen bg-[#FDFDFD] font-['Montserrat'] overflow-hidden">
+      <Sidebar 
+        isOpen={isOpen} 
+        setIsOpen={handleSidebarToggle} // Updated handler pass kiya
+        activePage={activePage} 
+        setActivePage={handlePageChange} 
+      />
+
+      <main className="flex-1 p-8 md:p-12 h-screen overflow-y-auto">
+        <header className="flex justify-between items-center mb-10">
+          <div>
+            <h1 className="text-4xl md:text-5xl font-black text-[#191919] tracking-tighter leading-none mb-3 uppercase">
+              {activePage}
+            </h1>
+            <div className="h-1.5 w-20 bg-[#B70003] rounded-full" />
+          </div>
+
+          <div className="flex items-center gap-4 md:gap-6 cursor-pointer group">
+            <div className="text-right hidden sm:block">
+              <p className="text-[10px] font-black text-[#B70003] uppercase tracking-[3px]">Admin Hub</p>
+              <p className="text-sm md:text-lg font-bold text-[#191919] group-hover:tracking-wider transition-all">M. Ahsan</p>
+            </div>
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-[20px] bg-[#B70003] p-1 shadow-2xl shadow-red-900/20 group-hover:rotate-3 transition-transform">
+               <img src="https://ui-avatars.com/api/?name=M+Ahsan&background=B70003&color=fff" className="w-full h-full rounded-[16px]" alt="admin" />
+            </div>
+          </div>
+        </header>
+
+        <AnimatePresence mode="wait">
+          {activePage === 'overview' ? (
+             <Overview key="overview" />
+          ) : activePage === 'forms' ? (
+             <motion.div 
+               key="forms"
+               initial={{ opacity: 0, y: 20 }}
+               animate={{ opacity: 1, y: 0 }}
+               exit={{ opacity: 0, y: -20 }}
+             >
+               <AdmissionForm />
+             </motion.div>
+          ) : (
+             <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">Content Module Locked</div>
+          )}
+        </AnimatePresence>
+      </main>
+    </div>
+  );
+}
