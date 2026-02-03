@@ -1,5 +1,5 @@
 "use client";
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -13,21 +13,35 @@ interface DropdownProps {
 
 export const CustomDropdown = ({ label, options, value, onChange, name }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  // Click outside to close and remove Red color
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
   
   return (
-    <div className="relative w-full mt-2 group">
+    <div className="relative w-full mt-2 group" ref={containerRef}>
       <div 
         onClick={() => setIsOpen(!isOpen)}
-        className={`w-full h-[55px] border ${isOpen || value ? 'border-[#B70003]' : 'border-gray-300'} rounded-[12px] px-4 flex items-center justify-between cursor-pointer bg-white relative transition-all hover:border-[#B70003]`}
+        // FIX: Border Red sirf tab jab Open ho. Value hone par Gray rahega.
+        className={`w-full h-[55px] border ${isOpen ? 'border-[#B70003]' : 'border-gray-300'} rounded-[12px] px-4 flex items-center justify-between cursor-pointer bg-white relative transition-all hover:border-[#B70003]`}
       >
          <span className={`text-sm font-medium pt-2 ${value ? 'text-[#191919]' : 'text-transparent'}`}>
            {value || "Select"}
          </span>
-         <ChevronDown size={18} className={`text-gray-400 transition-transform ${isOpen ? 'rotate-180 text-[#B70003]' : ''}`} />
+         <ChevronDown size={18} className={`transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-[#B70003]' : ''}`} />
          
+         {/* FIX: Label color bhi sirf isOpen pe Red hoga */}
          <label className={`absolute left-3 transition-all pointer-events-none bg-white px-1
            ${(value || isOpen) 
-             ? '-top-2.5 text-[12px] text-[#B70003]' 
+             ? `-top-2.5 text-[12px] ${isOpen ? 'text-[#B70003]' : 'text-gray-400'}` 
              : 'top-4 text-gray-400 text-sm'
            }`}>
            {label}

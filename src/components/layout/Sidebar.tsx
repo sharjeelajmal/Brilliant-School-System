@@ -37,7 +37,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
       initial={false}
       animate={{ width: isOpen ? 250 : 80 }} 
       transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} 
-      className="h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50"
+   className="gpu-accelerated h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50"
     >
       {/* Toggle Button - FIX 2: Ab ye poora nazar aayega */}
       <button 
