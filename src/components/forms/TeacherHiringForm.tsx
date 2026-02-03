@@ -31,7 +31,7 @@ export default function TeacherHiringForm() {
     degree: '', majorSubject: '', institute: '', completionYear: '', cgpa: '', totalExperience: '', lastInstitute: '', lastDesignation: '', subjectsTaught: '', classLevels: '', jobStartDate: '', jobEndDate: '', reasonLeaving: '',
     
     // Step 3: Enrollment
-    joiningDate: '', subjectsAssigned: '', classSection: '', schoolInTime: '', schoolOutTime: '',
+joiningDate: '', designation: '', subjectsAssigned: '', classSection: '', schoolInTime: '', schoolOutTime: '',
     
     // Step 4: Payroll Structure (NEW FIELDS)
     monthlySalary: '', salaryDate: '', allowance: '',

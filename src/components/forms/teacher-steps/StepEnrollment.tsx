@@ -14,7 +14,7 @@ interface StepProps {
 export const StepEnrollment = ({ formData, handleChange, handleCustomChange }: StepProps) => {
   return (
     <div className="space-y-8">
-      {/* Row 1: Date | Subject | Class */}
+      {/* Row 1: Date | Designation | Subject */}
       <div className="grid grid-cols-3 gap-6 items-start">
         <CustomDatePicker 
           label="Joining Date" 
@@ -24,6 +24,15 @@ export const StepEnrollment = ({ formData, handleChange, handleCustomChange }: S
           disableFuture={false} 
         />
         
+        {/* ADDED: Designation Input */}
+        <CustomInput 
+          label="Designation" 
+          name="designation" 
+          value={formData.designation} 
+          onChange={handleChange} 
+          type="alphanumeric" 
+        />
+        
         <CustomInput 
           label="Subject(s) Assigned" 
           name="subjectsAssigned" 
@@ -31,7 +40,10 @@ export const StepEnrollment = ({ formData, handleChange, handleCustomChange }: S
           onChange={handleChange} 
           type="alphanumeric" 
         />
+      </div>
 
+      {/* Row 2: Class & Section + Timings */}
+      <div className="grid grid-cols-3 gap-6 items-start">
         <div className="relative">
           <CustomDropdown 
             label="Class & Section" 
@@ -40,15 +52,11 @@ export const StepEnrollment = ({ formData, handleChange, handleCustomChange }: S
             onChange={handleCustomChange} 
             options={["Class 1 - A", "Class 1 - B", "Class 2 - A", "O-Levels - Red"]} 
           />
-          {/* Design Hint: 00 Students */}
           <span className="absolute right-1 -bottom-5 text-[10px] font-medium text-gray-300">
             00 Students
           </span>
         </div>
-      </div>
 
-      {/* Row 2: Timings (Clock Icons) */}
-      <div className="grid grid-cols-2 gap-6 w-2/3">
         <CustomTimePicker 
           label="School In Time" 
           name="schoolInTime" 
