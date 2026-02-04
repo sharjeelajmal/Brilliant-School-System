@@ -2,14 +2,14 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Overview } from '@/components/dashboard/Overview';
+import { ClassesOverview } from '@/components/dashboard/ClassesOverview'; // NEW IMPORT
 import AdmissionForm from '@/components/forms/AdmissionForm';
-import TeacherHiringForm from '@/components/forms/TeacherHiringForm'; // Import New Form
+import TeacherHiringForm from '@/components/forms/TeacherHiringForm';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
-  
   const searchParams = useSearchParams();
   const router = useRouter();
   const tab = searchParams.get('tab') || 'overview';
@@ -18,9 +18,7 @@ function DashboardContent() {
 
   useEffect(() => {
     const savedState = localStorage.getItem('sidebarOpen');
-    if (savedState !== null) {
-      setIsOpen(JSON.parse(savedState));
-    }
+    if (savedState !== null) setIsOpen(JSON.parse(savedState));
   }, []);
 
   const handleSidebarToggle = (state: boolean) => {
@@ -39,12 +37,7 @@ function DashboardContent() {
 
   return (
     <div className="flex min-h-screen bg-[#FDFDFD] font-['Montserrat'] overflow-hidden">
-      <Sidebar 
-        isOpen={isOpen} 
-        setIsOpen={handleSidebarToggle} 
-        activePage={activePage} 
-        setActivePage={handlePageChange} 
-      />
+      <Sidebar isOpen={isOpen} setIsOpen={handleSidebarToggle} activePage={activePage} setActivePage={handlePageChange} />
 
       <main className="flex-1 p-8 md:p-12 h-screen overflow-y-auto">
         <header className="flex justify-between items-center mb-10">
@@ -69,22 +62,21 @@ function DashboardContent() {
         <AnimatePresence mode="wait">
           {activePage === 'overview' ? (
              <Overview key="overview" />
-          ) : activePage === 'forms' ? (
+          ) : activePage === 'classes' ? (  // <-- NEW PAGE CONNECTED HERE
              <motion.div 
-               key="forms"
+               key="classes"
                initial={{ opacity: 0, y: 20 }}
                animate={{ opacity: 1, y: 0 }}
                exit={{ opacity: 0, y: -20 }}
              >
+               <ClassesOverview />
+             </motion.div>
+          ) : activePage === 'forms' ? (
+             <motion.div key="forms" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                <AdmissionForm />
              </motion.div>
-          ) : activePage === 'teachers' ? (  // <-- NEW ROUTE ADDED HERE
-             <motion.div 
-               key="teachers"
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-             >
+          ) : activePage === 'teachers' ? (
+             <motion.div key="teachers" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                <TeacherHiringForm />
              </motion.div>
           ) : (

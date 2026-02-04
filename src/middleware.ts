@@ -2,22 +2,35 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  const isLoggedIn = request.cookies.get('isLoggedIn');
+  const token = request.cookies.get('token');
+  const role = request.cookies.get('role')?.value;
+  const path = request.nextUrl.pathname;
 
-  // Agar user dashboard par jana chahta hai aur cookie nahi hai -> Login par bhejo
-  if (!isLoggedIn && request.nextUrl.pathname.startsWith('/dashboard')) {
+  if (!token && path !== '/login') {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  
-  // Agar user Login page par hai aur pehlay se Logged In hai -> Dashboard bhejo
-  if (isLoggedIn && request.nextUrl.pathname === '/login') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+
+  if (token && path === '/login') {
+    if (role === 'admin') return NextResponse.redirect(new URL('/dashboard', request.url));
+    if (role === 'teacher') return NextResponse.redirect(new URL('/attendance', request.url));
+  }
+
+  // Teacher Access Rules
+  if (role === 'teacher') {
+    // Agar teacher dashboard par jaye to attendance par bhejo
+    if (path.startsWith('/dashboard')) {
+      return NextResponse.redirect(new URL('/attendance', request.url));
+    }
+    // Teacher sirf in routes par ja sakta hai
+    if (!path.startsWith('/attendance') && !path.startsWith('/test-report')) {
+       // Optional: Redirect to a default teacher page
+    }
   }
 
   return NextResponse.next();
 }
 
-// Ye zaroori hai taake middleware sirf in paths par chalay (performance ke liye)
 export const config = {
-  matcher: ['/dashboard/:path*', '/login'],
+  // Matcher mein '/test-report' add kiya
+  matcher: ['/dashboard/:path*', '/attendance/:path*', '/test-report/:path*', '/login'],
 };

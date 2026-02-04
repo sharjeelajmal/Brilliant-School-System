@@ -16,7 +16,6 @@ export const Overview = () => {
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
         {stats.map((s, i) => (
-          // Change 1: Added 'animated-box' here to force GPU on cards
           <div key={i} className="animated-box">
              <StatCard index={i} label={s.label} value={s.value} />
           </div>
@@ -27,7 +26,6 @@ export const Overview = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
         
         {/* White Graph Box */}
-        {/* Change 2: Added 'animated-box' and removed generic shadow to reduce load */}
         <div className="animated-box lg:col-span-2 bg-white p-10 rounded-[45px] shadow-xl border border-gray-50 group hover:shadow-2xl transition-all duration-500">
           <div className="flex justify-between items-center mb-10">
             <div>
@@ -44,7 +42,6 @@ export const Overview = () => {
         </div>
 
         {/* Black Action Box */}
-        {/* Change 3: Added 'animated-box' */}
         <div className="animated-box bg-[#191919] p-10 rounded-[45px] shadow-2xl relative overflow-hidden group flex flex-col justify-between">
           <div className="relative z-10">
             <h4 className="text-3xl font-black text-white tracking-tighter mb-4 leading-tight uppercase italic">Instant<br/>Admission</h4>
@@ -54,7 +51,6 @@ export const Overview = () => {
               Initialize
           </button>
           
-          {/* Change 4: Reduced Blur from 80px to 40px (High blur causes major LAG) */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-[#B70003]/20 blur-[40px] group-hover:bg-[#B70003]/30 transition-all duration-700" />
         </div>
 
