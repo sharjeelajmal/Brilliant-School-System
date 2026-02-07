@@ -32,5 +32,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   // Matcher mein '/test-report' add kiya
-  matcher: ['/dashboard/:path*', '/attendance/:path*', '/test-report/:path*', '/login'],
+  matcher: ['/dashboard/:path*', '/attendance/:path*', '/test-report/:path*','/complaints/:path*', '/login'],
 };

@@ -1,185 +1,187 @@
 "use client";
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft, Printer, Check, X, Clock } from 'lucide-react';
+import { ArrowLeft, Printer, Edit, Trash2, Phone, MapPin, CreditCard, User } from 'lucide-react';
 
-// --- Info Row Component ---
-const InfoRow = ({ label, value }: { label: string, value: string }) => (
-  <div className="flex flex-col">
-    <span className="text-[12px] font-bold text-[#191919] uppercase tracking-wide">{label}</span>
-    <span className="text-[14px] font-medium text-gray-500 border-b border-gray-100 pb-1 mt-1">{value}</span>
-  </div>
-);
-
-// --- Section Header ---
-const SectionTitle = ({ title }: { title: string }) => (
-  <h3 className="text-xl font-black text-[#191919] border-b border-gray-100 pb-2 mb-6 mt-8 uppercase tracking-tighter">
-    {title}
-  </h3>
-);
-
-// --- Simple Line Chart (Reused logic with different colors) ---
-const ProfileChart = ({ title, color, dataPoints }: { title: string, color: string, dataPoints: string }) => (
-  <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-lg h-[300px] flex flex-col relative overflow-hidden">
-    <h4 className="font-bold text-[#191919] text-lg mb-6">{title}</h4>
-    <div className="flex-1 relative border-l border-b border-gray-100 mx-2 mb-2">
-       <svg className="absolute inset-0 w-full h-full overflow-visible" preserveAspectRatio="none">
-          <motion.path 
-            d={dataPoints} 
-            fill="none" 
-            stroke={color} 
-            strokeWidth="3"
-            initial={{ pathLength: 0 }}
-            animate={{ pathLength: 1 }}
-            transition={{ duration: 1.5, ease: "easeInOut" }}
-          />
-       </svg>
-    </div>
-  </div>
-);
-
-interface StudentProps {
-  studentName: string;
+interface ProfileProps {
+  studentId: string; // Changed from studentName to studentId
   onBack: () => void;
 }
 
-export const StudentProfile = ({ studentName, onBack }: StudentProps) => {
-  
+export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
+  const [student, setStudent] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // --- FETCH STUDENT DATA ---
+  useEffect(() => {
+    const fetchStudent = async () => {
+      try {
+        const res = await fetch(`/api/students?id=${studentId}`);
+        const data = await res.json();
+        if (data.success) {
+          setStudent(data.data);
+        }
+      } catch (err) {
+        console.error("Error fetching profile");
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    if (studentId) fetchStudent();
+  }, [studentId]);
+
+  if (loading) return <div className="p-10 text-center font-bold text-gray-400">Loading Profile...</div>;
+  if (!student) return <div className="p-10 text-center font-bold text-red-500">Student Not Found</div>;
+
   return (
-    <div className="space-y-8 font-['Montserrat'] animate-in fade-in slide-in-from-right-10 duration-500 pb-10">
+    <div className="space-y-8 font-['Montserrat'] animate-in fade-in slide-in-from-right-10 duration-500">
       
-      {/* --- Header --- */}
-      <div className="bg-white p-6 rounded-[24px] shadow-xl border border-gray-100 flex flex-col md:flex-row justify-between items-center gap-6">
-         <div className="flex items-center gap-6 w-full md:w-auto">
-            <button onClick={onBack} className="p-3 bg-gray-50 text-gray-600 rounded-xl hover:bg-[#B70003] hover:text-white transition-all shadow-sm">
+      {/* Header & Actions */}
+      <div className="flex justify-between items-center">
+         <div className="flex items-center gap-4">
+            <button onClick={onBack} className="p-2 bg-[#B70003] text-white rounded-lg hover:scale-110 transition-transform shadow-md cursor-pointer">
                 <ArrowLeft size={20} />
             </button>
-            <div className="flex items-center gap-4">
-                <div className="w-20 h-20 rounded-full bg-gray-200 border-4 border-white shadow-lg overflow-hidden">
-                    <img src={`https://ui-avatars.com/api/?name=${studentName}&background=random`} alt="Student" className="w-full h-full object-cover" />
-                </div>
-                <div>
-                    <h2 className="text-3xl font-black text-[#191919] tracking-tighter uppercase">{studentName}</h2>
-                    <p className="text-gray-400 font-bold text-sm">Roll no. # 01</p>
-                </div>
-            </div>
+            <h2 className="text-3xl font-black text-[#B70003] uppercase tracking-tighter">Student Profile</h2>
          </div>
-         <button className="px-8 py-3 bg-[#B70003] text-white font-bold rounded-xl shadow-lg hover:bg-[#950002] transition-all flex items-center gap-2">
-            Print Profile <Printer size={18} />
-         </button>
+         <div className="flex gap-3">
+             <button onClick={() => window.print()} className="flex items-center gap-2 px-4 py-2 bg-gray-100 font-bold rounded-lg hover:bg-gray-200 transition-colors text-sm">
+                 <Printer size={16} /> Print
+             </button>
+             <button className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 font-bold rounded-lg hover:bg-blue-100 transition-colors text-sm">
+                 <Edit size={16} /> Edit
+             </button>
+         </div>
       </div>
 
-      {/* --- Stats Bar --- */}
-      <div className="bg-white p-6 rounded-[20px] shadow-sm border border-gray-100 grid grid-cols-2 md:grid-cols-5 gap-4 text-center divide-x divide-gray-100">
-          <div><p className="text-xs text-gray-400 font-bold uppercase">Fee Status</p><p className="text-green-600 font-black text-lg">Paid</p></div>
-          <div><p className="text-xs text-gray-400 font-bold uppercase">Complaints</p><p className="text-[#B70003] font-black text-lg">02</p></div>
-          <div><p className="text-xs text-gray-400 font-bold uppercase">Teacher</p><p className="text-[#191919] font-black text-lg">Miss Sarah</p></div>
-          <div><p className="text-xs text-gray-400 font-bold uppercase">Attendance</p><p className="text-[#191919] font-black text-lg">88%</p></div>
-          <div><p className="text-xs text-gray-400 font-bold uppercase">Performance</p><p className="text-[#191919] font-black text-lg">A+</p></div>
-      </div>
-
-      {/* --- Information Sections --- */}
-      <div className="bg-white p-8 rounded-[24px] shadow-xl border border-gray-100">
+      {/* Main Profile Card */}
+      <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden">
           
-          {/* Personal Info */}
-          <SectionTitle title="Personal Information" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-12">
-              <InfoRow label="First Name" value="Ali" />
-              <InfoRow label="Last Name" value="Khan" />
-              <InfoRow label="Gender" value="Male" />
-              <InfoRow label="Date of Birth" value="12/05/2018 (7 yrs old)" />
-              <InfoRow label="Birth Cert No." value="34201-1234567-1" />
-              <InfoRow label="Religion" value="Islam" />
-              <InfoRow label="Nationality" value="Pakistani" />
-              <InfoRow label="Prev. School" value="The Educators" />
-              <InfoRow label="Last Class" value="Prep" />
-          </div>
-
-          {/* Parents Info */}
-          <SectionTitle title="Parents / Guardian Information" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-12">
-              <InfoRow label="Father Name" value="Ahmed Khan" />
-              <InfoRow label="CNIC" value="34201-9876543-1" />
-              <InfoRow label="Mobile No." value="0300-1234567" />
-              <InfoRow label="WhatsApp No." value="0300-1234567" />
-              <InfoRow label="Address" value="House 12, Street 4, Lahore" />
-              <InfoRow label="Emergency Contact" value="0321-7654321" />
-              <InfoRow label="Occupation" value="Businessman" />
-              <InfoRow label="Monthly Income" value="150,000 PKR" />
-          </div>
-
-          {/* Enrollment */}
-          <SectionTitle title="Enrollment" />
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-y-6 gap-x-12">
-              <InfoRow label="Joining Date" value="15/08/2023" />
-              <InfoRow label="Class" value="Play Group" />
-              <InfoRow label="Section" value="A" />
-          </div>
-
-          {/* Fee Structure */}
-          <SectionTitle title="Fee Structure" />
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-y-6 gap-x-12">
-              <InfoRow label="Monthly Fee" value="5,000 PKR" />
-              <InfoRow label="Fee Date" value="10th of Month" />
-              <InfoRow label="Annual Fee" value="20,000 PKR" />
-              <InfoRow label="Admission Fee" value="10,000 PKR" />
-              <InfoRow label="Uniform Charges" value="5,000 PKR" />
-              <InfoRow label="Total Payable" value="40,000 PKR" />
-              <InfoRow label="Discount" value="0 PKR" />
-              <InfoRow label="Paid Amount" value="40,000 PKR" />
-          </div>
-      </div>
-
-      {/* --- Charts & History --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          
-          {/* Attendance Section */}
-          <div className="space-y-6">
-              <ProfileChart title="Attendance" color="#002F9C" dataPoints="M0 80 Q 60 40, 120 60 T 240 30 T 360 50 T 480 20" />
+          {/* Top Banner / Basic Info */}
+          <div className="bg-[#B70003] p-8 text-white flex items-center gap-8 relative overflow-hidden">
+              <div className="absolute -right-10 -top-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
               
-              <div className="bg-white p-6 rounded-[24px] shadow-lg border border-gray-100">
-                  <h4 className="font-bold text-[#191919] mb-4 uppercase text-sm">Recent Attendance</h4>
-                  <div className="space-y-3">
-                      {[1,2,3,4,5].map(i => (
-                          <div key={i} className="flex justify-between items-center text-sm border-b border-gray-50 pb-2 last:border-none">
-                              <span className="text-gray-400 font-medium">1{i}/02/2026</span>
-                              <span className={`font-bold flex items-center gap-2 ${i===3 ? 'text-red-600' : 'text-green-600'}`}>
-                                  {i===3 ? <><X size={14} /> Absent</> : <><Check size={14} /> Present</>}
-                              </span>
-                          </div>
-                      ))}
+              {/* Photo */}
+             <div className="w-32 h-32 bg-white rounded-full border-4 border-white/30 flex items-center justify-center text-[#B70003] font-bold overflow-hidden shadow-lg relative z-10">
+                  {student.photoUrl ? (
+                      // Agar photo upload hui hai to wo dikhayein (Real app ma yahan <img src={student.photoUrl} /> hoga)
+                      <span className="text-xs">Photo</span> 
+                  ) : (
+                      // Agar photo nahi hai, to Gender check karein
+                     student.gender === 'Boy' ? (
+        <img src="/Boy.png" alt="Boy Avatar" className="w-full h-full object-cover" />
+    ) : student.gender === 'Girl' ? (
+        <img src="/Girl.png" alt="Girl Avatar" className="w-full h-full object-cover" />
+    ) : (
+        <User size={48} />
+    )
+)}
+              </div>
+
+              {/* Name & Roll No */}
+              <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-1">
+                      <h1 className="text-4xl font-black tracking-tight">{student.firstName} {student.lastName}</h1>
+                   <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+  Roll No: {student.rollNo || "Pending"}
+</span>
                   </div>
+                  <p className="opacity-90 font-medium text-lg flex items-center gap-2">
+                      {student.classJoining} <span className="w-1.5 h-1.5 bg-white rounded-full"></span> Section {student.section}
+                  </p>
               </div>
           </div>
 
-          {/* Performance Section */}
-          <div className="space-y-6">
-              <ProfileChart title="Performance" color="#009952" dataPoints="M0 100 Q 60 80, 120 90 T 240 60 T 360 40 T 480 10" />
+          {/* Details Grid */}
+          <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-12">
               
-              <div className="bg-white p-6 rounded-[24px] shadow-lg border border-gray-100">
-                  <h4 className="font-bold text-[#191919] mb-4 uppercase text-sm">Recent Tests</h4>
-                  <div className="space-y-3">
-                      <div className="grid grid-cols-4 text-xs font-bold text-gray-400 mb-2">
-                          <span>Date</span><span>Subject</span><span>% Age</span><span className="text-right">Status</span>
+              {/* Column 1: Personal & Guardian */}
+              <div className="space-y-8">
+                  
+                  {/* Personal Info */}
+                  <div>
+                      <h3 className="text-[#B70003] font-bold uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Personal Information</h3>
+                      <div className="space-y-3 text-sm">
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Date of Birth</span> <span className="font-bold text-[#191919]">{student.dob}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Gender</span> <span className="font-bold text-[#191919]">{student.gender}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">B-Form / CNIC</span> <span className="font-bold text-[#191919]">{student.studentCnic || '-'}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Nationality</span> <span className="font-bold text-[#191919]">{student.nationality}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Religion</span> <span className="font-bold text-[#191919]">{student.religion}</span></div>
                       </div>
-                      {[
-                          { date: '10/02', sub: 'Maths', pct: '89%', status: 'Pass', color: 'green' },
-                          { date: '12/02', sub: 'Urdu', pct: '45%', status: 'Fail', color: 'red' },
-                          { date: '15/02', sub: 'Eng', pct: '92%', status: 'Pass', color: 'green' },
-                      ].map((t, i) => (
-                          <div key={i} className="grid grid-cols-4 text-sm font-medium border-b border-gray-50 pb-2 last:border-none items-center">
-                              <span className="text-gray-500">{t.date}</span>
-                              <span className="text-[#191919]">{t.sub}</span>
-                              <span className="text-gray-600">{t.pct}</span>
-                              <span className={`text-right font-bold text-${t.color}-600`}>{t.status}</span>
-                          </div>
-                      ))}
                   </div>
+
+                  {/* Guardian Info */}
+                  <div>
+                      <h3 className="text-[#B70003] font-bold uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Guardian Details</h3>
+                      <div className="bg-gray-50 p-5 rounded-xl border border-gray-100 space-y-3 text-sm">
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Guardian Name</span> <span className="font-bold text-[#191919]">{student.parentFirstName} {student.parentLastName}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Relation</span> <span className="font-bold text-[#191919]">{student.relation}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Occupation</span> <span className="font-bold text-[#191919]">{student.occupation}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">CNIC</span> <span className="font-bold text-[#191919]">{student.parentCnic}</span></div>
+                          
+                          <div className="pt-3 mt-3 border-t border-gray-200">
+                             <div className="flex items-center gap-3 mb-2">
+                                <Phone size={16} className="text-[#B70003]" />
+                                <span className="font-bold text-[#191919]">{student.mobileNo}</span>
+                             </div>
+                             <div className="flex items-start gap-3">
+                                <MapPin size={16} className="text-[#B70003] mt-1" />
+                                <span className="font-bold text-[#191919] leading-tight">{student.address}</span>
+                             </div>
+                          </div>
+                      </div>
+                  </div>
+
+              </div>
+
+              {/* Column 2: Fees & Academic */}
+              <div className="space-y-8">
+                  
+                  {/* Fee Structure */}
+                  <div>
+                      <h3 className="text-[#B70003] font-bold uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Fee Structure</h3>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-green-50 p-4 rounded-xl border border-green-100 text-center">
+                              <p className="text-xs font-bold text-green-700 uppercase mb-1">Monthly Fee</p>
+                              <p className="text-2xl font-black text-green-800">{student.monthlyFee}</p>
+                          </div>
+                          <div className="bg-blue-50 p-4 rounded-xl border border-blue-100 text-center">
+                              <p className="text-xs font-bold text-blue-700 uppercase mb-1">Admission Fee</p>
+                              <p className="text-2xl font-black text-blue-800">{student.admissionFee}</p>
+                          </div>
+                      </div>
+                      
+                      <div className="mt-4 space-y-3 text-sm">
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Annual Charges</span> <span className="font-bold text-[#191919]">{student.annualFee}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Other Charges</span> <span className="font-bold text-[#191919]">{student.otherCharges}</span></div>
+                          <div className="flex justify-between pt-2 border-t border-gray-100"><span className="text-[#B70003] font-bold">Total Payable</span> <span className="font-black text-[#191919]">{student.totalPayable} PKR</span></div>
+                      </div>
+                  </div>
+
+                  {/* Previous Academic */}
+                  <div>
+                      <h3 className="text-[#B70003] font-bold uppercase tracking-wider mb-4 border-b border-gray-100 pb-2">Academic History</h3>
+                      <div className="space-y-3 text-sm">
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Previous School</span> <span className="font-bold text-[#191919]">{student.previousSchool || 'N/A'}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Last Class</span> <span className="font-bold text-[#191919]">{student.lastClass || 'N/A'}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Leaving Reason</span> <span className="font-bold text-[#191919]">{student.leavingReason || '-'}</span></div>
+                          <div className="flex justify-between"><span className="text-gray-400 font-medium">Admission Date</span> <span className="font-bold text-[#191919]">{student.joiningDate}</span></div>
+                      </div>
+                  </div>
+
+                  {/* Remarks */}
+                  {student.studentRemarks && (
+                    <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100 text-sm">
+                        <span className="font-bold text-yellow-800 block mb-1">Remarks:</span>
+                        <p className="text-gray-700 italic">"{student.studentRemarks}"</p>
+                    </div>
+                  )}
+
               </div>
           </div>
 
       </div>
-
     </div>
   );
 };

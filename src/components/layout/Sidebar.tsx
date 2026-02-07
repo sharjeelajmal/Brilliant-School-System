@@ -3,7 +3,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, FileText, Users, Wallet, Settings, LogOut, 
-  ChevronLeft, ChevronRight, UserPlus, BookOpen // New Icon for Classes
+  ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare // NEW ICON IMPORTED
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -25,11 +25,12 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
   
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'classes', label: 'Classes', icon: BookOpen }, // NEW ITEM ADDED
+    { id: 'classes', label: 'Classes', icon: BookOpen },
     { id: 'forms', label: 'Student Admission', icon: FileText },
     { id: 'teachers', label: 'Teacher Hiring', icon: UserPlus },
     { id: 'students', label: 'Students List', icon: Users },
     { id: 'finance', label: 'Fee & Finance', icon: Wallet },
+    { id: 'complaints', label: 'Complaints', icon: MessageSquare }, // NEW BUTTON ADDED
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -38,9 +39,8 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
       initial={false}
       animate={{ width: isOpen ? 250 : 80 }} 
       transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} 
-      className="gpu-accelerated h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50"
+      className="gpu-accelerated h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50 print:hidden"
     >
-      {/* ... (Toggle Button & Logo Code Same as Before) ... */}
       <button 
         onClick={() => setIsOpen(!isOpen)}
         className="absolute -right-3 top-9 bg-[#B70003] text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform z-[100] cursor-pointer flex items-center justify-center border-2 border-white"
@@ -66,7 +66,6 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
               <item.icon size={20} strokeWidth={activePage === item.id ? 2.5 : 2} className="flex-shrink-0" />
               <motion.span animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="font-bold text-xs whitespace-nowrap overflow-hidden">{item.label}</motion.span>
             </button>
-            {/* Tooltip */}
             {!isOpen && (
               <div className="absolute left-[70px] top-1/2 -translate-y-1/2 bg-white text-[#191919] text-xs font-bold px-4 py-2 rounded-lg opacity-0 group-hover:opacity-100 transition-all duration-200 pointer-events-none whitespace-nowrap shadow-[0_5px_15px_-3px_rgba(0,0,0,0.1)] border border-gray-100 z-[9999]">
                 {item.label}
@@ -77,7 +76,6 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
         ))}
       </div>
 
-      {/* ... (Logout Code Same as Before) ... */}
       <div className="p-3 mb-2 relative group">
         <button onClick={handleLogout} className={`w-full flex items-center gap-3 p-3 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-red-600 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
           <LogOut size={20} />

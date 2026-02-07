@@ -9,13 +9,13 @@ interface DropdownProps {
   options: string[];
   value: string;
   onChange: (name: string, value: string) => void;
+  disabled?: boolean; // FIX: Added disabled prop here
 }
 
-export const CustomDropdown = ({ label, options, value, onChange, name }: DropdownProps) => {
+export const CustomDropdown = ({ label, options, value, onChange, name, disabled }: DropdownProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  // Click outside to close and remove Red color
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
@@ -29,27 +29,26 @@ export const CustomDropdown = ({ label, options, value, onChange, name }: Dropdo
   return (
     <div className="relative w-full mt-2 group" ref={containerRef}>
       <div 
-        onClick={() => setIsOpen(!isOpen)}
-        // FIX: Border Red sirf tab jab Open ho. Value hone par Gray rahega.
-        className={`w-full h-[55px] border ${isOpen ? 'border-[#B70003]' : 'border-gray-300'} rounded-[12px] px-4 flex items-center justify-between cursor-pointer bg-white relative transition-all hover:border-[#B70003]`}
+        onClick={() => !disabled && setIsOpen(!isOpen)} // FIX: Disable click if disabled
+        className={`w-full h-[55px] border ${isOpen ? 'border-[#B70003]' : 'border-gray-300'} rounded-[12px] px-4 flex items-center justify-between bg-white relative transition-all 
+        ${disabled ? 'opacity-50 cursor-not-allowed bg-gray-100' : 'cursor-pointer hover:border-[#B70003]'}`}
       >
          <span className={`text-sm font-medium pt-2 ${value ? 'text-[#191919]' : 'text-transparent'}`}>
            {value || "Select"}
          </span>
          <ChevronDown size={18} className={`transition-transform text-gray-400 ${isOpen ? 'rotate-180 text-[#B70003]' : ''}`} />
          
-         {/* FIX: Label color bhi sirf isOpen pe Red hoga */}
-         <label className={`absolute left-3 transition-all pointer-events-none bg-white px-1
+         <label className={`absolute left-3 transition-all pointer-events-none px-1
            ${(value || isOpen) 
-             ? `-top-2.5 text-[12px] ${isOpen ? 'text-[#B70003]' : 'text-gray-400'}` 
-             : 'top-4 text-gray-400 text-sm'
+             ? `-top-2.5 text-[12px] ${isOpen ? 'text-[#B70003]' : 'text-gray-400'} bg-white` 
+             : 'top-4 text-gray-400 text-sm bg-transparent'
            }`}>
            {label}
          </label>
       </div>
 
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && !disabled && (
           <motion.div 
             initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }}
             className="absolute top-[60px] left-0 w-full bg-white border border-gray-100 shadow-xl rounded-[12px] z-50 overflow-hidden max-h-[200px] overflow-y-auto"

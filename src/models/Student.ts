@@ -1,11 +1,14 @@
 import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IStudent extends Document {
-  // Step 1
+  // New Field
+  rollNo: number; 
+
+  // ... (Baaki purani fields same rahengi)
   firstName: string;
   lastName: string;
   gender: string;
-  dob: Date;
+  dob: string;
   studentCnic: string;
   religion: string;
   nationality: string;
@@ -15,7 +18,6 @@ export interface IStudent extends Document {
   studentRemarks: string;
   photoUrl: string;
 
-  // Step 2
   parentFirstName: string;
   parentLastName: string;
   parentCnic: string;
@@ -29,11 +31,10 @@ export interface IStudent extends Document {
   reference: string;
   parentRemarks: string;
 
-  // Step 3 (Enrollment) - NEW FIELDS
-  joiningDate: Date;
+  joiningDate: string;
   classJoining: string;
   section: string;
-  // Step 4: Fee Structure (New)
+
   monthlyFee: number;
   feeDate: string;
   annualFee: number;
@@ -43,20 +44,23 @@ export interface IStudent extends Document {
   uniformBooksCharges: number;
   stationaryCharges: number;
   otherCharges: number;
-  discount: number;
   lateFeeFine: number;
+  
+  discount: number;
   totalPayable: number;
   amountPaying: number;
   remainingAmount: number;
 }
 
-
 const StudentSchema = new Schema<IStudent>({
-  // Step 1
+  // New Field Added
+  rollNo: { type: Number, unique: true }, 
+
+  // ... (Baaki Schema same rahega)
   firstName: { type: String, required: true },
   lastName: { type: String, required: true },
-  gender: { type: String, required: true },
-  dob: { type: Date, required: true },
+  gender: { type: String },
+  dob: { type: String },
   studentCnic: { type: String },
   religion: { type: String },
   nationality: { type: String, default: 'Pakistani' },
@@ -66,7 +70,6 @@ const StudentSchema = new Schema<IStudent>({
   studentRemarks: { type: String },
   photoUrl: { type: String },
 
-  // Step 2
   parentFirstName: { type: String },
   parentLastName: { type: String },
   parentCnic: { type: String },
@@ -80,11 +83,10 @@ const StudentSchema = new Schema<IStudent>({
   reference: { type: String },
   parentRemarks: { type: String },
 
-  // Step 3 - NEW FIELDS
-  joiningDate: { type: Date },
+  joiningDate: { type: String },
   classJoining: { type: String },
   section: { type: String },
-// Step 4
+
   monthlyFee: { type: Number, default: 0 },
   feeDate: { type: String },
   annualFee: { type: Number, default: 0 },
@@ -94,11 +96,13 @@ const StudentSchema = new Schema<IStudent>({
   uniformBooksCharges: { type: Number, default: 0 },
   stationaryCharges: { type: Number, default: 0 },
   otherCharges: { type: Number, default: 0 },
-  discount: { type: Number, default: 0 },
   lateFeeFine: { type: Number, default: 0 },
+
+  discount: { type: Number, default: 0 },
   totalPayable: { type: Number, default: 0 },
   amountPaying: { type: Number, default: 0 },
   remainingAmount: { type: Number, default: 0 },
+
 }, { timestamps: true });
 
 export default mongoose.models.Student || mongoose.model<IStudent>('Student', StudentSchema);

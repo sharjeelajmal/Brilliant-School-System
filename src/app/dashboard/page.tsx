@@ -2,9 +2,12 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Overview } from '@/components/dashboard/Overview';
-import { ClassesOverview } from '@/components/dashboard/ClassesOverview'; // NEW IMPORT
+import { ClassesOverview } from '@/components/dashboard/ClassesOverview';
 import AdmissionForm from '@/components/forms/AdmissionForm';
 import TeacherHiringForm from '@/components/forms/TeacherHiringForm';
+import { ComplaintManager } from '@/components/complaints/ComplaintManager';
+// IMPORT COMPLAINT FORM
+import { ComplaintForm } from '@/components/complaints/ComplaintForm'; 
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams, useRouter } from 'next/navigation';
 
@@ -27,6 +30,9 @@ function DashboardContent() {
   };
 
   const handlePageChange = (page: string) => {
+    // --- REDIRECT LOGIC REMOVED ---
+    // Ab complaints par click karne se naya page load nahi hoga,
+    // Balkay dashboard ke andar hi khulega.
     setActivePage(page);
     router.push(`/dashboard?tab=${page}`);
   };
@@ -34,6 +40,12 @@ function DashboardContent() {
   useEffect(() => {
     setActivePage(tab);
   }, [tab]);
+
+  // Dynamic Title Logic
+  const getTitle = () => {
+    if (activePage === 'complaints') return 'Complaint Center'; // Custom Title
+    return activePage.replace('-', ' ');
+  };
 
   return (
     <div className="flex min-h-screen bg-[#FDFDFD] font-['Montserrat'] overflow-hidden">
@@ -43,7 +55,7 @@ function DashboardContent() {
         <header className="flex justify-between items-center mb-10">
           <div>
             <h1 className="text-4xl md:text-5xl font-black text-[#191919] tracking-tighter leading-none mb-3 uppercase">
-              {activePage.replace('-', ' ')}
+              {getTitle()}
             </h1>
             <div className="h-1.5 w-20 bg-[#B70003] rounded-full" />
           </div>
@@ -62,13 +74,8 @@ function DashboardContent() {
         <AnimatePresence mode="wait">
           {activePage === 'overview' ? (
              <Overview key="overview" />
-          ) : activePage === 'classes' ? (  // <-- NEW PAGE CONNECTED HERE
-             <motion.div 
-               key="classes"
-               initial={{ opacity: 0, y: 20 }}
-               animate={{ opacity: 1, y: 0 }}
-               exit={{ opacity: 0, y: -20 }}
-             >
+          ) : activePage === 'classes' ? (
+             <motion.div key="classes" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                <ClassesOverview />
              </motion.div>
           ) : activePage === 'forms' ? (
@@ -79,6 +86,11 @@ function DashboardContent() {
              <motion.div key="teachers" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
                <TeacherHiringForm />
              </motion.div>
+          ) : activePage === 'complaints' ? (
+             // --- COMPLAINTS MODULE ADDED HERE ---
+          <motion.div key="complaints" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+        <ComplaintManager />
+    </motion.div>
           ) : (
              <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">Content Module Locked</div>
           )}

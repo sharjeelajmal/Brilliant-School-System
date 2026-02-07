@@ -2,78 +2,82 @@
 import React from 'react';
 import { CustomInput } from '@/components/ui/CustomInput';
 import { CustomDatePicker } from '@/components/ui/CustomDatePicker';
-import { CustomDropdown } from '@/components/ui/CustomDropdown';
 
 interface StepProps {
   formData: any;
   handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   handleCustomChange: (name: string, value: string) => void;
-  yearsList: string[];
-  calculateJobDuration: (start: string, end: string) => string;
 }
 
-export const StepQualification = ({ 
-  formData, handleChange, handleCustomChange, yearsList, calculateJobDuration 
-}: StepProps) => {
+export const StepQualification = ({ formData, handleChange, handleCustomChange }: StepProps) => {
+
+  const calculateJobDuration = (start: string, end: string) => {
+    if (!start || !end) return "00 Years experience";
+    const startDate = new Date(start);
+    const endDate = new Date(end);
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) return "Invalid Date";
+    let years = endDate.getFullYear() - startDate.getFullYear();
+    let months = endDate.getMonth() - startDate.getMonth();
+    if (months < 0) { years--; months += 12; }
+    if (years < 0) return "Invalid Duration";
+    if (years === 0 && months === 0) return "Less than a month";
+    return `${years > 0 ? `${years} Year${years > 1 ? 's' : ''} ` : ''}${months > 0 ? `${months} Month${months > 1 ? 's' : ''}` : ''} experience`.trim();
+  };
+
   return (
     <div className="space-y-8">
-      {/* Row 1: Degree | Major | Institute */}
-      <div className="grid grid-cols-3 gap-6">
-          <CustomInput label="Degree/Qualification" name="degree" value={formData.degree} onChange={handleChange} type="alphanumeric" />
-          <CustomInput label="Major Subject" name="majorSubject" value={formData.majorSubject} onChange={handleChange} type="alphanumeric" />
-          <CustomInput label="Institute/University" name="institute" value={formData.institute} onChange={handleChange} type="alphanumeric" />
-      </div>
+      {/* Education Section */}
+      <div>
+        <h3 className="text-[#B70003] font-bold text-lg mb-4 border-b border-gray-100 pb-2">Academic Qualification</h3>
+        
+        <div className="grid grid-cols-3 gap-6 mb-6">
+          <CustomInput label="Latest Degree" name="degree" value={formData.degree} onChange={handleChange} type="alphanumeric" placeholder="e.g. BS Computer Science" />
+          <CustomInput label="Major Subject" name="majorSubject" value={formData.majorSubject} onChange={handleChange} type="text" />
+          <CustomInput label="Institute / University" name="institute" value={formData.institute} onChange={handleChange} type="alphanumeric" />
+        </div>
 
-      {/* Row 2: Year | Grade | Experience */}
-      <div className="grid grid-cols-3 gap-6">
-          <CustomDropdown label="Year of Completion" name="completionYear" value={formData.completionYear} onChange={handleCustomChange} options={yearsList} />
-          <CustomInput label="Grade/CGPA" name="cgpa" value={formData.cgpa} onChange={handleChange} type="alphanumeric" />
-          <CustomDropdown label="Experience" name="totalExperience" value={formData.totalExperience} onChange={handleCustomChange} options={["Fresh", "1 Year", "2 Years", "3 Years", "4 Years", "5+ Years"]} />
-      </div>
-
-      {/* Row 3: Last School | Designation | Subjects */}
-      <div className="grid grid-cols-3 gap-6">
-          <CustomInput label="School/Institute Name" name="lastInstitute" value={formData.lastInstitute} onChange={handleChange} type="alphanumeric" />
-          <CustomInput label="Designation" name="lastDesignation" value={formData.lastDesignation} onChange={handleChange} type="alphanumeric" />
-          <CustomInput label="Subject(s) Taught" name="subjectsTaught" value={formData.subjectsTaught} onChange={handleChange} type="alphanumeric" />
-      </div>
-
-      {/* Row 4: Class Levels | Start Date | End Date */}
-      <div className="grid grid-cols-3 gap-6 items-start">
-          <CustomDropdown 
-            label="Class Levels" 
-            name="classLevels" 
-            value={formData.classLevels} 
-            onChange={handleCustomChange} 
-            options={["Primary", "Middle", "Metric", "O-Levels", "A-Levels"]} 
-          />
-          
-          <CustomDatePicker 
-            label="Starting Date" 
-            name="jobStartDate" 
-            value={formData.jobStartDate} 
-            onChange={handleCustomChange} 
-            disableFuture={false} 
-          />
-          
-          <div className="relative">
-              <CustomDatePicker 
-                label="Ending Date" 
-                name="jobEndDate" 
-                value={formData.jobEndDate} 
+        <div className="grid grid-cols-2 gap-6">
+           <CustomDatePicker 
+                label="Completion Date" 
+                name="completionYear" 
+                value={formData.completionYear} 
                 onChange={handleCustomChange} 
-                disableFuture={false} 
-              />
-              {/* Experience Calculation Text */}
-              <span className="absolute right-2 -bottom-5 text-[10px] font-bold text-gray-400">
-                 {calculateJobDuration(formData.jobStartDate, formData.jobEndDate)}
-              </span>
-          </div>
+                disableFuture={true}
+           />
+           {/* FIX: Type changed to 'alphanumeric' to allow Numbers (3.5) & Grades (A+) */}
+           <CustomInput 
+             label="CGPA / Grade" 
+             name="cgpa" 
+             value={formData.cgpa} 
+             onChange={handleChange} 
+             type="alphanumeric" 
+           />
+        </div>
       </div>
 
-      {/* Row 5: Reason of Leaving */}
-      <div className="w-full">
-          <CustomInput label="Reason of Leaving" name="reasonLeaving" value={formData.reasonLeaving} onChange={handleChange} type="alphanumeric" />
+      {/* Experience Section */}
+      <div>
+        <h3 className="text-[#B70003] font-bold text-lg mb-4 border-b border-gray-100 pb-2">Professional Experience</h3>
+        
+        <div className="grid grid-cols-2 gap-6 mb-6">
+           <CustomInput label="Last Institute Name" name="lastInstitute" value={formData.lastInstitute} onChange={handleChange} type="alphanumeric" />
+           <CustomInput label="Designation" name="lastDesignation" value={formData.lastDesignation} onChange={handleChange} type="text" />
+        </div>
+
+        <div className="grid grid-cols-2 gap-6 relative mb-6">
+            <CustomDatePicker label="Job Start Date" name="jobStartDate" value={formData.jobStartDate} onChange={handleCustomChange} disableFuture={true} />
+            
+            <div className="relative">
+                <CustomDatePicker label="Job End Date" name="jobEndDate" value={formData.jobEndDate} onChange={handleCustomChange} disableFuture={true} />
+                <span className="absolute right-2 -bottom-6 text-[10px] font-bold text-gray-400 bg-gray-50 px-2 py-1 rounded">
+                  {calculateJobDuration(formData.jobStartDate, formData.jobEndDate)}
+                </span>
+            </div>
+        </div>
+
+        <div className="mt-4">
+           <CustomInput label="Reason for Leaving" name="reasonLeaving" value={formData.reasonLeaving} onChange={handleChange} type="text" />
+        </div>
       </div>
     </div>
   );
