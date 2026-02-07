@@ -4,10 +4,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   ArrowLeft, Search, Plus, UserPlus, Users, 
   CheckSquare, FileText, Edit, Eye, Trash2, AlertTriangle, Printer,
-  X, Check, ArrowRight // Ye 3 icons add kiye hain
+  X, Check, ArrowRight // Added Missing Icons
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { useRouter } from 'next/navigation';
+
+// --- IMPORT EXISTING PROFILE COMPONENT ---
+import { StudentProfile } from '@/components/dashboard/StudentProfile';
 
 // --- 1. DELETE MODAL ---
 const DeleteModal = ({ isOpen, onClose, onConfirm }: any) => {
@@ -34,91 +37,7 @@ const DeleteModal = ({ isOpen, onClose, onConfirm }: any) => {
     );
 };
 
-// 2. Stat Card
-const StatCard = ({ value, label, index }: { value: string | number, label: string, index: number }) => (
-  <motion.div 
-    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}
-    className="bg-[#B70003] rounded-[16px] p-6 text-white relative overflow-hidden shadow-lg h-[140px] flex flex-col justify-center group"
-  >
-    <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#C60205] rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500" />
-    <h3 className="text-4xl font-black mb-1 relative z-10">{value}</h3>
-    <p className="text-sm font-medium opacity-90 relative z-10 tracking-wider">{label}</p>
-  </motion.div>
-);
-
-// 3. Action Button
-const ActionButton = ({ label, icon: Icon, onClick }: { label: string, icon: any, onClick: () => void }) => (
-  <button 
-    onClick={onClick}
-    className="flex-1 bg-[#B70003] text-white h-12 rounded-[12px] font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:bg-[#950002] transition-all active:scale-95 whitespace-nowrap px-4 cursor-pointer"
-  >
-    <Icon size={18} /> {label}
-  </button>
-);
-
-// --- 4. NEW MODERN GENDER VISUAL ---
-const ModernGenderVisual = ({ boys, girls }: { boys: number, girls: number }) => {
-  const total = boys + girls || 1;
-  const boysPct = Math.round((boys / total) * 100);
-  const girlsPct = Math.round((girls / total) * 100);
-
-  const cardVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: (i: number) => ({ opacity: 1, y: 0, transition: { delay: i * 0.1, duration: 0.5, type: "spring" } })
-  };
-
-  const avatarVariants = {
-    hidden: { scale: 0 },
-    visible: { scale: 1, transition: { type: "spring", stiffness: 200, damping: 10, delay: 0.3 } }
-  };
-
-  return (
-    <div className="bg-white rounded-[24px] border border-gray-100 shadow-lg h-[320px] overflow-hidden relative p-6 flex flex-col">
-        <h4 className="font-bold text-[#191919] text-lg mb-4">Gender Demographics</h4>
-        
-        <div className="flex-1 flex gap-4">
-            {/* Boys Card */}
-            <motion.div custom={0} variants={cardVariants} initial="hidden" animate="visible" className="flex-1 bg-blue-50 rounded-2xl p-4 flex flex-col items-center justify-between relative overflow-hidden group">
-                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-blue-100/50 to-transparent opacity-50" />
-                 <motion.div variants={avatarVariants} className="w-20 h-20 rounded-full bg-white border-4 border-blue-200 overflow-hidden shadow-md relative z-10">
-                    {/* Assuming Boy.png exists in public folder */}
-                    <img src="/Boy.png" alt="Boy" className="w-full h-full object-cover" />
-                 </motion.div>
-                 <div className="text-center relative z-10">
-                     <h3 className="text-4xl font-black text-blue-700 tracking-tighter">{boys}</h3>
-                     <p className="text-sm font-bold text-blue-500 uppercase tracking-wider">Boys</p>
-                 </div>
-                 <div className="w-full bg-blue-200 h-3 rounded-full overflow-hidden relative z-10">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${boysPct}%` }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }} className="h-full bg-blue-600 rounded-full relative">
-                        <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-white leading-none">{boysPct}%</span>
-                    </motion.div>
-                 </div>
-            </motion.div>
-
-            {/* Girls Card */}
-            <motion.div custom={1} variants={cardVariants} initial="hidden" animate="visible" className="flex-1 bg-red-50 rounded-2xl p-4 flex flex-col items-center justify-between relative overflow-hidden group">
-                 <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-red-100/50 to-transparent opacity-50" />
-                 <motion.div variants={avatarVariants} className="w-20 h-20 rounded-full bg-white border-4 border-red-200 overflow-hidden shadow-md relative z-10">
-                    {/* Assuming Girl.png exists in public folder */}
-                    <img src="/Girl.png" alt="Girl" className="w-full h-full object-cover" />
-                 </motion.div>
-                 <div className="text-center relative z-10">
-                     <h3 className="text-4xl font-black text-[#B70003] tracking-tighter">{girls}</h3>
-                     <p className="text-sm font-bold text-red-500 uppercase tracking-wider">Girls</p>
-                 </div>
-                 <div className="w-full bg-red-200 h-3 rounded-full overflow-hidden relative z-10">
-                    <motion.div initial={{ width: 0 }} animate={{ width: `${girlsPct}%` }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }} className="h-full bg-[#B70003] rounded-full relative">
-                        <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-white leading-none">{girlsPct}%</span>
-                    </motion.div>
-                 </div>
-            </motion.div>
-        </div>
-    </div>
-// ... ModernGenderVisual ka code khatam ...
-  );
-};
-
-// --- 1. REUSABLE MODAL WRAPPER ---
+// --- 2. REUSABLE MODAL WRAPPER ---
 const ModalWrapper = ({ isOpen, onClose, title, children }: any) => {
     if (!isOpen) return null;
     return (
@@ -137,7 +56,7 @@ const ModalWrapper = ({ isOpen, onClose, title, children }: any) => {
     );
 };
 
-// --- 2. REPLACE TEACHER MODAL ---
+// --- 3. REPLACE TEACHER MODAL ---
 const ReplaceTeacherModal = ({ isOpen, onClose, currentTeacher, onConfirm }: any) => {
     const [teachers, setTeachers] = useState<any[]>([]);
     const [selectedTeacher, setSelectedTeacher] = useState('');
@@ -189,7 +108,7 @@ const ReplaceTeacherModal = ({ isOpen, onClose, currentTeacher, onConfirm }: any
     );
 };
 
-// --- 3. MERGE SECTION MODAL ---
+// --- 4. MERGE SECTION MODAL ---
 const MergeSectionModal = ({ isOpen, onClose, currentSection, className, onConfirm }: any) => {
     const [sections, setSections] = useState<any[]>([]);
     const [targetSection, setTargetSection] = useState('');
@@ -246,14 +165,93 @@ const MergeSectionModal = ({ isOpen, onClose, currentSection, className, onConfi
     );
 };
 
-interface SectionProps {
-// ... (Aagay purana code hai)
-  sectionName: string;
-  onBack: () => void;
-  onSelectStudent: (studentId: string) => void;
-}
+// 5. Stat Card
+const StatCard = ({ value, label, index }: { value: string | number, label: string, index: number }) => (
+  <motion.div 
+    initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.1 }}
+    className="bg-[#B70003] rounded-[16px] p-6 text-white relative overflow-hidden shadow-lg h-[140px] flex flex-col justify-center group"
+  >
+    <div className="absolute -right-4 -top-4 w-24 h-24 bg-[#C60205] rounded-full opacity-50 group-hover:scale-125 transition-transform duration-500" />
+    <h3 className="text-4xl font-black mb-1 relative z-10">{value}</h3>
+    <p className="text-sm font-medium opacity-90 relative z-10 tracking-wider">{label}</p>
+  </motion.div>
+);
 
-export const SectionDetails = ({ sectionName, onBack, onSelectStudent }: SectionProps) => {
+// 6. Action Button
+const ActionButton = ({ label, icon: Icon, onClick }: { label: string, icon: any, onClick: () => void }) => (
+  <button 
+    onClick={onClick}
+    className="flex-1 bg-[#B70003] text-white h-12 rounded-[12px] font-bold text-sm flex items-center justify-center gap-2 shadow-md hover:bg-[#950002] transition-all active:scale-95 whitespace-nowrap px-4 cursor-pointer"
+  >
+    <Icon size={18} /> {label}
+  </button>
+);
+
+// --- 7. NEW MODERN GENDER VISUAL (FIXED) ---
+const ModernGenderVisual = ({ boys, girls }: { boys: number, girls: number }) => {
+  const total = boys + girls || 1;
+  const boysPct = Math.round((boys / total) * 100);
+  const girlsPct = Math.round((girls / total) * 100);
+
+  const cardVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: (i: number) => ({ 
+        opacity: 1, 
+        y: 0, 
+        transition: { delay: i * 0.1, duration: 0.5, type: "spring" as const } // FIXED HERE
+    })
+  };
+
+  const avatarVariants = {
+    hidden: { scale: 0 },
+    visible: { scale: 1, transition: { type: "spring" as const, stiffness: 200, damping: 10, delay: 0.3 } } // FIXED HERE
+  };
+
+  return (
+    <div className="bg-white rounded-[24px] border border-gray-100 shadow-lg h-[320px] overflow-hidden relative p-6 flex flex-col">
+        <h4 className="font-bold text-[#191919] text-lg mb-4">Gender Demographics</h4>
+        
+        <div className="flex-1 flex gap-4">
+            {/* Boys Card */}
+            <motion.div custom={0} variants={cardVariants} initial="hidden" animate="visible" className="flex-1 bg-blue-50 rounded-2xl p-4 flex flex-col items-center justify-between relative overflow-hidden group">
+                 <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_top_left,_var(--tw-gradient-stops))] from-blue-100/50 to-transparent opacity-50" />
+                 <motion.div variants={avatarVariants} className="w-20 h-20 rounded-full bg-white border-4 border-blue-200 overflow-hidden shadow-md relative z-10">
+                    <img src="/Boy.png" alt="Boy" className="w-full h-full object-cover" />
+                 </motion.div>
+                 <div className="text-center relative z-10">
+                     <h3 className="text-4xl font-black text-blue-700 tracking-tighter">{boys}</h3>
+                     <p className="text-sm font-bold text-blue-500 uppercase tracking-wider">Boys</p>
+                 </div>
+                 <div className="w-full bg-blue-200 h-3 rounded-full overflow-hidden relative z-10">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${boysPct}%` }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.5 }} className="h-full bg-blue-600 rounded-full relative">
+                        <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-white leading-none">{boysPct}%</span>
+                    </motion.div>
+                 </div>
+            </motion.div>
+
+            {/* Girls Card */}
+            <motion.div custom={1} variants={cardVariants} initial="hidden" animate="visible" className="flex-1 bg-red-50 rounded-2xl p-4 flex flex-col items-center justify-between relative overflow-hidden group">
+                 <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-red-100/50 to-transparent opacity-50" />
+                 <motion.div variants={avatarVariants} className="w-20 h-20 rounded-full bg-white border-4 border-red-200 overflow-hidden shadow-md relative z-10">
+                    <img src="/Girl.png" alt="Girl" className="w-full h-full object-cover" />
+                 </motion.div>
+                 <div className="text-center relative z-10">
+                     <h3 className="text-4xl font-black text-[#B70003] tracking-tighter">{girls}</h3>
+                     <p className="text-sm font-bold text-red-500 uppercase tracking-wider">Girls</p>
+                 </div>
+                 <div className="w-full bg-red-200 h-3 rounded-full overflow-hidden relative z-10">
+                    <motion.div initial={{ width: 0 }} animate={{ width: `${girlsPct}%` }} transition={{ duration: 1.5, ease: "easeOut", delay: 0.6 }} className="h-full bg-[#B70003] rounded-full relative">
+                        <span className="absolute right-1 top-1/2 -translate-y-1/2 text-[9px] font-bold text-white leading-none">{girlsPct}%</span>
+                    </motion.div>
+                 </div>
+            </motion.div>
+        </div>
+    </div>
+  );
+};
+
+// --- MAIN COMPONENT ---
+export const SectionDetails = ({ sectionName, onBack, onSelectStudent }: any) => {
   const router = useRouter(); 
   
   // Data States
@@ -264,10 +262,14 @@ export const SectionDetails = ({ sectionName, onBack, onSelectStudent }: Section
   const [topPerformers, setTopPerformers] = useState<any[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteId, setDeleteId] = useState<string | null>(null);
-
-const [currentSectionId, setCurrentSectionId] = useState(""); 
+  
+  // NEW STATES
+  const [currentSectionId, setCurrentSectionId] = useState(""); 
   const [isReplaceOpen, setIsReplaceOpen] = useState(false);
   const [isMergeOpen, setIsMergeOpen] = useState(false);
+  
+  // SHARED PROFILE STATE
+  const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
 
   const [className, sectionOnly] = sectionName.includes(' - ') ? sectionName.split(' - ') : [sectionName, ""];
 
@@ -275,18 +277,19 @@ const [currentSectionId, setCurrentSectionId] = useState("");
   const fetchData = async () => {
       setLoading(true);
       try {
-        // 🟢 NEW LOGIC: Fetch Section ID first
+        // Fetch Section ID
         const secRes = await fetch(`/api/sections?class=${className}`);
         const secData = await secRes.json();
         if(secData.success) {
             const thisSection = secData.data.find((s:any) => s.name === sectionOnly);
             if(thisSection) setCurrentSectionId(thisSection._id);
         }
-        // 1. Fetch Students
+
+        // Fetch Students
         const sRes = await fetch(`/api/students?class=${className}&section=${sectionOnly}`);
         const sData = await sRes.json();
         
-        // 2. Fetch Teacher
+        // Fetch Teacher
         const tRes = await fetch(`/api/teacher?class=${className}&section=${sectionOnly}`);
         const tData = await tRes.json();
 
@@ -294,7 +297,6 @@ const [currentSectionId, setCurrentSectionId] = useState("");
           const studentList = sData.data;
           setStudents(studentList);
           
-          // --- CALCULATE REAL-TIME STATS ---
           setStats({ 
               total: studentList.length, 
               boys: studentList.filter((s: any) => s.gender === 'Boy').length, 
@@ -325,10 +327,6 @@ const [currentSectionId, setCurrentSectionId] = useState("");
       } catch (error) { toast.error("Error"); }
       finally { setDeleteId(null); }
   };
-
-  const filteredStudents = students.filter(s => 
-    (s.firstName + ' ' + s.lastName).toLowerCase().includes(searchQuery.toLowerCase())
-  );
 
   // --- HANDLERS ---
   const handleReplaceTeacher = async (newTeacherId: string) => {
@@ -366,10 +364,21 @@ const [currentSectionId, setCurrentSectionId] = useState("");
       } catch(e) { toast.error("Error"); }
   };
 
+  const filteredStudents = students.filter(s => 
+    (s.firstName + ' ' + s.lastName).toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
+  // --- SHOW PROFILE IF SELECTED ---
+  if (selectedStudentId) {
+      return <StudentProfile studentId={selectedStudentId} onBack={() => setSelectedStudentId(null)} />;
+  }
+
   return (
     <div className="space-y-8 font-['Montserrat'] animate-in fade-in slide-in-from-right-10 duration-500">
       <Toaster position="top-center" richColors />
-    <AnimatePresence>
+      
+      {/* MODALS */}
+      <AnimatePresence>
           {deleteId && <DeleteModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={confirmDelete} />}
           {isReplaceOpen && <ReplaceTeacherModal isOpen={isReplaceOpen} onClose={() => setIsReplaceOpen(false)} currentTeacher={teacherName} onConfirm={handleReplaceTeacher} />}
           {isMergeOpen && <MergeSectionModal isOpen={isMergeOpen} onClose={() => setIsMergeOpen(false)} currentSection={sectionOnly} className={className} onConfirm={handleMergeSection} />}
@@ -399,15 +408,14 @@ const [currentSectionId, setCurrentSectionId] = useState("");
       </div>
 
       {/* Actions */}
-    <div>
+      <div>
         <h3 className="text-lg font-bold text-[#191919] mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-4">
-           {/* Purane buttons same rahenge */}
            <ActionButton label="Add Student" icon={Plus} onClick={() => router.push('/dashboard?tab=forms')} />
            <ActionButton label="Mark Attendance" icon={CheckSquare} onClick={() => router.push('/dashboard?tab=attendance')} />
            <ActionButton label="Take Test" icon={FileText} onClick={() => router.push('/dashboard?tab=test-report')} />
            
-           {/* 🟢 UPDATED BUTTONS */}
+           {/* UPDATED BUTTONS */}
            <ActionButton label="Replace Teacher" icon={UserPlus} onClick={() => setIsReplaceOpen(true)} />
            <ActionButton label="Merge Section" icon={Users} onClick={() => setIsMergeOpen(true)} />
         </div>
@@ -419,7 +427,7 @@ const [currentSectionId, setCurrentSectionId] = useState("");
          {/* --- 1. NEW MODERN GENDER VISUAL --- */}
          <ModernGenderVisual boys={stats.boys} girls={stats.girls} />
 
-         {/* --- 2. TOP PERFORMERS (UNCHANGED) --- */}
+         {/* --- 2. TOP PERFORMERS --- */}
          <div className="bg-white p-6 rounded-[24px] border border-gray-100 shadow-lg h-[320px] overflow-hidden flex flex-col">
             <h4 className="font-bold text-[#191919] mb-4">Top Performers (By Marks)</h4>
             <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1">
@@ -427,7 +435,7 @@ const [currentSectionId, setCurrentSectionId] = useState("");
                    <div className="text-center text-gray-400 text-sm mt-10">No exam data yet.</div>
                ) : (
                    topPerformers.map((s, i) => (
-                     <div key={s._id} className="flex justify-between items-center text-sm p-3 hover:bg-gray-50 rounded-lg border border-transparent hover:border-gray-100 transition-all cursor-pointer" onClick={() => onSelectStudent(s._id)}>
+                     <div key={s._id} className="flex justify-between items-center text-sm p-3 hover:bg-gray-50 rounded-lg border border-transparent hover:border-gray-100 transition-all cursor-pointer" onClick={() => setSelectedStudentId(s._id)}>
                         <div className="flex items-center gap-3">
                           <div className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs text-white shadow-md ${i === 0 ? 'bg-[#FFD700]' : i === 1 ? 'bg-[#C0C0C0]' : 'bg-[#CD7F32]'}`}>
                               {i + 1}
@@ -467,7 +475,7 @@ const [currentSectionId, setCurrentSectionId] = useState("");
              filteredStudents.map((s, i) => (
                 <motion.div 
                     key={s._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.05 }}
-                    onClick={() => onSelectStudent(s._id)}
+                    onClick={() => setSelectedStudentId(s._id)}
                     className="grid grid-cols-12 gap-4 py-4 px-6 border-b border-gray-100 hover:bg-red-50 items-center transition-colors cursor-pointer group"
                 >
                     <div className="col-span-2 font-bold text-gray-400">#{s.rollNo}</div>

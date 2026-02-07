@@ -148,7 +148,8 @@ export const ClassesOverview = () => {
   if (isAddingClass) return <AddClass onBack={() => setIsAddingClass(false)} />;
   if (isAddingSection && selectedClass) return <AddSection classNameStr={selectedClass} onBack={() => setIsAddingSection(false)} />;
   if (selectedStudent) return <StudentProfile studentId={selectedStudent} onBack={() => setSelectedStudent(null)} />;
-  if (selectedSection) return <SectionDetails sectionName={selectedSection} onBack={() => setSelectedSection(null)} onSelectStudent={(id) => setSelectedStudent(id)} />;
+  // FIX: Type added here (id: string)
+  if (selectedSection) return <SectionDetails sectionName={selectedSection} onBack={() => setSelectedSection(null)} onSelectStudent={(id: string) => setSelectedStudent(id)} />;
   
   if (selectedClass) return (
       <ClassDetails 
