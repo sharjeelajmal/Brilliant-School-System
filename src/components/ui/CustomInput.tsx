@@ -1,62 +1,68 @@
 "use client";
 import React from 'react';
 
-interface InputProps {
+interface CustomInputProps {
   label: string;
   name: string;
   value: string | number;
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
   placeholder?: string;
-  className?: string;
-  // New Type: 'alphanumeric' for addresses/classes (allows text + numbers + symbols)
-  type?: "text" | "number" | "cnic" | "alphanumeric"; 
   suffix?: string;
+  disabled?: boolean;
 }
 
-export const CustomInput = ({ label, name, value, onChange, placeholder, className = "", type = "text", suffix }: InputProps) => {
-  
-  const handleValidation = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const val = e.target.value;
-    
-    // Strict Alphabet Only (Names)
-    if (type === "text" && !/^[a-zA-Z\s]*$/.test(val)) return;
-    
-    // Numeric Only (Fees etc)
-    if (type === "number" && !/^\d*\.?\d*$/.test(val)) return;
-    
-    // CNIC
-    if (type === "cnic" && !/^[0-9-]*$/.test(val)) return;
+export const CustomInput = ({ 
+  label, 
+  name, 
+  value, 
+  onChange, 
+  type = "text", 
+  placeholder, 
+  suffix,
+  disabled = false
+}: CustomInputProps) => {
 
-    // Alphanumeric (Address, Class etc - Allows everything essentially)
-    if (type === "alphanumeric") {
-      // No validation, allow everything
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let val = e.target.value;
+
+    // --- FIX: Logic Update ---
+    // Agar type "number" hai to sirf numbers allow kro
+    if (type === 'number') {
+        // Sirf digits aur dot allow karein (decimals ke liye)
+        if (!/^\d*\.?\d*$/.test(val)) return;
     }
+    
+    // NOTE: Agar type "text" hai to hum kuch bhi allow kar rahe hain 
+    // (Numbers + Alphabets) taake Class Name (e.g., "Class 10") likha ja sakay.
+    
+    // Agar future ma sirf alphabets chahiye hon (Names ke liye), 
+    // to hum alag prop bana lenge. Abhi ke liye ye open hai.
 
     onChange(e);
   };
 
-  const paddingRight = suffix ? `${suffix.length * 8 + 20}px` : '16px';
-
   return (
-    <div className={`relative w-full group mt-2 ${className}`}>
-      <input 
-        type={type === "number" ? "text" : "text"}
-        name={name}
-        value={value}
-        onChange={handleValidation}
-        placeholder={placeholder || " "} 
-        style={{ paddingRight: paddingRight }}
-        className={`peer w-full h-[55px] bg-transparent border border-gray-300 rounded-[12px] pl-4 text-[#191919] font-medium outline-none focus:border-[#B70003] transition-all pt-2 placeholder-transparent`}
-      />
-      <label className="absolute left-3 top-4 text-gray-400 text-sm transition-all peer-focus:-top-2.5 peer-focus:text-[12px] peer-focus:bg-white peer-focus:px-1 peer-focus:text-[#B70003] peer-[:not(:placeholder-shown)]:-top-2.5 peer-[:not(:placeholder-shown)]:text-[12px] peer-[:not(:placeholder-shown)]:bg-white peer-[:not(:placeholder-shown)]:px-1 pointer-events-none">
+    <div className="flex flex-col gap-1 w-full">
+      <label className="text-xs font-bold text-gray-500 uppercase tracking-wider ml-1">
         {label}
       </label>
-      
-      {suffix && (
-        <span className="absolute right-4 top-[18px] text-xs font-bold text-gray-400 pointer-events-none bg-white pl-2">
-          {suffix}
-        </span>
-      )}
+      <div className={`flex items-center border border-gray-200 rounded-xl bg-white focus-within:border-[#B70003] focus-within:ring-1 focus-within:ring-[#B70003]/20 transition-all h-[50px] overflow-hidden ${disabled ? 'bg-gray-100 opacity-70 cursor-not-allowed' : ''}`}>
+        <input
+          type={type === 'number' ? 'text' : type} // "number" type ko text rakh ke regex se control krte hain taake arrows na ayen
+          name={name}
+          value={value}
+          onChange={handleChange}
+          placeholder={placeholder}
+          disabled={disabled}
+          className="w-full h-full px-4 outline-none text-sm font-bold text-[#191919] placeholder:text-gray-300 bg-transparent"
+        />
+        {suffix && (
+          <div className="bg-gray-50 h-full flex items-center px-4 border-l border-gray-100 text-xs font-bold text-gray-500 uppercase">
+            {suffix}
+          </div>
+        )}
+      </div>
     </div>
   );
 };

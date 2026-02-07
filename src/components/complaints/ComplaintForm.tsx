@@ -101,16 +101,16 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   };
 
   return (
-    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full">
+    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full pb-10">
       <Toaster position="top-center" richColors />
 
       <div className="mb-6">
-        <h2 className="text-2xl font-bold text-[#3C3C3C]">Add New Complaint</h2>
+        <h2 className="text-xl md:text-2xl font-bold text-[#3C3C3C]">Add New Complaint</h2>
         <div className="w-full h-[1px] bg-gray-200 mt-2" />
       </div>
 
-      {/* Filters */}
-      <div className="bg-white p-8 rounded-[24px] shadow-lg border border-gray-100 mb-8">
+      {/* Filters Section - Responsive Grid */}
+      <div className="bg-white p-5 md:p-8 rounded-[24px] shadow-lg border border-gray-100 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
             <CustomDatePicker label="Select Date" name="date" value={formData.date} onChange={handleChange} />
             <CustomDropdown label="Select Class" name="className" value={formData.className} onChange={handleChange} options={classes} />
@@ -122,17 +122,32 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
         </div>
       </div>
 
-      {/* Writing Area */}
-      <div className="bg-white p-10 rounded-[24px] shadow-xl border border-gray-100 relative min-h-[500px]">
-         <div className="flex items-end gap-4 mb-8">
-            <label className="text-[#3C3C3C] font-bold text-lg whitespace-nowrap mb-1">Title:</label>
-            <input type="text" value={formData.title} onChange={(e) => handleChange('title', e.target.value)} className="flex-1 border-b border-[#3C3C3C] outline-none text-lg font-medium text-[#B70003] pb-1 bg-transparent" />
+      {/* Writing Area - Responsive Flex Layout */}
+      <div className="bg-white p-5 md:p-10 rounded-[24px] shadow-xl border border-gray-100 flex flex-col min-h-[400px]">
+         
+         {/* Title Input Row */}
+         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-6 md:mb-8">
+            <label className="text-[#3C3C3C] font-bold text-base md:text-lg whitespace-nowrap mb-1">Title:</label>
+            <input 
+                type="text" 
+                value={formData.title} 
+                onChange={(e) => handleChange('title', e.target.value)} 
+                className="flex-1 border-b border-[#3C3C3C] outline-none text-base md:text-lg font-medium text-[#B70003] pb-1 bg-transparent w-full" 
+            />
          </div>
          
-         <LinedTextArea value={formData.description} onChange={(val) => handleChange('description', val)} placeholder="Complaint details..." />
+         {/* Text Area (Takes remaining space) */}
+         <div className="flex-1 mb-6">
+             <LinedTextArea value={formData.description} onChange={(val) => handleChange('description', val)} placeholder="Complaint details..." />
+         </div>
 
-         <div className="absolute bottom-10 right-10">
-            <button onClick={handleSubmit} disabled={loading} className="px-10 py-3 bg-[#B50104] text-white font-bold text-lg rounded-[12px] shadow-lg hover:bg-[#900000] transition-all disabled:opacity-50 flex items-center gap-2">
+         {/* Submit Button (Fixed Layout for Mobile) */}
+         <div className="flex justify-end mt-auto">
+            <button 
+                onClick={handleSubmit} 
+                disabled={loading} 
+                className="w-full md:w-auto px-10 py-3 bg-[#B50104] text-white font-bold text-base md:text-lg rounded-[12px] shadow-lg hover:bg-[#900000] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+            >
                 {loading ? "Saving..." : "Submit Complaint"} 
             </button>
          </div>

@@ -3,7 +3,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { 
   LayoutDashboard, FileText, Users, Wallet, Settings, LogOut, 
-  ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare // NEW ICON IMPORTED
+  ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare,
+  ClipboardList, FileBarChart2 // NEW ICONS IMPORTED
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -29,8 +30,13 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
     { id: 'forms', label: 'Student Admission', icon: FileText },
     { id: 'teachers', label: 'Teacher Hiring', icon: UserPlus },
     { id: 'students', label: 'Students List', icon: Users },
+    
+    // --- NEW ADMIN TABS ADDED ---
+    { id: 'attendance', label: 'Attendance', icon: ClipboardList },
+    { id: 'test-report', label: 'Test Reports', icon: FileBarChart2 },
+    
     { id: 'finance', label: 'Fee & Finance', icon: Wallet },
-    { id: 'complaints', label: 'Complaints', icon: MessageSquare }, // NEW BUTTON ADDED
+    { id: 'complaints', label: 'Complaints', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
@@ -56,7 +62,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
         </motion.div>
       </div>
 
-      <div className="flex-1 px-3 space-y-2 mt-4">
+      <div className="flex-1 px-3 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
         {menuItems.map((item) => (
           <div key={item.id} className="relative group">
             <button

@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import { ArrowLeft, Printer, Edit, Trash2, Phone, MapPin, CreditCard, User } from 'lucide-react';
 
 interface ProfileProps {
-  studentId: string; // Changed from studentName to studentId
+  studentId: string;
   onBack: () => void;
 }
 
@@ -62,30 +62,29 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
           <div className="bg-[#B70003] p-8 text-white flex items-center gap-8 relative overflow-hidden">
               <div className="absolute -right-10 -top-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"></div>
               
-              {/* Photo */}
+              {/* Photo / Avatar Section */}
              <div className="w-32 h-32 bg-white rounded-full border-4 border-white/30 flex items-center justify-center text-[#B70003] font-bold overflow-hidden shadow-lg relative z-10">
                   {student.photoUrl ? (
-                      // Agar photo upload hui hai to wo dikhayein (Real app ma yahan <img src={student.photoUrl} /> hoga)
-                      <span className="text-xs">Photo</span> 
+                      <img src={student.photoUrl} alt="Student" className="w-full h-full object-cover" />
                   ) : (
-                      // Agar photo nahi hai, to Gender check karein
-                     student.gender === 'Boy' ? (
-        <img src="/Boy.png" alt="Boy Avatar" className="w-full h-full object-cover" />
-    ) : student.gender === 'Girl' ? (
-        <img src="/Girl.png" alt="Girl Avatar" className="w-full h-full object-cover" />
-    ) : (
-        <User size={48} />
-    )
-)}
+                      // AVATAR LOGIC
+                      (student.gender === 'Boy' || student.gender === 'Male') ? (
+                          <img src="/Boy.png" alt="Boy Avatar" className="w-full h-full object-cover" />
+                      ) : (student.gender === 'Girl' || student.gender === 'Female') ? (
+                          <img src="/Girl.png" alt="Girl Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                          <User size={48} />
+                      )
+                  )}
               </div>
 
               {/* Name & Roll No */}
               <div className="relative z-10">
                   <div className="flex items-center gap-3 mb-1">
                       <h1 className="text-4xl font-black tracking-tight">{student.firstName} {student.lastName}</h1>
-                   <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
-  Roll No: {student.rollNo || "Pending"}
-</span>
+                      <span className="bg-white/20 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">
+                        Roll No: {student.rollNo || "Pending"}
+                      </span>
                   </div>
                   <p className="opacity-90 font-medium text-lg flex items-center gap-2">
                       {student.classJoining} <span className="w-1.5 h-1.5 bg-white rounded-full"></span> Section {student.section}

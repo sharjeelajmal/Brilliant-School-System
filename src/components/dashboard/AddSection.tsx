@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowLeft, Save, Info } from 'lucide-react';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
+import { CustomInput } from '@/components/ui/CustomInput'; // CustomInput Import Karein
 import { toast, Toaster } from 'sonner';
 
 interface AddSectionProps {
@@ -19,6 +20,9 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
   // Auto-Calculated Section Name
   const [nextSection, setNextSection] = useState<string>('Checking...'); 
   const [selectedTeacherName, setSelectedTeacherName] = useState('');
+  
+  // NEW: Capacity State (Default 40)
+  const [capacity, setCapacity] = useState('40');
 
   // 1. Fetch Teachers & Calculate Next Section
   useEffect(() => {
@@ -32,35 +36,30 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
           setTeacherNames(tData.data.map((t: any) => `${t.firstName} ${t.lastName}`));
         }
 
-        // B. Fetch Existing Sections to Determine Next Letter
+        // B. Fetch Existing Sections
         const sRes = await fetch(`/api/sections?class=${classNameStr}`);
         const sData = await sRes.json();
         if (sData.success) {
-            const existingNames = sData.data.map((s: any) => s.name); // e.g. ["A", "B"]
-            
-            // Logic: Find first available letter
+            const existingNames = sData.data.map((s: any) => s.name);
             const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
             let found = "A";
             for (let char of letters) {
-                if (!existingNames.includes(char)) {
-                    found = char;
-                    break;
-                }
+                if (!existingNames.includes(char)) { found = char; break; }
             }
             setNextSection(found);
         }
-      } catch (err) {
-        console.error("Failed to load data");
-        setNextSection("A"); // Fallback
-      }
+      } catch (err) { setNextSection("A"); }
     };
     initData();
   }, [classNameStr]);
 
   const handleSubmit = async () => {
+    if (!capacity || parseInt(capacity) < 1) {
+        toast.error("Please enter a valid capacity");
+        return;
+    }
+
     setLoading(true);
-    
-    // Find Teacher ID
     const teacherObj = teachers.find(t => t.name === selectedTeacherName);
     const teacherId = teacherObj ? teacherObj.id : null;
 
@@ -69,10 +68,10 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-            name: nextSection, // Auto Selected Name
+            name: nextSection,
             className: classNameStr,
-            teacherId: teacherId
-            // Capacity Removed
+            teacherId: teacherId,
+            maxCapacity: parseInt(capacity) // Send Capacity to Backend
         })
       });
 
@@ -80,17 +79,14 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
 
       if (res.ok) {
         toast.success(`Section ${nextSection} Created Successfully!`);
-        // Refresh calculation for next time (e.g. if A created, now show B)
         setNextSection(prev => String.fromCharCode(prev.charCodeAt(0) + 1)); 
         setSelectedTeacherName('');
+        setCapacity('40'); // Reset capacity
       } else {
         toast.error(data.error || "Failed to create section");
       }
-    } catch (error) {
-      toast.error("Something went wrong!");
-    } finally {
-      setLoading(false);
-    }
+    } catch (error) { toast.error("Something went wrong!"); } 
+    finally { setLoading(false); }
   };
 
   return (
@@ -109,29 +105,21 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
 
       <div className="bg-white p-8 rounded-[24px] shadow-xl border border-gray-100 max-w-[600px]">
           
-          {/* Auto Assignment Info Box */}
           <div className="bg-blue-50 border border-blue-100 p-6 rounded-2xl mb-8 flex items-start gap-4">
-             <div className="bg-blue-100 p-2 rounded-full text-blue-600">
-                <Info size={24} />
-             </div>
+             <div className="bg-blue-100 p-2 rounded-full text-blue-600"><Info size={24} /></div>
              <div>
                 <h4 className="text-[#191919] font-bold text-lg mb-1">Auto-Assignment</h4>
-                <p className="text-sm text-gray-600 leading-relaxed">
-                   System has automatically checked availability.
-                </p>
+                <p className="text-sm text-gray-600 leading-relaxed">System has automatically checked availability.</p>
              </div>
           </div>
 
-          {/* Big Auto Selected Section Display */}
           <div className="mb-8 text-center py-10 border-2 border-dashed border-gray-200 rounded-2xl bg-gray-50">
               <p className="text-gray-400 font-bold uppercase tracking-widest text-xs mb-2">Creating Next Available Section</p>
-              <h1 className="text-6xl font-black text-[#B70003]">
-                {nextSection}
-              </h1>
+              <h1 className="text-6xl font-black text-[#B70003]">{nextSection}</h1>
           </div>
 
-          {/* Teacher Selection */}
-          <div className="mb-8">
+          {/* INPUTS GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
              <CustomDropdown 
                label="Assign Class Teacher"
                name="teacher"
@@ -139,22 +127,23 @@ export const AddSection = ({ classNameStr, onBack }: AddSectionProps) => {
                onChange={(n, val) => setSelectedTeacherName(val)}
                options={teacherNames}
              />
+             
+             {/* NEW: Capacity Input Added Here */}
+             <CustomInput 
+               label="Max Student Capacity"
+               name="maxCapacity"
+               value={capacity}
+               onChange={(e) => setCapacity(e.target.value)}
+               type="number"
+             />
           </div>
 
-          {/* Actions */}
           <div className="flex justify-end gap-4 border-t border-gray-50 pt-6">
-              <button onClick={onBack} className="px-8 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all cursor-pointer">
-                  Cancel
-              </button>
-              <button 
-                onClick={handleSubmit} 
-                disabled={loading}
-                className="px-10 py-3 bg-[#B70003] text-white font-bold rounded-xl shadow-lg hover:bg-[#950002] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-              >
+              <button onClick={onBack} className="px-8 py-3 text-gray-500 font-bold hover:bg-gray-50 rounded-xl transition-all cursor-pointer">Cancel</button>
+              <button onClick={handleSubmit} disabled={loading} className="px-10 py-3 bg-[#B70003] text-white font-bold rounded-xl shadow-lg hover:bg-[#950002] transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50">
                   {loading ? "Creating..." : "Confirm & Create"} <Save size={18} />
               </button>
           </div>
-
       </div>
     </div>
   );

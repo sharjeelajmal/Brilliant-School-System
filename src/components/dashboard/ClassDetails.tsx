@@ -1,8 +1,40 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Plus, Search, ArrowLeft, MoreVertical } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Plus, Search, ArrowLeft, Trash2, AlertTriangle } from 'lucide-react'; // Trash2 added
+import { toast, Toaster } from 'sonner';
 
+// --- 1. DELETE MODAL (Reusable) ---
+const DeleteModal = ({ isOpen, onClose, onConfirm }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
+            <motion.div 
+                initial={{ opacity: 0, scale: 0.9 }} 
+                animate={{ opacity: 1, scale: 1 }} 
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-[24px] shadow-2xl w-full max-w-[320px] p-6 text-center font-['Montserrat']"
+            >
+                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#B70003]">
+                    <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-lg font-black text-[#191919] mb-2">Delete Section?</h3>
+                <p className="text-sm text-gray-500 font-medium mb-6">Are you sure? This will permanently delete the section and unassign the teacher.</p>
+                
+                <div className="flex gap-3">
+                    <button onClick={onClose} className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors cursor-pointer">
+                        Cancel
+                    </button>
+                    <button onClick={onConfirm} className="flex-1 py-3 bg-[#B70003] text-white font-bold rounded-xl hover:bg-[#900000] shadow-lg shadow-red-200 transition-colors cursor-pointer">
+                        Delete
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
+// --- 2. STAT CARD ---
 const StatCard = ({ value, label, delay }: { value: string, label: string, delay: number }) => (
   <motion.div 
     initial={{ opacity: 0, y: 20 }}
@@ -19,17 +51,26 @@ const StatCard = ({ value, label, delay }: { value: string, label: string, delay
   </motion.div>
 );
 
-const SectionCard = ({ data, index, onClick }: { data: any, index: number, onClick: () => void }) => (
+// --- 3. SECTION CARD (With Delete) ---
+const SectionCard = ({ data, index, onClick, onDelete }: { data: any, index: number, onClick: () => void, onDelete: (id: string) => void }) => (
   <motion.div 
     onClick={onClick}
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay: 0.2 + (index * 0.1) }}
-    className="bg-white rounded-[12px] border border-gray-200 p-6 mb-4 hover:shadow-lg hover:border-[#B70003] transition-all cursor-pointer group"
+    className="bg-white rounded-[12px] border border-gray-200 p-6 mb-4 hover:shadow-lg hover:border-[#B70003] transition-all cursor-pointer group relative"
   >
     <div className="flex justify-between items-start mb-6">
       <h3 className="text-2xl font-bold text-[#3C3C3C] group-hover:text-[#B70003] transition-colors">{data.name}</h3>
-      <button className="text-gray-400 hover:text-[#B70003] transition-colors"><MoreVertical size={20} /></button>
+      
+      {/* Delete Button */}
+      <button 
+        onClick={(e) => { e.stopPropagation(); onDelete(data._id); }}
+        className="text-gray-300 hover:text-red-600 hover:bg-red-50 p-2 rounded-full transition-all opacity-0 group-hover:opacity-100"
+        title="Delete Section"
+      >
+        <Trash2 size={20} />
+      </button>
     </div>
 
     <div className="grid grid-cols-1 md:grid-cols-5 gap-6 relative">
@@ -39,8 +80,10 @@ const SectionCard = ({ data, index, onClick }: { data: any, index: number, onCli
        <div className="hidden md:block absolute top-2 bottom-2 left-[80%] w-[1px] bg-gray-100" />
 
        <div className="space-y-1">
-           <p className="text-sm font-bold text-[#3C3C3C]">Teacher ID</p>
-           <p className="text-sm font-medium text-gray-400 truncate">{data.teacherId ? "Assigned" : "Pending"}</p>
+           <p className="text-sm font-bold text-[#3C3C3C]">Teacher Status</p>
+           <p className={`text-sm font-medium truncate ${data.teacherId ? 'text-green-600' : 'text-orange-400'}`}>
+               {data.teacherId ? "Assigned" : "Pending"}
+           </p>
        </div>
        <div className="space-y-1 pl-4"><p className="text-sm font-bold text-[#3C3C3C]">Attendance</p><p className="text-sm font-medium text-gray-400">-</p></div>
        <div className="space-y-1 pl-4"><p className="text-sm font-bold text-[#3C3C3C]">Progress</p><p className="text-sm font-medium text-gray-400">-</p></div>
@@ -57,30 +100,22 @@ interface DetailsProps {
   onAddSectionClick: () => void;
 }
 
+// --- MAIN COMPONENT ---
 export const ClassDetails = ({ classNameStr, onBack, onSelectSection, onAddSectionClick }: DetailsProps) => {
   const [sections, setSections] = useState<any[]>([]);
-  // Stats States
-  const [stats, setStats] = useState({
-    sections: 0,
-    students: 0,
-    teachers: 0
-  });
+  const [stats, setStats] = useState({ sections: 0, students: 0, teachers: 0 });
   const [loading, setLoading] = useState(true);
+  const [deleteId, setDeleteId] = useState<string | null>(null); // Delete State
 
-  // --- FETCH ALL DATA ---
-  useEffect(() => {
-    const fetchAllData = async () => {
+  const fetchAllData = async () => {
       setLoading(true);
       try {
-        // 1. Get Sections
         const secRes = await fetch(`/api/sections?class=${classNameStr}`);
         const secData = await secRes.json();
         
-        // 2. Get Teachers (Filtered by Class)
         const teachRes = await fetch(`/api/teacher?class=${classNameStr}`);
         const teachData = await teachRes.json();
 
-        // 3. Get Students (Filtered by Class)
         const studRes = await fetch(`/api/students?class=${classNameStr}`);
         const studData = await studRes.json();
 
@@ -92,17 +127,35 @@ export const ClassDetails = ({ classNameStr, onBack, onSelectSection, onAddSecti
             students: studData.success ? studData.data.length : 0
           });
         }
-      } catch (err) {
-        console.error("Error fetching class details");
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchAllData();
-  }, [classNameStr]);
+      } catch (err) { toast.error("Error loading data"); } 
+      finally { setLoading(false); }
+  };
+
+  useEffect(() => { fetchAllData(); }, [classNameStr]);
+
+  // DELETE HANDLER
+  const confirmDelete = async () => {
+      if (!deleteId) return;
+      try {
+          const res = await fetch(`/api/sections?id=${deleteId}`, { method: 'DELETE' });
+          if (res.ok) {
+              toast.success("Section Deleted Successfully!");
+              fetchAllData(); // Refresh list
+          } else {
+              toast.error("Failed to delete section");
+          }
+      } catch (error) { toast.error("Error deleting section"); }
+      finally { setDeleteId(null); }
+  };
 
   return (
     <div className="space-y-8 font-['Montserrat'] animate-in fade-in slide-in-from-right-10 duration-300">
+      <Toaster position="top-center" richColors />
+
+      {/* Delete Modal */}
+      <AnimatePresence>
+        {deleteId && <DeleteModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={confirmDelete} />}
+      </AnimatePresence>
       
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-center gap-4">
@@ -127,17 +180,15 @@ export const ClassDetails = ({ classNameStr, onBack, onSelectSection, onAddSecti
          </div>
       </div>
 
-      {/* Stats - Ab ye Real Time Database se hain */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
          <StatCard value={stats.sections.toString()} label="Total Sections" delay={0} />
          <StatCard value={stats.students.toString()} label="Total Students" delay={0.1} />
          <StatCard value={stats.teachers.toString()} label="Total Teachers" delay={0.2} />
       </div>
 
-      {/* Sections List */}
       <div className="mt-8">
          {loading ? (
-             <div className="text-center p-10 text-gray-400 font-bold">Loading Data...</div>
+             <div className="text-center p-10 text-gray-400 font-bold animate-pulse">Loading Data...</div>
          ) : sections.length === 0 ? (
              <div className="text-center p-10 text-gray-400 border-2 border-dashed border-gray-200 rounded-xl">No sections found. Click "Add Section" to create one.</div>
          ) : (
@@ -146,7 +197,8 @@ export const ClassDetails = ({ classNameStr, onBack, onSelectSection, onAddSecti
                    key={i} 
                    data={sec} 
                    index={i} 
-                   onClick={() => onSelectSection(`${classNameStr} - ${sec.name}`)} 
+                   onClick={() => onSelectSection(`${classNameStr} - ${sec.name}`)}
+                   onDelete={(id) => setDeleteId(id)} // Pass ID to state
                 />
              ))
          )}

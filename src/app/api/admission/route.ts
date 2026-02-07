@@ -1,12 +1,40 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Student from '@/models/Student';
+import Section from '@/models/Section'; // Section Model Import Karein
 
 export async function POST(req: Request) {
   try {
     await connectDB();
     const body = await req.json();
 
+    // --- CHECK CAPACITY LOGIC START ---
+    if (body.classJoining && body.section) {
+        // 1. Section ki details dhoondo
+        const sectionDoc = await Section.findOne({ 
+            className: body.classJoining, 
+            name: body.section 
+        });
+
+        if (sectionDoc) {
+            // 2. Abhi kitnay bachay hain count karo
+            const currentCount = await Student.countDocuments({ 
+                classJoining: body.classJoining, 
+                section: body.section 
+            });
+
+            // 3. Agar full hai to error do
+            if (currentCount >= sectionDoc.maxCapacity) {
+                return NextResponse.json({ 
+                    success: false, 
+                    message: `Admission Failed! Section ${body.section} is Full. (Capacity: ${sectionDoc.maxCapacity})` 
+                }, { status: 400 });
+            }
+        }
+    }
+    // --- CHECK CAPACITY LOGIC END ---
+
+    // ... Baki code same rahega ...
     const numericFields = [
       'monthlyFee', 'annualFee', 'admissionFee', 'academyFee', 
       'nazraFee', 'uniformBooksCharges', 'stationaryCharges', 
@@ -20,14 +48,9 @@ export async function POST(req: Request) {
       }
     });
 
-    // --- AUTO ROLL NO LOGIC ---
-    // Sab se aakhri student dhoondo (Roll No ke hisab se sort kar ke)
+    // Auto Roll No Logic...
     const lastStudent = await Student.findOne({}, { rollNo: 1 }).sort({ rollNo: -1 });
-    
-    // Agar koi student hai to uske roll no ma +1 karo, warna 1 se shuru karo
     const newRollNo = (lastStudent && lastStudent.rollNo) ? lastStudent.rollNo + 1 : 1;
-    
-    // Body ma roll no add kar do
     body.rollNo = newRollNo;
 
     const newStudent = await Student.create(body);
@@ -35,7 +58,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ 
       success: true, 
       message: 'Student Registered Successfully!', 
-      data: newStudent // Ye wapis jayega frontend ke paas
+      data: newStudent 
     }, { status: 201 });
 
   } catch (error: any) {
