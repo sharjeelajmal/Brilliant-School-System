@@ -28,7 +28,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
     { id: 'classes', label: 'Classes', icon: BookOpen },
     { id: 'forms', label: 'Student Admission', icon: FileText },
-    { id: 'teachers', label: 'Teacher Hiring', icon: UserPlus },
+    { id: 'teachers', label: 'Teachers', icon: Users },
     { id: 'students', label: 'Students List', icon: Users },
     
     // --- NEW ADMIN TABS ADDED ---

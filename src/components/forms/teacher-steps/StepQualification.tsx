@@ -1,5 +1,5 @@
 "use client";
-import React from 'react';
+import React, { useEffect } from 'react';
 import { CustomInput } from '@/components/ui/CustomInput';
 import { CustomDatePicker } from '@/components/ui/CustomDatePicker';
 
@@ -11,6 +11,26 @@ interface StepProps {
 
 export const StepQualification = ({ formData, handleChange, handleCustomChange }: StepProps) => {
 
+  // --- AUTOMATIC EXPERIENCE CALCULATION ---
+  useEffect(() => {
+    if (formData.jobStartDate && formData.jobEndDate) {
+        const start = new Date(formData.jobStartDate);
+        const end = new Date(formData.jobEndDate);
+        
+        if (!isNaN(start.getTime()) && !isNaN(end.getTime())) {
+            let years = end.getFullYear() - start.getFullYear();
+            let months = end.getMonth() - start.getMonth();
+            if (months < 0) { years--; months += 12; }
+            
+            // Agar value change hui hai tabhi update karein (Infinite Loop se bachne ke liye)
+            const expString = years > 0 ? years.toString() : "0";
+            if (formData.totalExperience !== expString) {
+                handleCustomChange('totalExperience', expString);
+            }
+        }
+    }
+  }, [formData.jobStartDate, formData.jobEndDate]); // Jab dates change hon tab chale
+
   const calculateJobDuration = (start: string, end: string) => {
     if (!start || !end) return "00 Years experience";
     const startDate = new Date(start);
@@ -20,8 +40,7 @@ export const StepQualification = ({ formData, handleChange, handleCustomChange }
     let months = endDate.getMonth() - startDate.getMonth();
     if (months < 0) { years--; months += 12; }
     if (years < 0) return "Invalid Duration";
-    if (years === 0 && months === 0) return "Less than a month";
-    return `${years > 0 ? `${years} Year${years > 1 ? 's' : ''} ` : ''}${months > 0 ? `${months} Month${months > 1 ? 's' : ''}` : ''} experience`.trim();
+    return `${years} Year${years !== 1 ? 's' : ''} ${months} Month${months !== 1 ? 's' : ''}`.trim();
   };
 
   return (
@@ -37,21 +56,8 @@ export const StepQualification = ({ formData, handleChange, handleCustomChange }
         </div>
 
         <div className="grid grid-cols-2 gap-6">
-           <CustomDatePicker 
-                label="Completion Date" 
-                name="completionYear" 
-                value={formData.completionYear} 
-                onChange={handleCustomChange} 
-                disableFuture={true}
-           />
-           {/* FIX: Type changed to 'alphanumeric' to allow Numbers (3.5) & Grades (A+) */}
-           <CustomInput 
-             label="CGPA / Grade" 
-             name="cgpa" 
-             value={formData.cgpa} 
-             onChange={handleChange} 
-             type="alphanumeric" 
-           />
+           <CustomDatePicker label="Completion Date" name="completionYear" value={formData.completionYear} onChange={handleCustomChange} disableFuture={true} />
+           <CustomInput label="CGPA / Grade" name="cgpa" value={formData.cgpa} onChange={handleChange} type="alphanumeric" />
         </div>
       </div>
 
