@@ -29,9 +29,9 @@ export async function GET(req: Request) {
     const sectionName = searchParams.get('section');
 
     if (id) {
-        const teacher = await Teacher.findById(id);
-        if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
-        return NextResponse.json({ success: true, data: teacher }, { status: 200 });
+      const teacher = await Teacher.findById(id);
+      if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+      return NextResponse.json({ success: true, data: teacher }, { status: 200 });
     }
 
     let query: any = {};
@@ -45,6 +45,7 @@ export async function GET(req: Request) {
   }
 }
 
+
 // --- NEW: PUT Method for Updating Teacher ---
 export async function PUT(req: Request) {
   try {
@@ -55,10 +56,28 @@ export async function PUT(req: Request) {
     if (!_id) return NextResponse.json({ error: "Teacher ID required" }, { status: 400 });
 
     const updatedTeacher = await Teacher.findByIdAndUpdate(_id, updateData, { new: true });
-    
+
     if (!updatedTeacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
 
     return NextResponse.json({ success: true, message: "Profile Updated Successfully!", data: updatedTeacher }, { status: 200 });
+  } catch (error: any) {
+    return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+// --- DELETE: Remove Teacher ---
+export async function DELETE(req: Request) {
+  try {
+    await connectDB();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) return NextResponse.json({ error: "Teacher ID required" }, { status: 400 });
+
+    const teacher = await Teacher.findByIdAndDelete(id);
+    if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+
+    return NextResponse.json({ success: true, message: "Teacher removed successfully" }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

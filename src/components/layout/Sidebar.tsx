@@ -1,10 +1,10 @@
 "use client";
 import React from 'react';
 import { motion } from 'framer-motion';
-import { 
-  LayoutDashboard, FileText, Users, Wallet, Settings, LogOut, 
+import {
+  LayoutDashboard, FileText, Users, Wallet, Settings, LogOut,
   ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare,
-  ClipboardList, FileBarChart2 // NEW ICONS IMPORTED
+  ClipboardList, FileBarChart2, User, GraduationCap// NEW ICONS IMPORTED
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -23,31 +23,35 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
     document.cookie = "role=; path=/; max-age=0";
     router.push('/login');
   };
-  
+
   const menuItems = [
     { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'classes', label: 'Classes', icon: BookOpen },
+    { id: 'classes', label: 'Classes & Sections', icon: BookOpen },
+    { id: 'subjects', label: 'Subjects Manager', icon: ClipboardList }, // 👈 Ye Nayi Line Add Ki Hai
     { id: 'forms', label: 'Student Admission', icon: FileText },
-    { id: 'teachers', label: 'Teachers', icon: Users },
-    { id: 'students', label: 'Students List', icon: Users },
-    
+    { id: 'parents', label: 'Parents', icon: Users },
+    { id: 'teachers', label: 'Teachers', icon: GraduationCap },
+    { id: 'students', label: 'Students List', icon: User },
+
     // --- NEW ADMIN TABS ADDED ---
     { id: 'attendance', label: 'Attendance', icon: ClipboardList },
+    { id: 'diary', label: 'Class Diary', icon: BookOpen },
     { id: 'test-report', label: 'Test Reports', icon: FileBarChart2 },
-    
-    { id: 'finance', label: 'Fee & Finance', icon: Wallet },
+
+    { id: 'finance', label: 'Fee Collection', icon: Wallet },
+    { id: 'payroll', label: 'Staff Payroll', icon: UserPlus },
     { id: 'complaints', label: 'Complaints', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
 
   return (
-    <motion.div 
+    <motion.div
       initial={false}
-      animate={{ width: isOpen ? 250 : 80 }} 
-      transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }} 
+      animate={{ width: isOpen ? 250 : 80 }}
+      transition={{ duration: 0.4, ease: [0.25, 1, 0.5, 1] }}
       className="gpu-accelerated h-screen bg-white border-r border-gray-100 relative flex flex-col justify-between shadow-2xl z-50 print:hidden"
     >
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)}
         className="absolute -right-3 top-9 bg-[#B70003] text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform z-[100] cursor-pointer flex items-center justify-center border-2 border-white"
       >

@@ -18,12 +18,41 @@ export const TestReportContent = () => {
   const [marks, setMarks] = useState<Record<string, string>>({});
   const [students, setStudents] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
-  const [classes, setClasses] = useState<string[]>([]);
-  const [sections, setSections] = useState<string[]>([]);
+  
+  // Dynamic Data States
+  const [allClassesData, setAllClassesData] = useState<any[]>([]); 
+  const [classesList, setClassesList] = useState<string[]>([]);
+  const [sectionsList, setSectionsList] = useState<string[]>([]);
+  const [subjectsList, setSubjectsList] = useState<string[]>([]); 
 
-  useEffect(() => { fetch('/api/classes').then(res => res.json()).then(data => { if(data.data) setClasses(data.data.map((c:any) => c.name)) }); }, []);
-  useEffect(() => { if(filters.class) fetch(`/api/sections?class=${filters.class}`).then(res => res.json()).then(data => { if(data.success) setSections(data.data.map((s:any) => s.name)) }); }, [filters.class]);
+  // 1. Fetch Classes (Added timestamp)
+  useEffect(() => { 
+      fetch(`/api/classes?t=${new Date().getTime()}`).then(res => res.json()).then(data => { 
+          if(data.data) {
+              setAllClassesData(data.data);
+              setClassesList(data.data.map((c:any) => c.name));
+          }
+      }); 
+  }, []);
 
+  // 2. Fetch Sections & Update Subjects
+  useEffect(() => { 
+      if(filters.class) {
+          fetch(`/api/sections?class=${filters.class}`).then(res => res.json()).then(data => { 
+              if(data.success) setSectionsList(data.data.map((s:any) => s.name)); 
+          });
+
+          // Update Subjects Dropdown from saved data
+          const selectedClassData = allClassesData.find(c => c.name === filters.class);
+          if (selectedClassData && selectedClassData.subjects && selectedClassData.subjects.length > 0) {
+              setSubjectsList(selectedClassData.subjects);
+          } else {
+              setSubjectsList([]); // REMOVED HARDCODED VALUES
+          }
+      }
+  }, [filters.class, allClassesData]);
+
+  // 3. Fetch Students & Marks
   useEffect(() => {
     const fetchData = async () => {
         if(!filters.class || !filters.section || !filters.date || !filters.subject) return;
@@ -86,12 +115,15 @@ export const TestReportContent = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white p-6 md:p-8 rounded-[24px] shadow-xl border border-gray-100 mb-8">
            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <CustomDatePicker label="Select Date" name="date" value={filters.date} onChange={handleFilterChange} />
-              <CustomDropdown label="Select Class" name="class" value={filters.class} onChange={handleFilterChange} options={classes} />
-              <CustomDropdown label="Select Section" name="section" value={filters.section} onChange={handleFilterChange} options={sections} />
+              <CustomDropdown label="Select Class" name="class" value={filters.class} onChange={handleFilterChange} options={classesList} />
+              <CustomDropdown label="Select Section" name="section" value={filters.section} onChange={handleFilterChange} options={sectionsList} />
            </div>
            <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
               <CustomDropdown label="Test Type" name="testType" value={filters.testType} onChange={handleFilterChange} options={["Weekly Test", "Monthly Test", "Quiz", "Mid Term"]} />
-              <CustomDropdown label="Select Subject" name="subject" value={filters.subject} onChange={handleFilterChange} options={["Mathematics", "English", "Science", "Urdu", "Islamiyat", "Computer"]} />
+              
+              {/* Dynamic Subjects Dropdown */}
+              <CustomDropdown label="Select Subject" name="subject" value={filters.subject} onChange={handleFilterChange} options={subjectsList} />
+              
               <CustomInput label="Total Marks" name="totalMarks" value={filters.totalMarks} onChange={handleInputFilter} type="number" />
               <CustomInput label="Passing Marks" name="passingMarks" value={filters.passingMarks} onChange={handleInputFilter} type="number" />
            </div>

@@ -9,10 +9,15 @@ import { ComplaintManager } from "@/components/complaints/ComplaintManager";
 import { StudentsOverview } from "@/components/students/StudentsOverview";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams, useRouter } from "next/navigation";
+import { ParentsOverview } from '@/components/parents/ParentsOverview';
 import { TeachersOverview } from "@/components/teachers/TeachersOverview";
+import { SubjectManager } from '@/components/dashboard/SubjectManager'; //
 // IMPORT NEW SHARED CONTENT COMPONENTS
 import { AttendanceContent } from "@/components/attendance/AttendanceContent";
 import { TestReportContent } from "@/components/test-report/TestReportContent";
+import { MonthlyFeeCollection } from "@/components/fee/MonthlyFeeCollection";
+import { ClassDiary } from "@/components/diary/ClassDiary";
+import { StaffPayroll } from "@/components/payroll/StaffPayroll";
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
@@ -45,6 +50,9 @@ function DashboardContent() {
     // Add titles for new tabs
     if (activePage === "attendance") return "Attendance Management";
     if (activePage === "test-report") return "Test Results";
+    if (activePage === "finance") return "Fee & Finance";
+    if (activePage === "diary") return "Class Diary";
+    if (activePage === "payroll") return "Staff Payroll";
     return activePage.replace("-", " ");
   };
 
@@ -98,6 +106,17 @@ function DashboardContent() {
             >
               <ClassesOverview />
             </motion.div>
+            // 👇 Ye Naya Block Add Karein 👇
+          ) : activePage === "subjects" ? (
+            <motion.div
+              key="subjects"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+            >
+              <SubjectManager />
+            </motion.div>
+            // 👆 Yahan Tak 👆
           ) : activePage === "forms" ? (
             <motion.div
               key="forms"
@@ -107,16 +126,21 @@ function DashboardContent() {
             >
               <AdmissionForm />
             </motion.div>
-         ) : activePage === 'teachers' ? (
-             // --- 1. TEACHERS LIST SHOW HOGI ---
-             <motion.div key="teachers-list" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-                <TeachersOverview onNavigate={handlePageChange} />
-             </motion.div>
+            // 👇 ADD PARENTS ROUTE HERE
+          ) : activePage === 'parents' ? (
+            <motion.div key="parents" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <ParentsOverview />
+            </motion.div>
+          ) : activePage === 'teachers' ? (
+            // --- 1. TEACHERS LIST SHOW HOGI ---
+            <motion.div key="teachers-list" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <TeachersOverview onNavigate={handlePageChange} />
+            </motion.div>
           ) : activePage === 'teacher-hiring' ? (
-             // --- 2. HIRING FORM ALAG PAGE PE SHOW HOGA ---
-             <motion.div key="teacher-hiring" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
-               <TeacherHiringForm />
-             </motion.div>
+            // --- 2. HIRING FORM ALAG PAGE PE SHOW HOGA ---
+            <motion.div key="teacher-hiring" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }}>
+              <TeacherHiringForm />
+            </motion.div>
           ) : activePage === 'complaints' ? (
             <motion.div
               key="complaints"
@@ -136,29 +160,56 @@ function DashboardContent() {
               <StudentsOverview onNavigate={handlePageChange} />
             </motion.div>
           ) : // --- NEW ADMIN TABS ---
-          activePage === "attendance" ? (
-            <motion.div
-              key="attendance"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <AttendanceContent />
-            </motion.div>
-          ) : activePage === "test-report" ? (
-            <motion.div
-              key="test-report"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-            >
-              <TestReportContent />
-            </motion.div>
-          ) : (
-            <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">
-              Content Module Locked
-            </div>
-          )}
+            activePage === "attendance" ? (
+              <motion.div
+                key="attendance"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <AttendanceContent />
+              </motion.div>
+            ) : activePage === "test-report" ? (
+              <motion.div
+                key="test-report"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <TestReportContent />
+              </motion.div>
+            ) : activePage === "diary" ? (
+              <motion.div
+                key="diary"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <ClassDiary mode="admin" />
+              </motion.div>
+            ) : activePage === "finance" ? (
+              <motion.div
+                key="finance"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <MonthlyFeeCollection />
+              </motion.div>
+            ) : activePage === "payroll" ? (
+              <motion.div
+                key="payroll"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <StaffPayroll />
+              </motion.div>
+            ) : (
+              <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">
+                Content Module Locked
+              </div>
+            )}
         </AnimatePresence>
       </main>
     </div>

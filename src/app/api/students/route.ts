@@ -12,9 +12,9 @@ export async function GET(req: Request) {
 
     // 1. Single Student Fetch (Profile ke liye)
     if (id) {
-        const student = await Student.findById(id);
-        if (!student) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
-        return NextResponse.json({ success: true, data: student }, { status: 200 });
+      const student = await Student.findById(id);
+      if (!student) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+      return NextResponse.json({ success: true, data: student }, { status: 200 });
     }
 
     // 2. Build Match Query
@@ -63,8 +63,8 @@ export async function GET(req: Request) {
             }
           },
           // Performance Stats (Average Obtained Marks)
-          avgMarks: { 
-             $avg: "$testData.obtainedMarks" 
+          avgMarks: {
+            $avg: "$testData.obtainedMarks"
           }
         }
       },
@@ -72,12 +72,12 @@ export async function GET(req: Request) {
       // --- Final Projection ---
       {
         $project: {
-          firstName: 1, lastName: 1, rollNo: 1, gender: 1, 
+          firstName: 1, lastName: 1, rollNo: 1, gender: 1,
           classJoining: 1, section: 1, photoUrl: 1,
           parentFirstName: 1, mobileNo: 1, whatsappNo: 1, // Contact ke liye
           attendanceStats: {
-             present: "$presentDays",
-             total: "$totalDays"
+            present: "$presentDays",
+            total: "$totalDays"
           },
           avgPerformance: { $ifNull: ["$avgMarks", 0] }
         }
@@ -103,5 +103,32 @@ export async function DELETE(req: Request) {
     return NextResponse.json({ success: true, message: "Deleted" }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
+  }
+}
+
+export async function PUT(req: Request) {
+  try {
+    await connectDB();
+    const body = await req.json();
+    const { _id, ...updateData } = body;
+
+    if (!_id) {
+      return NextResponse.json({ success: false, error: "Student ID (_id) is required" }, { status: 400 });
+    }
+
+    const updatedStudent = await Student.findByIdAndUpdate(
+      _id,
+      { $set: updateData },
+      { new: true, runValidators: true }
+    );
+
+    if (!updatedStudent) {
+      return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
+    }
+
+    return NextResponse.json({ success: true, data: updatedStudent, message: "Profile Updated Successfully" }, { status: 200 });
+
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
   }
 }

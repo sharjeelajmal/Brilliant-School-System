@@ -2,18 +2,21 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IClass extends Document {
   name: string;
-  // maxCapacity yahan se hata diya gaya hai
+  fees: number;
+  subjects: string[];
 }
 
 const ClassSchema = new Schema<IClass>({
-  name: { 
-    type: String, 
-    required: [true, "Class name is required"], 
-    unique: true,
-    trim: true
-  }
-  // Yahan maxCapacity ki koi line nahi honi chahiye
+  name: { type: String, required: true },
+  fees: { type: Number, required: true },
+  // Ensure this field exists
+  subjects: { 
+    type: [String], 
+    default: [] 
+  } 
 }, { timestamps: true });
 
-// Ye line check karein, ye purana model cache use hone se rokne ke liye zaroori hai
-export default mongoose.models.Class || mongoose.model<IClass>('Class', ClassSchema);
+// Check if model exists, otherwise create new
+const Class = mongoose.models.Class || mongoose.model<IClass>('Class', ClassSchema);
+
+export default Class;

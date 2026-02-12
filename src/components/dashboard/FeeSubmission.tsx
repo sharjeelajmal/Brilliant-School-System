@@ -1,0 +1,408 @@
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import {
+    Calendar, CheckCircle, ChevronDown, CreditCard, DollarSign,
+    FileText, User, X, Receipt, Wallet, ArrowRight
+} from 'lucide-react';
+import { toast } from 'sonner';
+import { CustomDatePicker } from '../ui/CustomDatePicker'; // Import
+
+// --- CUSTOM SELECT COMPONENT ---
+const CustomSelect = ({ label, value, options, onChange, placeholder }: any) => {
+    const [isOpen, setIsOpen] = useState(false);
+    return (
+        <div className="relative w-full">
+            <div
+                onClick={() => setIsOpen(!isOpen)}
+                className={`w-full h-[55px] bg-white border ${isOpen ? 'border-[#B50104]' : 'border-gray-200'} rounded-[16px] px-5 flex items-center justify-between cursor-pointer hover:border-[#B50104] transition-all shadow-sm hover:shadow-md`}
+            >
+                <span className={`text-sm font-bold ${value ? 'text-[#191919]' : 'text-gray-400'}`}>
+                    {value || placeholder}
+                </span>
+                <ChevronDown size={18} className={`text-gray-400 transition-transform duration-300 ${isOpen ? 'rotate-180 text-[#B50104]' : ''}`} />
+            </div>
+            <AnimatePresence>
+                {isOpen && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 10, scale: 0.95 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                        className="absolute top-[65px] left-0 w-full bg-white border border-gray-100 shadow-2xl rounded-[16px] z-50 overflow-hidden"
+                    >
+                        {options.map((opt: string) => (
+                            <div key={opt} onClick={() => { onChange(opt); setIsOpen(false); }} className="px-5 py-3 hover:bg-red-50 cursor-pointer text-sm font-bold text-gray-600 hover:text-[#B50104] transition-colors flex items-center justify-between group">
+                                {opt}
+                                {value === opt && <CheckCircle size={14} className="text-[#B50104]" />}
+                            </div>
+                        ))}
+                    </motion.div>
+                )}
+            </AnimatePresence>
+        </div>
+    );
+};
+
+export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
+    const [selectedStudent, setSelectedStudent] = useState<any>(null);
+    const [feeType, setFeeType] = useState('');
+    const [month, setMonth] = useState('');
+    const [year, setYear] = useState<number>(new Date().getFullYear());
+    const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
+    const [amountPaying, setAmountPaying] = useState('');
+    const [calculating, setCalculating] = useState(false);
+    const [isLate, setIsLate] = useState(false);
+    const [loading, setLoading] = useState(false);
+
+    // Auto-set first child
+    useEffect(() => {
+        if (parent?.children?.length > 0) setSelectedStudent(parent.children[0]);
+    }, [parent]);
+
+    // Calculate Dues on Student Change
+    useEffect(() => {
+        if (selectedStudent) calculateDues();
+    }, [selectedStudent, date]);
+
+    const calculateDues = async () => {
+        setCalculating(true);
+        try {
+            // 1. Fetch Student Details (for Joining Date) & Paid Fees
+            const [studentRes, feesRes] = await Promise.all([
+                fetch(`/api/students?id=${selectedStudent.studentId}`),
+                fetch(`/api/fees?studentId=${selectedStudent.studentId}`)
+            ]);
+
+            const studentData = await studentRes.json();
+            const feesData = await feesRes.json();
+
+            if (!studentData.success || !feesData.success) return;
+
+            const joiningDate = new Date(studentData.data.joiningDate || new Date().getFullYear() + '-01-01');
+            const paidFees = feesData.data || [];
+
+            // Map Paid Fees to "Month Year" strings
+            const paidMonths = new Set(paidFees.map((f: any) => `${f.month} ${f.year}`));
+
+            // 2. Find First Unpaid Month
+            const currentDate = new Date();
+            let checkDate = new Date(joiningDate);
+            checkDate.setDate(1); // Start from 1st of joining month
+
+            let targetMonth = '';
+            let targetYear = 0;
+
+            // Loop until we find an unpaid month or reach current month
+            while (true) {
+                const mName = checkDate.toLocaleString('default', { month: 'long' });
+                const yVal = checkDate.getFullYear();
+                const key = `${mName} ${yVal}`;
+
+                if (!paidMonths.has(key)) {
+                    targetMonth = mName;
+                    targetYear = yVal;
+                    break;
+                }
+
+                // If we've checked up to current month and it's paid, verify next month?
+                // User said: "last sab month ki fee paid ha to mtlb ys us ke current month ki fee ha"
+                if (checkDate > currentDate) {
+                    // Future Logic? prevent infinite loop
+                    targetMonth = mName;
+                    targetYear = yVal;
+                    break;
+                }
+
+                checkDate.setMonth(checkDate.getMonth() + 1);
+            }
+
+            setMonth(targetMonth);
+            setYear(targetYear);
+
+            // 3. Check Late Fee (Strict Logic)
+            // "agar to us bande ki pichlay month ki fee bhi baki ha to us pe late fine lgay ga"
+            // "agar us ki srf current month fee baki ha to phr date wali condition"
+
+            const targetDateObj = new Date(targetYear, monthMap[targetMonth], 1);
+            const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
+
+            let late = false;
+
+            if (targetDateObj < currentMonthStart) {
+                // Past Month -> ALWAYS FINE
+                late = true;
+            } else if (targetDateObj.getTime() === currentMonthStart.getTime()) {
+                // Current Month -> Check Date > 10
+                // User said: "current date 10 ya 10 se kam ha agar hay to late fee fine nahi lagay ga"
+                // But we need to check the PAYMENT DATE selected (date state), not just today?
+                // "agar user ne feb ki fee puri nahi paid... wo march ki jis marzi date ko... fine hoga" -> Covered by Past Month check
+                // "current month... check date"
+
+                const selectedPaymentDate = new Date(date);
+                if (selectedPaymentDate.getDate() > 10) {
+                    late = true;
+                }
+            }
+
+            setIsLate(late);
+
+        } catch (e) { console.error(e); }
+        finally { setCalculating(false); }
+    };
+
+    // Calculations
+    const monthMap: { [key: string]: number } = {
+        'January': 0, 'February': 1, 'March': 2, 'April': 3, 'May': 4, 'June': 5,
+        'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
+    };
+
+    const monthlyFee = parseInt(selectedStudent?.monthlyFee || 0);
+    const lateFine = 500;
+    const totalAmount = feeType === 'Monthly Fee' ? monthlyFee : feeType === 'Annual Fee' ? 5000 : feeType === 'Exam Fee' ? 2000 : 0;
+
+    // Use calculated isLate
+    // Removing old isLate logic block
+
+    const netPayable = totalAmount + (isLate ? lateFine : 0);
+    // Mock balance logic - can be real later
+    const outstandingDues = 1500; // Mock
+
+    const handleDateChange = (name: string, value: string) => setDate(value);
+
+    const handleSubmit = async () => {
+        if (!feeType || !amountPaying) return toast.error("Please fill all required fields");
+        const parsedAmount = parseInt(amountPaying);
+        if (isNaN(parsedAmount) || parsedAmount <= 0) return toast.error("Please enter a valid amount");
+        if (calculating) return toast.error("Please wait... calculating fees");
+
+        setLoading(true);
+        try {
+            // Simulate delay for effect
+            await new Promise(resolve => setTimeout(resolve, 800));
+
+            const res = await fetch('/api/fees', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    studentId: selectedStudent.studentId,
+                    parentCnic: parent.cnic, // Explicitly send Parent CNIC
+                    feeType,
+                    amount: parseInt(amountPaying),
+                    month, // Auto calculated
+                    year, // Used state
+                    status: 'Paid',
+                    lateFine: isLate ? lateFine : 0
+                })
+            });
+            if (res.ok) {
+                toast.success("Fee Submitted Successfully!");
+                if (onSuccess) onSuccess();
+                onClose();
+            } else {
+                toast.error("Submission Failed");
+            }
+        } catch (e) { toast.error("Network Error"); }
+        finally { setLoading(false); }
+    };
+
+    return (
+        <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-md"
+        >
+            <motion.div
+                initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+                className="bg-[#F8F9FB] w-full max-w-6xl rounded-[40px] shadow-2xl overflow-hidden flex flex-col max-h-[92vh] border border-white/50"
+            >
+
+                {/* Header - Glassmorphism */}
+                <div className="px-10 py-6 border-b border-gray-200 flex justify-between items-center bg-white/80 backdrop-blur-xl sticky top-0 z-20">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#B50104] to-[#ff4b4e] flex items-center justify-center text-white shadow-lg shadow-red-500/30">
+                            <Receipt size={24} strokeWidth={2.5} />
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-black text-[#191919] tracking-tight">Fee Submission</h2>
+                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Secure Payment Gateway</p>
+                        </div>
+                    </div>
+                    <button onClick={onClose} className="w-12 h-12 rounded-full bg-white border border-gray-100 flex items-center justify-center text-gray-400 hover:bg-[#B50104] hover:text-white transition-all shadow-sm hover:rotate-90 hover:shadow-lg cursor-pointer">
+                        <X size={24} />
+                    </button>
+                </div>
+
+                <div className="p-8 lg:p-10 overflow-y-auto custom-scrollbar space-y-10">
+
+                    {/* 1. Top Section: Filters & Info */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                        {/* Left: Filters */}
+                        <div className="lg:col-span-8 grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="md:col-span-2">
+                                <label className="text-xs font-black text-gray-400 uppercase ml-2 mb-2 block">Fee Type</label>
+                                <CustomSelect
+                                    placeholder="Select Fee Type"
+                                    value={feeType}
+                                    onChange={setFeeType}
+                                    options={['Monthly Fee', 'Admission Fee', 'Exam Fee', 'Annual Fee', 'Other']}
+                                />
+                            </div>
+                            {/* Updated to CustomDatePicker */}
+                            <div>
+                                <CustomDatePicker
+                                    label="Payment Date"
+                                    name="date"
+                                    value={date}
+                                    onChange={handleDateChange}
+                                />
+                            </div>
+                            <div>
+                                <label className="text-xs font-black text-gray-400 uppercase ml-2 mb-2 block">For Month</label>
+                                <div className="w-full h-[55px] bg-red-50 border border-red-100 rounded-[16px] px-5 flex items-center justify-between text-[#B50104] font-bold">
+                                    {calculating ? "Calculating..." : `${month} ${year}` || "All Paid"}
+                                    {isLate && <span className="text-[10px] bg-red-100 px-2 py-0.5 rounded-full ml-2">LATE FEE</span>}
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right: Parent Info Card */}
+                        <div className="lg:col-span-4 bg-white p-6 rounded-[24px] border border-gray-100 shadow-sm flex items-center gap-4">
+                            <div className="w-16 h-16 rounded-full bg-gray-100 flex items-center justify-center text-2xl font-black text-[#B50104] border-4 border-white shadow-md">
+                                {parent.parentFirstName?.charAt(0)}
+                            </div>
+                            <div>
+                                <p className="text-xs font-bold text-gray-400 uppercase">Parent Name</p>
+                                <h3 className="text-xl font-black text-[#191919]">{parent.parentFirstName} {parent.parentLastName}</h3>
+                                <p className="text-xs font-bold text-[#B50104] bg-red-50 px-2 py-0.5 rounded-md inline-block mt-1">CNIC: {parent.cnic}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 2. Middle Section: Student Selection */}
+                    <div>
+                        <h3 className="text-xl font-black text-[#191919] mb-5 flex items-center gap-2">
+                            <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm">1</div>
+                            Select Student
+                        </h3>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                            {parent.children.map((child: any) => (
+                                <div
+                                    key={child.studentId}
+                                    onClick={() => setSelectedStudent(child)}
+                                    className={`relative p-5 rounded-[24px] border-2 cursor-pointer transition-all duration-300 flex items-center gap-4 overflow-hidden group ${selectedStudent?.studentId === child.studentId ? 'border-[#B50104] bg-white shadow-xl scale-[1.02]' : 'border-transparent bg-white hover:border-red-100 shadow-sm'}`}
+                                >
+                                    {selectedStudent?.studentId === child.studentId && <div className="absolute top-0 right-0 w-16 h-16 bg-[#B50104] opacity-10 rounded-bl-full" />}
+
+                                    <div className={`w-14 h-14 rounded-2xl overflow-hidden shadow-md transition-colors ${selectedStudent?.studentId === child.studentId ? 'ring-2 ring-[#B50104] ring-offset-2' : ''}`}>
+                                        {child.photo ? <img src={child.photo} className="w-full h-full object-cover" /> : <User className="p-3 w-full h-full text-gray-400 bg-gray-100" />}
+                                    </div>
+                                    <div>
+                                        <h4 className={`font-black text-lg transition-colors ${selectedStudent?.studentId === child.studentId ? 'text-[#B50104]' : 'text-[#191919]'}`}>{child.name}</h4>
+                                        <p className="text-xs text-gray-400 font-bold uppercase tracking-wide">Class {child.class}</p>
+                                    </div>
+                                    {selectedStudent?.studentId === child.studentId && (
+                                        <div className="absolute bottom-4 right-4 text-[#B50104]">
+                                            <CheckCircle size={20} className="fill-[#B50104] text-white" />
+                                        </div>
+                                    )}
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* 3. Bottom Section: Calculation & Payment */}
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+
+                        {/* Left: Breakdown */}
+                        <div className="lg:col-span-8 bg-white p-8 rounded-[30px] shadow-lg border border-gray-100 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-[#B50104]" />
+
+                            <h3 className="text-xl font-black text-[#191919] mb-6 flex items-center gap-2">
+                                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm">2</div>
+                                Fee Breakdown
+                            </h3>
+
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                                {/* Fee Details */}
+                                <div className="space-y-4 md:col-span-2">
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
+                                        <span className="text-sm font-bold text-gray-500">Monthly Fee ({month})</span>
+                                        <span className="text-base font-black text-[#191919]">{totalAmount.toLocaleString()} PKR</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
+                                        <span className="text-sm font-bold text-gray-500">Late Fine {isLate && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full ml-2">APPLIED</span>}</span>
+                                        <span className="text-base font-bold text-red-500">{isLate ? lateFine : 0} PKR</span>
+                                    </div>
+                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
+                                        <span className="text-sm font-bold text-gray-500">Previous Dues</span>
+                                        <span className="text-base font-bold text-orange-500">{outstandingDues} PKR</span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center pt-2">
+                                        <span className="text-lg font-black text-[#191919]">Net Payable</span>
+                                        <span className="text-2xl font-black text-[#B50104]">{netPayable.toLocaleString()} <span className="text-xs text-gray-400 font-bold align-super">PKR</span></span>
+                                    </div>
+                                </div>
+
+                                {/* Amount Input */}
+                                <div className="bg-gray-50 p-5 rounded-[20px] flex flex-col justify-center space-y-4">
+                                    <label className="text-xs font-black text-gray-400 uppercase text-center block">Enter Amount Paying</label>
+                                    <div className="relative">
+                                        <input
+                                            type="number"
+                                            value={amountPaying}
+                                            onChange={(e) => setAmountPaying(e.target.value)}
+                                            className="w-full bg-white border-2 border-[#B50104] rounded-2xl py-4 pl-4 pr-12 text-center text-2xl font-black text-[#191919] outline-none shadow-inner placeholder:text-gray-200"
+                                            placeholder="0"
+                                        />
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#B50104]">PKR</span>
+                                    </div>
+                                    <button
+                                        onClick={handleSubmit}
+                                        disabled={loading}
+                                        className="w-full py-4 bg-[#B50104] text-white font-bold rounded-2xl shadow-lg shadow-red-500/40 hover:bg-[#900000] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2 group"
+                                    >
+                                        {loading ? "Processing..." : <>Confirm Payment <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Right: Balance/Status */}
+                        <div className="lg:col-span-4 space-y-5">
+                            {/* Live Balance Card */}
+                            <div className="bg-[#191919] p-6 rounded-[30px] shadow-xl relative overflow-hidden text-white group">
+                                <div className="absolute top-0 right-0 w-32 h-32 bg-white opacity-5 rounded-bl-full transition-transform group-hover:scale-150 duration-700" />
+                                <div className="relative z-10">
+                                    <div className="flex justify-between items-start mb-6">
+                                        <div>
+                                            <p className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Total Outstanding</p>
+                                            <h3 className="text-3xl font-black">{outstandingDues + netPayable} <span className="text-sm text-gray-500">PKR</span></h3>
+                                        </div>
+                                        <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center">
+                                            <Wallet className="text-white" size={20} />
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2 text-xs font-bold text-gray-400 bg-white/5 px-3 py-2 rounded-xl w-fit">
+                                        <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                        Pending Payments
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Quick Info */}
+                            <div className="bg-blue-50 p-6 rounded-[30px] border border-blue-100 text-blue-800">
+                                <div className="flex items-start gap-4">
+                                    <CheckCircle className="shrink-0 mt-1" size={20} />
+                                    <div>
+                                        <h4 className="font-bold text-sm mb-1">Secure Transaction</h4>
+                                        <p className="text-xs opacity-80 leading-relaxed">All fee submissions are recorded securely in the database with timestamps. Receipts can be generated after submission.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+            </motion.div>
+        </motion.div>
+    );
+};
