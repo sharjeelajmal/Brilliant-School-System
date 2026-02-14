@@ -19,8 +19,8 @@ export const TeachersOverview = ({ onNavigate }: { onNavigate: (page: string) =>
   // Filters & Stats State
   const [search, setSearch] = useState('');
   const [gender, setGender] = useState('');
-  const [subject, setSubject] = useState('');
-  const [subjectsList, setSubjectsList] = useState<string[]>([]);
+  const [designation, setDesignation] = useState(''); // Changed from subject
+  const [designationsList, setDesignationsList] = useState<string[]>([]); // Changed from subjectsList
   const [stats, setStats] = useState({ total: 0, male: 0, female: 0, best: "N/A" });
 
   useEffect(() => {
@@ -52,8 +52,9 @@ export const TeachersOverview = ({ onNavigate }: { onNavigate: (page: string) =>
               : "N/A"
           });
 
-          const uniqueSubjects = Array.from(new Set(allTeachers.map((t: any) => t.subjectsTaught).filter(Boolean))) as string[];
-          setSubjectsList(uniqueSubjects);
+          // Extract Unique Designations
+          const uniqueDesig = Array.from(new Set(allTeachers.map((t: any) => t.designation).filter(Boolean))) as string[];
+          setDesignationsList(uniqueDesig);
         }
       } catch (err) { toast.error("Failed to load teachers"); }
       finally { setLoading(false); }
@@ -66,9 +67,9 @@ export const TeachersOverview = ({ onNavigate }: { onNavigate: (page: string) =>
     let temp = [...teachers];
     if (search) temp = temp.filter(t => (t.firstName + ' ' + t.lastName).toLowerCase().includes(search.toLowerCase()) || (t.mobileNo && t.mobileNo.includes(search)));
     if (gender) temp = temp.filter(t => t.gender === gender);
-    if (subject) temp = temp.filter(t => t.subjectsTaught === subject);
+    if (designation) temp = temp.filter(t => t.designation === designation);
     setFiltered(temp);
-  }, [search, gender, subject, teachers]);
+  }, [search, gender, designation, teachers]);
 
   const handleContact = (t: any) => {
     if (!t.mobileNo) { toast.error("No mobile number found!"); return; }
@@ -113,8 +114,8 @@ export const TeachersOverview = ({ onNavigate }: { onNavigate: (page: string) =>
       <TeacherFilters
         search={search} setSearch={setSearch}
         gender={gender} setGender={setGender}
-        subject={subject} setSubject={setSubject}
-        subjectsList={subjectsList}
+        designation={designation} setDesignation={setDesignation}
+        designationsList={designationsList}
       />
 
       <TeachersTable

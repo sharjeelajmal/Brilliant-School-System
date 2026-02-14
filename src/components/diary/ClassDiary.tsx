@@ -77,7 +77,7 @@ const CustomCalendar = ({ value, onChange }: { value: string; onChange: (date: s
                         animate={{ opacity: 1, y: 0, scale: 1 }}
                         exit={{ opacity: 0, y: 10, scale: 0.95 }}
                         transition={{ duration: 0.2 }}
-                        className="absolute top-[56px] left-0 w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden p-4"
+                        className="absolute top-[56px] left-0 w-[300px] sm:w-[320px] bg-white rounded-2xl shadow-2xl border border-gray-100 z-50 overflow-hidden p-4"
                     >
                         {/* Month/Year Nav */}
                         <div className="flex items-center justify-between mb-4">
@@ -142,13 +142,13 @@ const CustomCalendar = ({ value, onChange }: { value: string; onChange: (date: s
 const RedStatCard = ({ label, value, delay }: { label: string; value: number; delay: number }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.5 }}
-        className="relative h-[130px] rounded-[16px] overflow-hidden bg-[#B50104] shadow-xl flex flex-col justify-center px-6 group cursor-default"
+        className="relative h-[110px] md:h-[130px] rounded-[16px] overflow-hidden bg-[#B50104] shadow-xl flex flex-col justify-center px-4 md:px-6 group cursor-default"
     >
         <div className="absolute -right-6 -top-6 w-32 h-32 bg-[#C60205] opacity-60 rounded-full group-hover:scale-110 transition-transform duration-500" />
         <div className="absolute right-12 bottom-[-20px] w-20 h-20 bg-[#C60205] opacity-60 rounded-full" />
         <div className="relative z-10 text-white">
-            <h3 className="text-5xl font-black tracking-tighter mb-1">{value}</h3>
-            <p className="text-sm font-medium opacity-90 uppercase tracking-widest">{label}</p>
+            <h3 className="text-3xl md:text-5xl font-black tracking-tighter mb-1">{value}</h3>
+            <p className="text-xs md:text-sm font-medium opacity-90 uppercase tracking-widest">{label}</p>
         </div>
     </motion.div>
 );
@@ -266,7 +266,8 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
             } catch { }
         };
         fetchClasses();
-    }, []);
+        if (mode === 'teacher') handleNewDiary(); // Auto-open form for teacher
+    }, [mode]);
 
     // Fetch sections when class changes
     useEffect(() => {
@@ -371,13 +372,22 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
     // Save diary
     const handleSave = async () => {
         if (!date || !selectedClass || !selectedSection) {
-            toast.error("Date, Class aur Section select karein");
+            toast.error("Please select Date, Class, and Section");
             return;
         }
         if (!teacherName.trim()) {
-            toast.error("Teacher name daalein");
+            toast.error("Teacher name is required");
             return;
         }
+
+        // FILTER EMPTY ENTRIES
+        const validEntries = entries.filter(e => e.homework.trim() || e.classwork.trim() || e.notes.trim());
+
+        if (validEntries.length === 0) {
+            toast.error("Please add at least one entry (Homework/Classwork/Notes)");
+            return;
+        }
+
         setSaving(true);
         try {
             const body = {
@@ -385,14 +395,14 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
                 className: selectedClass,
                 section: selectedSection,
                 teacherName,
-                entries,
+                entries: validEntries, // Send only valid entries
                 ...(existingDiary && { id: existingDiary._id })
             };
             const method = existingDiary ? 'PUT' : 'POST';
             const res = await fetch('/api/diary', { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
             const data = await res.json();
             if (data.success) {
-                toast.success(data.message || "Diary saved!");
+                toast.success(data.message || "Diary saved successfully!");
                 setExistingDiary(data.data);
                 setIsEditing(false);
                 fetchAllDiaries();
@@ -400,7 +410,7 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
                 toast.error(data.error || "Save failed");
             }
         } catch {
-            toast.error("Diary save karne mein masla hua");
+            toast.error("Failed to save diary");
         } finally {
             setSaving(false);
         }
@@ -445,33 +455,35 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
 
             {/* === HEADER === */}
             <div className="flex flex-col md:flex-row justify-between items-end gap-6">
-                <div>
-                    <motion.h1 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-4xl font-black text-[#B50104] uppercase tracking-tighter mb-1">
+                <div className="w-full md:w-auto">
+                    <motion.h1 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-3xl font-black text-[#191919] uppercase tracking-tighter mb-2">
                         Class Diary
                     </motion.h1>
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-gray-400 font-bold text-sm">
-                        {mode === 'admin' ? 'Overview of all class diary entries' : 'Submit daily diary for your class'}
-                    </motion.p>
+                    <motion.div initial={{ opacity: 0, width: 0 }} animate={{ opacity: 1, width: 80 }} transition={{ delay: 0.1 }} className="h-1 bg-[#B50104] rounded-full" />
                 </div>
 
                 {/* Top Actions */}
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-3">
-                    <button
-                        onClick={handleNewDiary}
-                        className="h-[50px] px-8 bg-[#B50104] text-white font-bold rounded-xl shadow-lg hover:bg-[#900000] hover:shadow-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
-                    >
-                        <Plus size={20} /> New Diary
-                    </button>
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="flex items-center gap-3 w-full md:w-auto">
+                    {mode === 'admin' && (
+                        <button
+                            onClick={handleNewDiary}
+                            className="h-[50px] px-8 bg-[#B50104] text-white font-bold rounded-xl shadow-lg hover:bg-[#900000] hover:shadow-xl transition-all flex items-center gap-2 active:scale-95 cursor-pointer"
+                        >
+                            <Plus size={20} /> New Diary
+                        </button>
+                    )}
                 </motion.div>
             </div>
 
-            {/* === STAT CARDS === */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <RedStatCard label="Total Entries" value={summary.totalEntries} delay={0} />
-                <RedStatCard label="Classes Covered" value={summary.classesCovered} delay={0.1} />
-                <RedStatCard label="Subjects Covered" value={summary.subjectsCovered} delay={0.2} />
-                <RedStatCard label="Pending Classes" value={summary.pendingClasses} delay={0.3} />
-            </div>
+            {/* === STAT CARDS (Only Admin) === */}
+            {mode === 'admin' && (
+                <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
+                    <RedStatCard label="Total Entries" value={summary.totalEntries} delay={0} />
+                    <RedStatCard label="Classes Covered" value={summary.classesCovered} delay={0.1} />
+                    <RedStatCard label="Subjects Covered" value={summary.subjectsCovered} delay={0.2} />
+                    <RedStatCard label="Pending Classes" value={summary.pendingClasses} delay={0.3} />
+                </div>
+            )}
 
             {/* === FILTERS ROW (Calendar + Date Filter) === */}
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
@@ -645,68 +657,70 @@ export const ClassDiary = ({ mode }: ClassDiaryProps) => {
                 </motion.div>
             )}
 
-            {/* === ALL DIARIES TABLE === */}
-            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden">
-                <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
-                    <h3 className="font-black text-[#191919] text-base uppercase tracking-tighter">
-                        Diary Entries — {new Date(date).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </h3>
-                    <button onClick={fetchAllDiaries} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 hover:text-[#B50104] hover:bg-red-50 transition-colors cursor-pointer active:scale-90">
-                        <RefreshCw size={14} />
-                    </button>
-                </div>
-
-                {allDiaries.length > 0 ? (
-                    <>
-                        <div className="overflow-x-auto">
-                            <table className="w-full min-w-[700px]">
-                                <thead>
-                                    <tr className="border-b border-gray-100">
-                                        <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">#</th>
-                                        <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Class</th>
-                                        <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Section</th>
-                                        <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Teacher</th>
-                                        <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Subjects</th>
-                                        <th className="text-right px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Actions</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {allDiaries.map((diary, i) => (
-                                        <motion.tr key={diary._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
-                                            <td className="px-6 py-4 text-sm font-black text-gray-300">{String(i + 1).padStart(2, '0')}</td>
-                                            <td className="px-6 py-4"><span className="bg-red-50 text-[#B50104] px-3 py-1 rounded-lg text-xs font-bold">{diary.className}</span></td>
-                                            <td className="px-6 py-4 text-sm font-bold text-[#191919]">{diary.section}</td>
-                                            <td className="px-6 py-4 text-sm text-gray-500 font-medium">{diary.teacherName || '-'}</td>
-                                            <td className="px-6 py-4 text-sm font-bold text-gray-600">{diary.entries?.length || 0} subjects</td>
-                                            <td className="px-6 py-4">
-                                                <div className="flex items-center justify-end gap-2">
-                                                    <button onClick={() => viewDiary(diary)} className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer" title="View Diary">
-                                                        <Search size={14} />
-                                                    </button>
-                                                    <button onClick={() => setDeleteId(diary._id)} className="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition-colors cursor-pointer" title="Delete">
-                                                        <Trash2 size={14} />
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </motion.tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-                        <div className="px-6 py-4 border-t border-gray-50 bg-gray-50/50">
-                            <p className="text-xs font-bold text-gray-400">Total <span className="text-[#191919]">{allDiaries.length}</span> diary entries</p>
-                        </div>
-                    </>
-                ) : (
-                    <div className="p-16 text-center">
-                        <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
-                            <BookOpen size={28} className="text-gray-300" />
-                        </div>
-                        <p className="text-sm font-bold text-gray-300">No diary entries for this date</p>
-                        <p className="text-xs text-gray-300 mt-1">Click "New Diary" to create one</p>
+            {/* === ALL DIARIES TABLE (Only Admin) === */}
+            {mode === 'admin' && (
+                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden">
+                    <div className="px-6 py-5 border-b border-gray-100 bg-gray-50/50 flex items-center justify-between">
+                        <h3 className="font-black text-[#191919] text-base uppercase tracking-tighter">
+                            Diary Entries — {new Date(date).toLocaleDateString('en-PK', { day: 'numeric', month: 'long', year: 'numeric' })}
+                        </h3>
+                        <button onClick={fetchAllDiaries} className="w-8 h-8 rounded-lg bg-gray-100 flex items-center justify-center text-gray-400 hover:text-[#B50104] hover:bg-red-50 transition-colors cursor-pointer active:scale-90">
+                            <RefreshCw size={14} />
+                        </button>
                     </div>
-                )}
-            </motion.div>
+
+                    {allDiaries.length > 0 ? (
+                        <>
+                            <div className="overflow-x-auto">
+                                <table className="w-full min-w-[700px]">
+                                    <thead>
+                                        <tr className="border-b border-gray-100">
+                                            <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">#</th>
+                                            <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Class</th>
+                                            <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Section</th>
+                                            <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Teacher</th>
+                                            <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Subjects</th>
+                                            <th className="text-right px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {allDiaries.map((diary, i) => (
+                                            <motion.tr key={diary._id} initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: i * 0.03 }} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group">
+                                                <td className="px-6 py-4 text-sm font-black text-gray-300">{String(i + 1).padStart(2, '0')}</td>
+                                                <td className="px-6 py-4"><span className="bg-red-50 text-[#B50104] px-3 py-1 rounded-lg text-xs font-bold">{diary.className}</span></td>
+                                                <td className="px-6 py-4 text-sm font-bold text-[#191919]">{diary.section}</td>
+                                                <td className="px-6 py-4 text-sm text-gray-500 font-medium">{diary.teacherName || '-'}</td>
+                                                <td className="px-6 py-4 text-sm font-bold text-gray-600">{diary.entries?.length || 0} subjects</td>
+                                                <td className="px-6 py-4">
+                                                    <div className="flex items-center justify-end gap-2">
+                                                        <button onClick={() => viewDiary(diary)} className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100 transition-colors cursor-pointer" title="View Diary">
+                                                            <Search size={14} />
+                                                        </button>
+                                                        <button onClick={() => setDeleteId(diary._id)} className="bg-red-50 text-red-600 p-2 rounded-lg hover:bg-red-100 transition-colors cursor-pointer" title="Delete">
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                </td>
+                                            </motion.tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                            <div className="px-6 py-4 border-t border-gray-50 bg-gray-50/50">
+                                <p className="text-xs font-bold text-gray-400">Total <span className="text-[#191919]">{allDiaries.length}</span> diary entries</p>
+                            </div>
+                        </>
+                    ) : (
+                        <div className="p-16 text-center">
+                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center mx-auto mb-4">
+                                <BookOpen size={28} className="text-gray-300" />
+                            </div>
+                            <p className="text-sm font-bold text-gray-300">No diary entries for this date</p>
+                            <p className="text-xs text-gray-300 mt-1">Click "New Diary" to create one</p>
+                        </div>
+                    )}
+                </motion.div>
+            )}
         </motion.div>
     );
 };

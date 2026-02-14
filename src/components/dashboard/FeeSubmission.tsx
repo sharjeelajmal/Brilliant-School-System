@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Calendar, CheckCircle, ChevronDown, CreditCard, DollarSign,
-    FileText, User, X, Receipt, Wallet, ArrowRight
+    FileText, User, X, Receipt, Wallet, ArrowRight, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { CustomDatePicker } from '../ui/CustomDatePicker'; // Import
@@ -310,60 +310,83 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                     {/* 3. Bottom Section: Calculation & Payment */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        {/* Left: Breakdown */}
-                        <div className="lg:col-span-8 bg-white p-8 rounded-[30px] shadow-lg border border-gray-100 relative overflow-hidden">
-                            <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-orange-400 to-[#B50104]" />
+                        {/* Left: Breakdown (Redesigned) */}
+                        <motion.div
+                            initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
+                            className="lg:col-span-8 bg-white p-0 rounded-[30px] shadow-xl border border-gray-100 relative overflow-hidden flex flex-col md:flex-row group"
+                        >
+                            {/* Decorative Side Bar */}
+                            <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#B50104] via-red-500 to-orange-500" />
 
-                            <h3 className="text-xl font-black text-[#191919] mb-6 flex items-center gap-2">
-                                <div className="w-8 h-8 rounded-full bg-black text-white flex items-center justify-center text-sm">2</div>
-                                Fee Breakdown
-                            </h3>
+                            <div className="p-8 flex-1">
+                                <h3 className="text-2xl font-black text-[#191919] mb-8 flex items-center gap-3">
+                                    <div className="w-10 h-10 rounded-xl bg-[#191919] text-white flex items-center justify-center text-sm shadow-lg shadow-black/20">2</div>
+                                    Fee Breakdown
+                                </h3>
 
-                            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-                                {/* Fee Details */}
-                                <div className="space-y-4 md:col-span-2">
-                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
-                                        <span className="text-sm font-bold text-gray-500">Monthly Fee ({month})</span>
-                                        <span className="text-base font-black text-[#191919]">{totalAmount.toLocaleString()} PKR</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
-                                        <span className="text-sm font-bold text-gray-500">Late Fine {isLate && <span className="bg-red-100 text-red-600 text-[10px] px-2 py-0.5 rounded-full ml-2">APPLIED</span>}</span>
-                                        <span className="text-base font-bold text-red-500">{isLate ? lateFine : 0} PKR</span>
-                                    </div>
-                                    <div className="flex justify-between items-center py-3 border-b border-gray-100 border-dashed">
-                                        <span className="text-sm font-bold text-gray-500">Previous Dues</span>
-                                        <span className="text-base font-bold text-orange-500">{outstandingDues} PKR</span>
+                                <div className="space-y-6">
+                                    <div className="flex justify-between items-center p-4 bg-gray-50 rounded-2xl hover:bg-gray-100 transition-colors border border-transparent hover:border-gray-200 group/item">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-lg text-gray-400 group-hover/item:text-[#B50104] transition-colors shadow-sm"><FileText size={18} /></div>
+                                            <span className="text-sm font-bold text-gray-500 group-hover/item:text-gray-700">Monthly Fee ({month})</span>
+                                        </div>
+                                        <span className="text-lg font-black text-[#191919]">{totalAmount.toLocaleString()} PKR</span>
                                     </div>
 
-                                    <div className="flex justify-between items-center pt-2">
-                                        <span className="text-lg font-black text-[#191919]">Net Payable</span>
-                                        <span className="text-2xl font-black text-[#B50104]">{netPayable.toLocaleString()} <span className="text-xs text-gray-400 font-bold align-super">PKR</span></span>
+                                    <div className="flex justify-between items-center p-4 bg-red-50/50 rounded-2xl hover:bg-red-50 transition-colors border border-transparent hover:border-red-100 group/item">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-lg text-red-300 group-hover/item:text-red-500 transition-colors shadow-sm"><AlertTriangle size={18} /></div>
+                                            <span className="text-sm font-bold text-gray-500 group-hover/item:text-gray-700">Late Fine {isLate && <span className="bg-[#B50104] text-white text-[10px] px-2 py-0.5 rounded-full ml-2 shadow-sm animate-pulse">APPLIED</span>}</span>
+                                        </div>
+                                        <span className="text-lg font-bold text-red-500">{isLate ? lateFine : 0} PKR</span>
+                                    </div>
+
+                                    <div className="flex justify-between items-center p-4 bg-orange-50/50 rounded-2xl hover:bg-orange-50 transition-colors border border-transparent hover:border-orange-100 group/item">
+                                        <div className="flex items-center gap-3">
+                                            <div className="p-2 bg-white rounded-lg text-orange-300 group-hover/item:text-orange-500 transition-colors shadow-sm"><Wallet size={18} /></div>
+                                            <span className="text-sm font-bold text-gray-500 group-hover/item:text-gray-700">Previous Dues</span>
+                                        </div>
+                                        <span className="text-lg font-bold text-orange-500">{outstandingDues} PKR</span>
+                                    </div>
+
+                                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent my-6" />
+
+                                    <div className="flex justify-between items-end px-2">
+                                        <span className="text-xl font-black text-gray-400 uppercase tracking-widest">Net Payable</span>
+                                        <div className="text-right">
+                                            <span className="text-4xl font-black text-[#B50104] drop-shadow-sm">{netPayable.toLocaleString()}</span>
+                                            <span className="text-xs text-gray-400 font-bold ml-1">PKR</span>
+                                        </div>
                                     </div>
                                 </div>
+                            </div>
 
-                                {/* Amount Input */}
-                                <div className="bg-gray-50 p-5 rounded-[20px] flex flex-col justify-center space-y-4">
-                                    <label className="text-xs font-black text-gray-400 uppercase text-center block">Enter Amount Paying</label>
-                                    <div className="relative">
+                            {/* Payment Actions Side */}
+                            <div className="bg-gray-50 p-8 w-full md:w-[320px] border-l border-gray-100 flex flex-col justify-center space-y-6">
+                                <div>
+                                    <label className="text-xs font-black text-gray-400 uppercase ml-1 mb-2 block">Amount Paying Now</label>
+                                    <div className="relative group/input">
                                         <input
                                             type="number"
                                             value={amountPaying}
                                             onChange={(e) => setAmountPaying(e.target.value)}
-                                            className="w-full bg-white border-2 border-[#B50104] rounded-2xl py-4 pl-4 pr-12 text-center text-2xl font-black text-[#191919] outline-none shadow-inner placeholder:text-gray-200"
+                                            className="w-full bg-white border-2 border-gray-200 focus:border-[#B50104] rounded-2xl py-4 pl-4 pr-12 text-center text-3xl font-black text-[#191919] outline-none shadow-sm transition-all group-hover/input:shadow-md"
                                             placeholder="0"
                                         />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-[#B50104]">PKR</span>
+                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">PKR</span>
                                     </div>
-                                    <button
-                                        onClick={handleSubmit}
-                                        disabled={loading}
-                                        className="w-full py-4 bg-[#B50104] text-white font-bold rounded-2xl shadow-lg shadow-red-500/40 hover:bg-[#900000] hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-2 group"
-                                    >
-                                        {loading ? "Processing..." : <>Confirm Payment <ArrowRight size={18} className="group-hover:translate-x-1 transition-transform" /></>}
-                                    </button>
                                 </div>
+                                <button
+                                    onClick={handleSubmit}
+                                    disabled={loading}
+                                    className="w-full py-5 bg-gradient-to-r from-[#B50104] to-[#950002] text-white font-bold rounded-2xl shadow-xl shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-3 group/btn relative overflow-hidden"
+                                >
+                                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 rounded-2xl" />
+                                    <span className="relative z-10">{loading ? "Processing..." : "Confirm Payment"}</span>
+                                    {!loading && <ArrowRight size={20} className="relative z-10 group-hover/btn:translate-x-1 transition-transform" />}
+                                </button>
                             </div>
-                        </div>
+                        </motion.div>
 
                         {/* Right: Balance/Status */}
                         <div className="lg:col-span-4 space-y-5">

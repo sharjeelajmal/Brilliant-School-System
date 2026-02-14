@@ -18,6 +18,9 @@ import { TestReportContent } from "@/components/test-report/TestReportContent";
 import { MonthlyFeeCollection } from "@/components/fee/MonthlyFeeCollection";
 import { ClassDiary } from "@/components/diary/ClassDiary";
 import { StaffPayroll } from "@/components/payroll/StaffPayroll";
+// NEW COMPONENT
+import { VendorList } from "@/components/vendors/VendorList";
+import { PurchasesList } from "@/components/vendors/PurchasesList";
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
@@ -53,6 +56,8 @@ function DashboardContent() {
     if (activePage === "finance") return "Fee & Finance";
     if (activePage === "diary") return "Class Diary";
     if (activePage === "payroll") return "Staff Payroll";
+    if (activePage === "vendors") return "Supplier Management";
+    if (activePage === "purchases") return "Purchase History";
     return activePage.replace("-", " ");
   };
 
@@ -65,7 +70,7 @@ function DashboardContent() {
         setActivePage={handlePageChange}
       />
 
-      <main className="flex-1 p-8 md:p-12 h-screen overflow-y-auto">
+      <main className="flex-1 p-8 md:p-12 h-screen overflow-y-auto overflow-x-hidden">
         {activePage !== "students" && (
           <header className="flex justify-between items-center mb-10">
             <div>
@@ -204,6 +209,26 @@ function DashboardContent() {
                 exit={{ opacity: 0, y: -20 }}
               >
                 <StaffPayroll />
+              </motion.div>
+            ) : activePage === "vendors" ? (
+              <motion.div
+                key="vendors"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <VendorList />
+              </motion.div>
+            ) : activePage === "purchases" ? (
+              <motion.div
+                key="purchases"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <div className="mb-4">
+                  <PurchasesList />
+                </div>
               </motion.div>
             ) : (
               <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">

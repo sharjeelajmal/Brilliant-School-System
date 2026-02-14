@@ -66,7 +66,7 @@ export const CustomDatePicker = ({ label, value, onChange, name, disableFuture =
   };
 
   return (
-    <div className="relative w-full mt-2" ref={containerRef}>
+    <div className="relative w-full mt-4" ref={containerRef}>
       <div
         onClick={() => setIsOpen(!isOpen)}
         // FIX: Border Logic Updated

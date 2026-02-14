@@ -30,11 +30,13 @@ export async function GET(req: Request) {
 
     if (id) {
       const teacher = await Teacher.findById(id);
-      if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+      if (!teacher || teacher.status === 'Left' || teacher.status === 'Fired') {
+        return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+      }
       return NextResponse.json({ success: true, data: teacher }, { status: 200 });
     }
 
-    let query: any = {};
+    let query: any = { status: { $nin: ['Left', 'Fired'] } };
     if (className) query.assignedClass = className;
     if (sectionName) query.assignedSection = sectionName;
 
@@ -65,7 +67,7 @@ export async function PUT(req: Request) {
   }
 }
 
-// --- DELETE: Remove Teacher ---
+// --- DELETE: Soft Delete Teacher (Mark as Left) ---
 export async function DELETE(req: Request) {
   try {
     await connectDB();
@@ -74,10 +76,12 @@ export async function DELETE(req: Request) {
 
     if (!id) return NextResponse.json({ error: "Teacher ID required" }, { status: 400 });
 
-    const teacher = await Teacher.findByIdAndDelete(id);
+    // Soft Delete: Set status to 'Left'
+    const teacher = await Teacher.findByIdAndUpdate(id, { status: 'Left' }, { new: true });
+
     if (!teacher) return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
 
-    return NextResponse.json({ success: true, message: "Teacher removed successfully" }, { status: 200 });
+    return NextResponse.json({ success: true, message: "Teacher marked as Left/Fired" }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }

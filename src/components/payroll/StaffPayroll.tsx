@@ -12,7 +12,7 @@ import { toast, Toaster } from 'sonner';
 const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
 // ========== RED STAT CARD ==========
-const RedStatCard = ({ label, value, prefix, delay }: { label: string; value: number; prefix?: string; delay: number }) => (
+const RedStatCard = ({ label, value, delay }: { label: string; value: number | string; delay: number }) => (
     <motion.div
         initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay, duration: 0.5 }}
         className="relative h-[130px] rounded-[16px] overflow-hidden bg-[#B50104] shadow-xl flex flex-col justify-center px-6 group cursor-default"
@@ -21,7 +21,6 @@ const RedStatCard = ({ label, value, prefix, delay }: { label: string; value: nu
         <div className="absolute right-12 bottom-[-20px] w-20 h-20 bg-[#C60205] opacity-60 rounded-full" />
         <div className="relative z-10 text-white">
             <h3 className="text-4xl font-black tracking-tighter mb-1">
-                {prefix && <span className="text-2xl opacity-70 mr-0.5">{prefix}</span>}
                 {typeof value === 'number' ? value.toLocaleString() : value}
             </h3>
             <p className="text-sm font-medium opacity-90 uppercase tracking-widest">{label}</p>
@@ -355,23 +354,52 @@ export const StaffPayroll = () => {
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 font-['Montserrat'] pb-10">
             <Toaster position="top-center" richColors />
 
-            {/* HEADER */}
-            <div className="flex flex-col md:flex-row justify-between items-end gap-6">
+            {/* === TITLE SECTION === */}
+            <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div>
-                    <motion.h1 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-4xl font-black text-[#B50104] uppercase tracking-tighter mb-1">Staff Payroll</motion.h1>
-                    <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }} className="text-gray-400 font-bold text-sm">Manage teacher salaries and payments</motion.p>
+                    <motion.h1
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        className="text-3xl md:text-4xl font-black text-[#B50104] tracking-tight"
+                    >
+                        STAFF PAYROLL
+                    </motion.h1>
+                    <motion.div
+                        initial={{ width: 0 }}
+                        animate={{ width: 80 }}
+                        transition={{ duration: 0.6, delay: 0.2 }}
+                        className="h-1.5 bg-[#B50104] rounded-full mt-2"
+                    />
                 </div>
-                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.2 }} className="relative w-full md:w-[280px]">
-                    <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                    <input type="text" placeholder="Search Teacher..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full h-[50px] bg-white border border-gray-200 rounded-xl pl-11 pr-4 text-sm font-bold text-[#191919] outline-none focus:border-[#B50104] focus:ring-1 focus:ring-[#B50104]/20 transition-all placeholder:text-gray-300" />
+
+                {/* Search Bar */}
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.3 }}
+                    className="relative w-full lg:w-[350px]"
+                >
+                    <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+                    <input
+                        type="text"
+                        placeholder="Search Teacher..."
+                        value={search}
+                        onChange={(e) => setSearch(e.target.value)}
+                        className="w-full h-[48px] bg-white border border-gray-200 rounded-xl pl-11 pr-10 text-sm font-bold text-[#191919] outline-none focus:border-[#B50104] focus:shadow-lg focus:shadow-red-500/10 transition-all placeholder:text-gray-300"
+                    />
+                    {search && (
+                        <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#B50104] cursor-pointer">
+                            <X size={16} />
+                        </button>
+                    )}
                 </motion.div>
             </div>
 
             {/* STAT CARDS */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <RedStatCard label="Total Salary" value={summary.totalSalary} prefix="₨" delay={0} />
-                <RedStatCard label="Given Salary" value={summary.givenSalary} prefix="₨" delay={0.1} />
-                <RedStatCard label="Remaining Salary" value={summary.remainingSalary} prefix="₨" delay={0.2} />
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <RedStatCard label="Total Salary (Rs)" value={summary.totalSalary} delay={0} />
+                <RedStatCard label="Given Salary (Rs)" value={summary.givenSalary} delay={0.1} />
+                <RedStatCard label="Remaining Salary (Rs)" value={summary.remainingSalary} delay={0.2} />
                 <RedStatCard label="Teachers Unpaid" value={summary.teachersUnpaid} delay={0.3} />
             </div>
 

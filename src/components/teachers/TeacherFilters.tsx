@@ -35,16 +35,15 @@ const ModernDropdown = ({ label, value, options, onChange, icon: Icon }: any) =>
     );
 };
 
-export const TeacherFilters = ({ search, setSearch, gender, setGender, subject, setSubject, subjectsList }: any) => {
-  return (
-    <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
-        <div className="relative w-full">
-            <input type="text" placeholder="Search teacher..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full h-[50px] border border-gray-200 rounded-xl pl-12 pr-4 outline-none focus:border-[#B50104] focus:ring-1 focus:ring-[#B50104]/20 transition-all text-sm font-bold bg-gray-50/50 focus:bg-white text-[#191919]" />
-            <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+export const TeacherFilters = ({ search, setSearch, gender, setGender, designation, setDesignation, designationsList }: any) => {
+    return (
+        <div className="bg-white p-5 rounded-[24px] shadow-sm border border-gray-100 grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            <div className="relative w-full">
+                <input type="text" placeholder="Search teacher..." value={search} onChange={(e) => setSearch(e.target.value)} className="w-full h-[50px] border border-gray-200 rounded-xl pl-12 pr-4 outline-none focus:border-[#B50104] focus:ring-1 focus:ring-[#B50104]/20 transition-all text-sm font-bold bg-gray-50/50 focus:bg-white text-[#191919]" />
+                <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
+            </div>
+            <ModernDropdown label="All Genders" value={gender} onChange={setGender} options={["Male", "Female"]} icon={User} />
+            <ModernDropdown label="All Designations" value={designation} onChange={setDesignation} options={designationsList} icon={BookOpen} />
         </div>
-        <ModernDropdown label="All Genders" value={gender} onChange={setGender} options={["Male", "Female"]} icon={User} />
-        {/* Dynamic Subjects List Pass kiya gaya ha */}
-        <ModernDropdown label="All Subjects" value={subject} onChange={setSubject} options={subjectsList} icon={BookOpen} />
-    </div>
-  );
+    );
 };

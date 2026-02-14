@@ -9,7 +9,7 @@ import { LinedTextArea } from '@/components/ui/LinedTextArea';
 // New Prop: onSuccess
 export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [loading, setLoading] = useState(false);
-  
+
   // Data States
   const [classes, setClasses] = useState<string[]>([]);
   const [sections, setSections] = useState<string[]>([]);
@@ -17,7 +17,7 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [teacherName, setTeacherName] = useState("");
 
   const [formData, setFormData] = useState({
-    date: '', className: '', section: '', student: '', title: '', description: ''
+    date: new Date().toISOString().split('T')[0], className: '', section: '', student: '', title: '', description: ''
   });
 
   // --- DATA FETCHING (Same as before) ---
@@ -65,38 +65,38 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
 
   // --- SUBMIT LOGIC (REAL DB) ---
   const handleSubmit = async () => {
-    if(!formData.title || !formData.description || !formData.student) { 
-        toast.error("Please fill all details."); 
-        return; 
+    if (!formData.title || !formData.description || !formData.student) {
+      toast.error("Please fill all details.");
+      return;
     }
     setLoading(true);
     try {
-        const res = await fetch('/api/complaints', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                studentName: formData.student,
-                className: formData.className,
-                section: formData.section,
-                date: formData.date,
-                title: formData.title,
-                description: formData.description,
-                teacherName: teacherName
-            })
-        });
+      const res = await fetch('/api/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          studentName: formData.student,
+          className: formData.className,
+          section: formData.section,
+          date: formData.date,
+          title: formData.title,
+          description: formData.description,
+          teacherName: teacherName
+        })
+      });
 
-        const data = await res.json();
+      const data = await res.json();
 
-        if (res.ok) {
-            toast.success("Complaint Saved Successfully!");
-            // Redirect back to list
-            if (onSuccess) onSuccess(); 
-        } else {
-            toast.error(data.error || "Failed to save.");
-        }
-    } catch(e) { 
-        toast.error("Network Error."); 
-    } 
+      if (res.ok) {
+        toast.success("Complaint Saved Successfully!");
+        // Redirect back to list
+        if (onSuccess) onSuccess();
+      } else {
+        toast.error(data.error || "Failed to save.");
+      }
+    } catch (e) {
+      toast.error("Network Error.");
+    }
     finally { setLoading(false); }
   };
 
@@ -112,45 +112,45 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       {/* Filters Section - Responsive Grid */}
       <div className="bg-white p-5 md:p-8 rounded-[24px] shadow-lg border border-gray-100 mb-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 items-start">
-            <CustomDatePicker label="Select Date" name="date" value={formData.date} onChange={handleChange} />
-            <CustomDropdown label="Select Class" name="className" value={formData.className} onChange={handleChange} options={classes} />
-            <div className="relative">
-                <CustomDropdown label="Select Section" name="section" value={formData.section} onChange={handleChange} options={sections} />
-                {teacherName && <span className="absolute right-2 -bottom-5 text-[10px] font-medium text-[#B70003] italic">Teacher: {teacherName}</span>}
-            </div>
-            <CustomDropdown label="Select Student" name="student" value={formData.student} onChange={handleChange} options={students} />
+          <CustomDatePicker label="Select Date" name="date" value={formData.date} onChange={handleChange} />
+          <CustomDropdown label="Select Class" name="className" value={formData.className} onChange={handleChange} options={classes} />
+          <div className="relative">
+            <CustomDropdown label="Select Section" name="section" value={formData.section} onChange={handleChange} options={sections} />
+            {teacherName && <span className="absolute right-2 -bottom-5 text-[10px] font-medium text-[#B70003] italic">Teacher: {teacherName}</span>}
+          </div>
+          <CustomDropdown label="Select Student" name="student" value={formData.student} onChange={handleChange} options={students} />
         </div>
       </div>
 
       {/* Writing Area - Responsive Flex Layout */}
       <div className="bg-white p-5 md:p-10 rounded-[24px] shadow-xl border border-gray-100 flex flex-col min-h-[400px]">
-         
-         {/* Title Input Row */}
-         <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-6 md:mb-8">
-            <label className="text-[#3C3C3C] font-bold text-base md:text-lg whitespace-nowrap mb-1">Title:</label>
-            <input 
-                type="text" 
-                value={formData.title} 
-                onChange={(e) => handleChange('title', e.target.value)} 
-                className="flex-1 border-b border-[#3C3C3C] outline-none text-base md:text-lg font-medium text-[#B70003] pb-1 bg-transparent w-full" 
-            />
-         </div>
-         
-         {/* Text Area (Takes remaining space) */}
-         <div className="flex-1 mb-6">
-             <LinedTextArea value={formData.description} onChange={(val) => handleChange('description', val)} placeholder="Complaint details..." />
-         </div>
 
-         {/* Submit Button (Fixed Layout for Mobile) */}
-         <div className="flex justify-end mt-auto">
-            <button 
-                onClick={handleSubmit} 
-                disabled={loading} 
-                className="w-full md:w-auto px-10 py-3 bg-[#B50104] text-white font-bold text-base md:text-lg rounded-[12px] shadow-lg hover:bg-[#900000] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
-            >
-                {loading ? "Saving..." : "Submit Complaint"} 
-            </button>
-         </div>
+        {/* Title Input Row */}
+        <div className="flex flex-col md:flex-row md:items-end gap-2 md:gap-4 mb-6 md:mb-8">
+          <label className="text-[#3C3C3C] font-bold text-base md:text-lg whitespace-nowrap mb-1">Title:</label>
+          <input
+            type="text"
+            value={formData.title}
+            onChange={(e) => handleChange('title', e.target.value)}
+            className="flex-1 border-b border-[#3C3C3C] outline-none text-base md:text-lg font-medium text-[#B70003] pb-1 bg-transparent w-full"
+          />
+        </div>
+
+        {/* Text Area (Takes remaining space) */}
+        <div className="flex-1 mb-6">
+          <LinedTextArea value={formData.description} onChange={(val) => handleChange('description', val)} placeholder="Complaint details..." />
+        </div>
+
+        {/* Submit Button (Fixed Layout for Mobile) */}
+        <div className="flex justify-end mt-auto">
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            className="w-full md:w-auto px-10 py-3 bg-[#B50104] text-white font-bold text-base md:text-lg rounded-[12px] shadow-lg hover:bg-[#900000] transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+          >
+            {loading ? "Saving..." : "Submit Complaint"}
+          </button>
+        </div>
       </div>
     </motion.div>
   );

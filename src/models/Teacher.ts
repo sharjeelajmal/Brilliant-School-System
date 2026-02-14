@@ -47,11 +47,14 @@ export interface ITeacher extends Document {
   securityDeposit: number;
   salaryIncrement: number; // RENAMED FROM 'increment'
   paymentMethod: string;
-  
+
   // Bank
   bankName: string;
   accountTitle: string;
   accountNo: string;
+
+  // Status
+  status: string;
 }
 
 const TeacherSchema = new Schema<ITeacher>({
@@ -106,6 +109,9 @@ const TeacherSchema = new Schema<ITeacher>({
   bankName: { type: String },
   accountTitle: { type: String },
   accountNo: { type: String },
+
+  // Status (Active, Left, Fired)
+  status: { type: String, default: 'Active' },
 
 }, { timestamps: true });
 

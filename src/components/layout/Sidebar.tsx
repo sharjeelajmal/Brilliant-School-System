@@ -4,7 +4,7 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Users, Wallet, Settings, LogOut,
   ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare,
-  ClipboardList, FileBarChart2, User, GraduationCap// NEW ICONS IMPORTED
+  ClipboardList, FileBarChart2, User, GraduationCap, Briefcase // NEW ICONS IMPORTED
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -40,6 +40,8 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
 
     { id: 'finance', label: 'Fee Collection', icon: Wallet },
     { id: 'payroll', label: 'Staff Payroll', icon: UserPlus },
+    { id: 'vendors', label: 'Suppliers', icon: Briefcase },
+    { id: 'purchases', label: 'Purchase History', icon: FileBarChart2 }, // NEW
     { id: 'complaints', label: 'Complaints', icon: MessageSquare },
     { id: 'settings', label: 'Settings', icon: Settings },
   ];
@@ -58,7 +60,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
         {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>
 
-      <div className={`p-6 flex items-center gap-3 transition-all ${!isOpen && 'justify-center'}`}>
+      <div className={`p-6 flex items-center ${isOpen ? 'gap-3' : ''} transition-all ${!isOpen && 'justify-center'}`}>
         <div className="w-10 h-10 bg-[#B70003] rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20">E</div>
         <motion.div animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="whitespace-nowrap overflow-hidden">
           <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">EduSmart</h1>
@@ -66,12 +68,12 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
         </motion.div>
       </div>
 
-      <div className="flex-1 px-3 space-y-2 mt-4 overflow-y-auto custom-scrollbar">
+      <div className="flex-1 px-3 space-y-2 mt-4 overflow-y-auto overflow-x-hidden custom-scrollbar">
         {menuItems.map((item) => (
           <div key={item.id} className="relative group">
             <button
               onClick={() => setActivePage(item.id)}
-              className={`w-full flex items-center gap-3 p-3 rounded-xl transition-all duration-200 relative group cursor-pointer ${activePage === item.id ? 'bg-[#B70003] text-white shadow-md shadow-red-200' : 'text-gray-500 hover:bg-red-50 hover:text-[#B70003]'} ${!isOpen && 'justify-center'}`}
+              className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl transition-all duration-200 relative group cursor-pointer ${activePage === item.id ? 'bg-[#B70003] text-white shadow-md shadow-red-200' : 'text-gray-500 hover:bg-red-50 hover:text-[#B70003]'} ${!isOpen && 'justify-center'}`}
             >
               <item.icon size={20} strokeWidth={activePage === item.id ? 2.5 : 2} className="flex-shrink-0" />
               <motion.span animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="font-bold text-xs whitespace-nowrap overflow-hidden">{item.label}</motion.span>
@@ -87,7 +89,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
       </div>
 
       <div className="p-3 mb-2 relative group">
-        <button onClick={handleLogout} className={`w-full flex items-center gap-3 p-3 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-red-600 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
+        <button onClick={handleLogout} className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-red-600 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
           <LogOut size={20} />
           <motion.span animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="font-bold text-xs whitespace-nowrap overflow-hidden">Logout</motion.span>
         </button>

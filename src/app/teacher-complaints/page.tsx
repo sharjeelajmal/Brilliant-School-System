@@ -8,7 +8,7 @@ export default function TeacherComplaintPage() {
     <div className="min-h-screen bg-[#FDFDFD] font-['Montserrat'] pb-20 md:pb-0">
       <TeacherHeader title="Complaints" activePage="complaints" />
       <main className="max-w-[1200px] mx-auto p-4 md:p-8 mt-24 md:mt-0">
-         <ComplaintManager />
+        <ComplaintManager mode="teacher" />
       </main>
     </div>
   );

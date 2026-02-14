@@ -23,9 +23,9 @@ export async function GET(req: Request) {
         const filterMonth = month || currentMonth;
         const filterYear = Number(year) || currentYear;
 
-        // Generate: auto-create payroll records for all teachers if not exist for this month
+        // Generate: auto-create payroll records for active teachers if not exist for this month
         if (generate === 'true') {
-            const teachers = await Teacher.find({});
+            const teachers = await Teacher.find({ status: { $ne: 'Left' } }); // Only active teachers
             for (const teacher of teachers) {
                 const exists = await Payroll.findOne({ teacherId: teacher._id.toString(), month: filterMonth, year: filterYear });
                 if (!exists) {
@@ -63,10 +63,25 @@ export async function GET(req: Request) {
             }
         }
 
+        // --- FILTER: EXCLUDE FIRED TEACHERS ---
+        // Fetch valid teacher IDs (Status != Left/Fired)
+        const activeTeachers = await Teacher.find({ status: { $nin: ['Left', 'Fired'] } }).select('_id');
+        const activeTeacherIds = activeTeachers.map(t => t._id.toString());
+
         // Build filter
-        const filter: any = { month: filterMonth, year: filterYear };
+        const filter: any = {
+            month: filterMonth,
+            year: filterYear,
+            teacherId: { $in: activeTeacherIds } // Only show records for active teachers
+        };
+
         if (status && status !== 'All') filter.status = status;
         if (teacherId) filter.teacherId = teacherId;
+
+        // If specific teacher requested but is fired/not-active, return empty
+        if (teacherId && !activeTeacherIds.includes(teacherId)) {
+            return NextResponse.json({ success: true, data: [] });
+        }
 
         let payrolls = await Payroll.find(filter).sort({ teacherName: 1 });
 
@@ -82,7 +97,12 @@ export async function GET(req: Request) {
 
         // Summary mode
         if (summary === 'true') {
-            const allPayrolls = await Payroll.find({ month: filterMonth, year: filterYear });
+            // Apply same active teacher filter to summary
+            const allPayrolls = await Payroll.find({
+                month: filterMonth,
+                year: filterYear,
+                teacherId: { $in: activeTeacherIds }
+            });
             const totalSalary = allPayrolls.reduce((sum, p) => sum + p.netSalary, 0);
             const givenSalary = allPayrolls.reduce((sum, p) => sum + p.givenAmount, 0);
             const remainingSalary = totalSalary - givenSalary;

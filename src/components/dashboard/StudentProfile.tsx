@@ -185,69 +185,63 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                 </div>
             </div>
 
-            {/* --- HERO BANNER (Theme Matched) --- */}
-            <div className="relative rounded-[30px] overflow-hidden bg-[#B50104] text-white shadow-2xl">
-                <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white opacity-10 blur-[100px] rounded-full translate-x-1/2 -translate-y-1/2" />
-                <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-black opacity-10 blur-[80px] rounded-full -translate-x-1/2 translate-y-1/2" />
+            {/* --- HERO BANNER (Modern & Animated) --- */}
+            <div className="relative rounded-[30px] overflow-hidden bg-gradient-to-br from-[#B50104] via-[#900000] to-black text-white shadow-2xl group">
+                {/* Background Effects */}
+                <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-white opacity-5 blur-[120px] rounded-full translate-x-1/2 -translate-y-1/2 group-hover:opacity-10 transition-opacity duration-700" />
+                <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-black opacity-20 blur-[100px] rounded-full -translate-x-1/2 translate-y-1/2" />
+                <div className="absolute inset-0 bg-[url('/noise.png')] opacity-5 mix-blend-overlay" />
 
-                <div className="relative z-10 p-6 md:p-10 flex flex-col md:flex-row items-center md:items-end gap-6 md:gap-8">
+                <div className="relative z-10 p-8 md:p-12 flex flex-col md:flex-row items-center md:items-end gap-8 md:gap-12">
                     {/* Avatar */}
-                    <div className="relative group">
-                        <div className="w-[120px] h-[120px] md:w-[140px] md:h-[140px] rounded-full p-1 bg-white/20 backdrop-blur-sm">
-                            <div className="w-full h-full rounded-full bg-white border-4 border-white/50 overflow-hidden relative shadow-2xl">
+                    <div className="relative group shrink-0">
+                        <div className="w-[140px] h-[140px] md:w-[160px] md:h-[160px] rounded-full p-1.5 bg-white/20 backdrop-blur-md shadow-2xl border border-white/10">
+                            <div className="w-full h-full rounded-full bg-white border-4 border-white/80 overflow-hidden relative shadow-inner">
                                 {getAvatar()}
                             </div>
                         </div>
-                        <div className="absolute bottom-2 right-2 w-6 h-6 md:w-8 md:h-8 bg-green-500 border-4 border-[#B50104] rounded-full shadow-sm" title="Active" />
+                        <div className="absolute bottom-4 right-4 w-6 h-6 md:w-8 md:h-8 bg-[#009952] border-4 border-[#850002] rounded-full shadow-lg animate-pulse" title="Active Student" />
                     </div>
 
                     {/* Name & Basic Info */}
-                    <div className="text-center md:text-left flex-1 space-y-3 w-full">
+                    <div className="text-center md:text-left flex-1 space-y-4 w-full">
                         {isEditing ? (
-                            <div className="flex flex-col md:flex-row gap-3 w-full">
-                                <input name="firstName" value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} className="text-2xl md:text-4xl font-black bg-black/20 rounded-lg px-4 py-2 text-white placeholder-white/50 outline-none border border-transparent focus:border-white/40 w-full" placeholder="First Name" />
-                                <input name="lastName" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} className="text-2xl md:text-4xl font-black bg-black/20 rounded-lg px-4 py-2 text-white placeholder-white/50 outline-none border border-transparent focus:border-white/40 w-full" placeholder="Last Name" />
+                            <div className="flex flex-col md:flex-row gap-4 w-full">
+                                <input name="firstName" value={formData.firstName} onChange={(e) => handleChange("firstName", e.target.value)} className="text-3xl md:text-5xl font-black bg-black/20 rounded-xl px-4 py-2 text-white placeholder-white/40 outline-none border border-white/10 focus:border-white/40 w-full transition-all" placeholder="First Name" />
+                                <input name="lastName" value={formData.lastName} onChange={(e) => handleChange("lastName", e.target.value)} className="text-3xl md:text-5xl font-black bg-black/20 rounded-xl px-4 py-2 text-white placeholder-white/40 outline-none border border-white/10 focus:border-white/40 w-full transition-all" placeholder="Last Name" />
                             </div>
                         ) : (
-                            <h1 className="text-3xl md:text-5xl font-black tracking-tight">{data.firstName} <span className="opacity-80">{data.lastName}</span></h1>
+                            <div>
+                                <h1 className="text-4xl md:text-6xl font-black tracking-tighter drop-shadow-lg">{data.firstName} <span className="opacity-80 font-bold">{data.lastName}</span></h1>
+                                <p className="text-white/60 font-bold text-sm tracking-[0.2em] uppercase mt-1">Student Profile</p>
+                            </div>
                         )}
 
                         <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-xs md:text-sm font-bold text-white/90">
-                            <span className="px-3 py-1 bg-black/20 rounded-full border border-white/10 flex items-center gap-2 backdrop-blur-sm">
-                                <School size={14} className="text-yellow-300" />
-                                {isEditing ? <input name="classJoining" value={formData.classJoining} onChange={(e) => handleChange("classJoining", e.target.value)} className="bg-transparent outline-none w-24 text-white" placeholder="Class" /> : (data.classJoining || 'No Class')}
+                            <span className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 flex items-center gap-2 backdrop-blur-md hover:bg-white/20 transition-colors">
+                                <School size={16} className="text-yellow-400" />
+                                {isEditing ? <input name="classJoining" value={formData.classJoining} onChange={(e) => handleChange("classJoining", e.target.value)} className="bg-transparent outline-none w-24 text-white placeholder-white/50" placeholder="Class" /> : (data.classJoining || 'No Class')}
                             </span>
-                            <span className="px-3 py-1 bg-black/20 rounded-full border border-white/10 flex items-center gap-2 backdrop-blur-sm">
-                                <Star size={14} className="text-yellow-300" />
+                            <span className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 flex items-center gap-2 backdrop-blur-md hover:bg-white/20 transition-colors">
+                                <Star size={16} className="text-yellow-400" />
                                 Section:
-                                {isEditing ? <input name="section" value={formData.section} onChange={(e) => handleChange("section", e.target.value)} className="bg-transparent outline-none w-16 text-white" placeholder="Sec" /> : (data.section || 'A')}
+                                {isEditing ? <input name="section" value={formData.section} onChange={(e) => handleChange("section", e.target.value)} className="bg-transparent outline-none w-16 text-white placeholder-white/50" placeholder="Sec" /> : (data.section || 'A')}
                             </span>
                             {/* Address Edit */}
-                            <span className="flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full">
-                                <MapPin size={14} />
+                            <span className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md hover:bg-white/20 transition-colors">
+                                <MapPin size={16} className="text-red-300" />
                                 {isEditing ?
                                     <input name="address" value={formData.address} onChange={(e) => handleChange("address", e.target.value)} className="bg-transparent outline-none text-white w-32 md:w-48 placeholder-white/50" placeholder="Address" />
                                     : (formData.address || 'No Address')}
                             </span>
 
-                            {/* Phone Edit */}
-                            <span className="flex items-center gap-1 bg-black/20 px-3 py-1 rounded-full">
-                                <Phone size={14} />
-                                {isEditing ?
-                                    <input name="mobileNo" value={formData.mobileNo} onChange={(e) => handleChange("mobileNo", e.target.value)} className="bg-transparent outline-none text-white w-24 md:w-32 placeholder-white/50" placeholder="Mobile No" />
-                                    : (formData.mobileNo || 'No Phone')}
+                            {/* Joining Date Display - NEW REQUIREMENT */}
+                            <span className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md hover:bg-white/20 transition-colors">
+                                <Calendar size={16} className="text-blue-300" />
+                                <span className="opacity-70">Joined:</span>
+                                {data.joiningDate || "N/A"}
                             </span>
                         </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex gap-3 mt-6 justify-center md:justify-start w-full">
-
-                    </div>
-
-                    {/* Stats Mini Cards */}
-                    <div className="hidden md:flex gap-3 w-full md:w-auto justify-center md:justify-start">
-                        {/* ... stats ... */}
                     </div>
                 </div>
             </div>
@@ -311,7 +305,7 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                         <InfoRow label="Previous School" name="previousSchool" value={formData.previousSchool} isEditing={isEditing} onChange={handleChange} icon={School} />
                         <InfoRow label="Last Class" name="lastClass" value={formData.lastClass} isEditing={isEditing} onChange={handleChange} icon={GraduationCap} />
                         <InfoRow label="Leaving Reason" name="leavingReason" value={formData.leavingReason} isEditing={isEditing} onChange={handleChange} icon={FileText} />
-                        <InfoRow label="Admission Date" name="joiningDate" value={formData.joiningDate} isEditing={isEditing} onChange={handleChange} icon={Calendar} type="date" align="right" />
+                        <InfoRow label="Admission Date" name="joiningDate" value={data.joiningDate} isEditing={isEditing} onChange={handleChange} icon={Calendar} type="date" align="right" />
                     </div>
                 </motion.div>
 

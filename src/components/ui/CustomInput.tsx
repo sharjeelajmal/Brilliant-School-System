@@ -12,13 +12,13 @@ interface CustomInputProps {
   disabled?: boolean;
 }
 
-export const CustomInput = ({ 
-  label, 
-  name, 
-  value, 
-  onChange, 
-  type = "text", 
-  placeholder, 
+export const CustomInput = ({
+  label,
+  name,
+  value,
+  onChange,
+  type = "text",
+  placeholder,
   suffix,
   disabled = false
 }: CustomInputProps) => {
@@ -29,13 +29,13 @@ export const CustomInput = ({
     // --- FIX: Logic Update ---
     // Agar type "number" hai to sirf numbers allow kro
     if (type === 'number') {
-        // Sirf digits aur dot allow karein (decimals ke liye)
-        if (!/^\d*\.?\d*$/.test(val)) return;
+      // Sirf digits aur dot allow karein (decimals ke liye)
+      if (!/^\d*\.?\d*$/.test(val)) return;
     }
-    
+
     // NOTE: Agar type "text" hai to hum kuch bhi allow kar rahe hain 
     // (Numbers + Alphabets) taake Class Name (e.g., "Class 10") likha ja sakay.
-    
+
     // Agar future ma sirf alphabets chahiye hon (Names ke liye), 
     // to hum alag prop bana lenge. Abhi ke liye ye open hai.
 

@@ -88,6 +88,12 @@ const StatusBadge = ({ status }: { status: string }) => {
 };
 
 // === MAIN COMPONENT ===
+// Import FeeSubmission
+import { FeeSubmission } from '@/components/dashboard/FeeSubmission';
+
+// ... (Imports and helper components StatCard, Dropdown, StatusBadge remain same)
+
+// === MAIN COMPONENT ===
 export const MonthlyFeeCollection = () => {
     const now = new Date();
     const [month, setMonth] = useState(MONTHS[now.getMonth()]);
@@ -97,6 +103,10 @@ export const MonthlyFeeCollection = () => {
     const [students, setStudents] = useState<any[]>([]);
     const [summary, setSummary] = useState<any>({ totalFee: 0, collectedFee: 0, remainingFee: 0, studentsUnpaid: 0 });
     const [loading, setLoading] = useState(true);
+
+    // Fee Modal State
+    const [showFeeModal, setShowFeeModal] = useState(false);
+    const [selectedParent, setSelectedParent] = useState<any>(null);
 
     // Fetch Data
     const fetchData = useCallback(async () => {
@@ -127,7 +137,7 @@ export const MonthlyFeeCollection = () => {
         return () => clearTimeout(debounce);
     }, [fetchData]);
 
-    // WhatsApp Contact
+    // Handlers
     const handleWhatsApp = (student: any) => {
         let number = (student.whatsappNo || student.mobileNo || '').replace(/[^0-9]/g, '');
         if (!number) return toast.error("No contact number found");
@@ -135,63 +145,79 @@ export const MonthlyFeeCollection = () => {
         window.open(`https://wa.me/${number}?text=Assalam-o-Alaikum, Dear Parent. Your child ${student.studentName}'s fee for ${month} ${year} is pending. Please submit at the earliest. JazakAllah.`, '_blank');
     };
 
-    // Month Index for display
+    const handleCollectFee = async (student: any) => {
+        // Fallback to CNIC if parentId is missing (Common in imported data)
+        const lookupKey = student.parentId || student.parentCnic;
+
+        if (!lookupKey) return toast.error("Parent record/CNIC not found for this student");
+
+        const toastId = toast.loading("Loading Parent Details...");
+        try {
+            // Fetch all parents (Currently API doesn't support direct filtering efficiently, so we fetch and find)
+            // Optimization: If API supports ?cnic=... later, update this.
+            const res = await fetch(`/api/parents`);
+            const data = await res.json();
+
+            if (data.success) {
+                // Find parent by ID or CNIC
+                const found = data.data.find((p: any) =>
+                    p._id === lookupKey ||
+                    p.cnic === lookupKey ||
+                    p.cnic === student.parentCnic
+                );
+
+                if (found) {
+                    setSelectedParent(found);
+                    setShowFeeModal(true);
+                    toast.dismiss(toastId);
+                    return;
+                }
+            }
+            toast.error("Parent details not found in system", { id: toastId });
+
+        } catch (e) {
+            toast.error("Network Error: Failed to load parents", { id: toastId });
+        }
+    };
+
+
+
     const monthIdx = MONTHS.indexOf(month);
     const mmYyyy = `${String(monthIdx + 1).padStart(2, '0')}/${year}`;
-
-    // Available years
     const years = Array.from({ length: 5 }, (_, i) => String(now.getFullYear() - 2 + i));
 
     return (
-        <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="space-y-8 font-['Montserrat'] pb-10"
-        >
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-8 font-['Montserrat'] pb-10">
             <Toaster position="top-center" richColors />
+
+            {/* Fee Modal */}
+            <AnimatePresence>
+                {showFeeModal && selectedParent && (
+                    <FeeSubmission
+                        parent={selectedParent}
+                        onClose={() => setShowFeeModal(false)}
+                        onSuccess={() => { fetchData(); setShowFeeModal(false); }}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* === TITLE SECTION === */}
             <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
                 <div>
-                    <motion.h1
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        className="text-3xl md:text-4xl font-black text-[#B50104] tracking-tight"
-                    >
-                        MONTHLY FEE COLLECTION
-                    </motion.h1>
-                    <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: 80 }}
-                        transition={{ duration: 0.6, delay: 0.2 }}
-                        className="h-1.5 bg-[#B50104] rounded-full mt-2"
-                    />
+                    <motion.h1 initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="text-3xl md:text-4xl font-black text-[#B50104] tracking-tight">MONTHLY FEE COLLECTION</motion.h1>
+                    <motion.div initial={{ width: 0 }} animate={{ width: 80 }} transition={{ duration: 0.6, delay: 0.2 }} className="h-1.5 bg-[#B50104] rounded-full mt-2" />
                 </div>
-
-                {/* Search Bar */}
-                <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.3 }}
-                    className="relative w-full lg:w-[350px]"
-                >
+                <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.3 }} className="relative w-full lg:w-[350px]">
                     <Search size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
                     <input
-                        type="text"
-                        placeholder="Search Parent or Student..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
+                        type="text" placeholder="Search Parent or Student..." value={search} onChange={(e) => setSearch(e.target.value)}
                         className="w-full h-[48px] bg-white border border-gray-200 rounded-xl pl-11 pr-10 text-sm font-bold text-[#191919] outline-none focus:border-[#B50104] focus:shadow-lg focus:shadow-red-500/10 transition-all placeholder:text-gray-300"
                     />
-                    {search && (
-                        <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#B50104] cursor-pointer">
-                            <X size={16} />
-                        </button>
-                    )}
+                    {search && <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-[#B50104] cursor-pointer"><X size={16} /></button>}
                 </motion.div>
             </div>
 
-            {/* === STAT CARDS - Same as Student List Page === */}
+            {/* === STAT CARDS === */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                 <RedStatCard label="Total Fee" value={summary.totalFee?.toLocaleString() || '0'} delay={0} />
                 <RedStatCard label="Collected Fee" value={summary.collectedFee?.toLocaleString() || '0'} delay={0.1} />
@@ -199,141 +225,78 @@ export const MonthlyFeeCollection = () => {
                 <RedStatCard label="Students Unpaid" value={String(summary.studentsUnpaid || '0')} delay={0.3} />
             </div>
 
-            {/* === MONTH/YEAR DISPLAY === */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4 }}
-                className="flex items-center gap-3"
-            >
-                <Calendar size={20} className="text-[#B50104]" />
-                <span className="text-2xl font-black text-[#191919] tracking-tight">{mmYyyy}</span>
-                <button
-                    onClick={fetchData}
-                    className="ml-2 w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center text-gray-400 hover:text-[#B50104] hover:bg-red-50 transition-all cursor-pointer active:scale-90"
-                >
-                    <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
-                </button>
-            </motion.div>
-
-            {/* === FILTERS === */}
-            <motion.div
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.5 }}
-                className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
-            >
-                <Dropdown
-                    label="Status"
-                    value={status}
-                    options={['All', 'Paid', 'Unpaid', 'Partial Paid']}
-                    onChange={setStatus}
-                    icon={Filter}
-                />
-                <Dropdown
-                    label="Select Month"
-                    value={month}
-                    options={MONTHS}
-                    onChange={setMonth}
-                    icon={Calendar}
-                />
-                <Dropdown
-                    label="Select Year"
-                    value={String(year)}
-                    options={years}
-                    onChange={(v: string) => setYear(parseInt(v))}
-                    icon={Calendar}
-                />
-                <div className="flex items-center gap-2">
-                    <div className="flex-1 h-[48px] bg-gray-50 border border-gray-100 rounded-xl px-4 flex items-center gap-2 text-sm font-bold text-gray-500">
-                        <Users size={16} className="text-gray-400" />
-                        <span>{summary.totalStudents || 0} Students</span>
-                    </div>
+            {/* === FILTERS & CONTROLS === */}
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }} className="bg-white p-4 rounded-[24px] shadow-sm border border-gray-100 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 items-center">
+                <Dropdown label="Status" value={status} options={['All', 'Paid', 'Unpaid', 'Partial Paid']} onChange={setStatus} icon={Filter} />
+                <Dropdown label="Select Month" value={month} options={MONTHS} onChange={setMonth} icon={Calendar} />
+                <Dropdown label="Select Year" value={String(year)} options={years} onChange={(v: string) => setYear(parseInt(v))} icon={Calendar} />
+                <div className="flex h-[48px] bg-red-50 border border-red-100 rounded-xl px-4 items-center justify-between text-[#B50104] font-bold text-sm">
+                    <div className="flex items-center gap-2"><Users size={16} /> <span>{summary.totalStudents || 0} Students</span></div>
+                    <button onClick={fetchData} className="w-8 h-8 flex items-center justify-center rounded-lg hover:bg-white/50 transition-colors cursor-pointer"><RefreshCw size={14} className={loading ? 'animate-spin' : ''} /></button>
                 </div>
             </motion.div>
 
-            {/* === DATA TABLE === */}
-            <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 }}
-                className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden"
-            >
-                {/* Table Header */}
+            {/* === MODERN DATA TABLE === */}
+            <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.6 }} className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden relative">
+                <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#B50104] to-[#FF4B4E]" />
+
                 <div className="overflow-x-auto">
-                    <table className="w-full min-w-[900px]">
+                    <table className="w-full min-w-[1000px]">
                         <thead>
-                            <tr className="border-b border-gray-100">
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Roll No.#</th>
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Student Name</th>
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Parents/Guardians</th>
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Total Fee</th>
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Due Date</th>
-                                <th className="text-left px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Status</th>
-                                <th className="text-right px-6 py-4 text-[11px] font-black text-gray-400 uppercase tracking-wider">Actions</th>
+                            <tr className="bg-gray-50 border-b border-gray-200">
+                                <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Roll No.</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Student Details</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Fee Info</th>
+                                <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
+                                <th className="text-right px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest pr-10">Quick Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody className="divide-y divide-gray-50">
                             {loading ? (
-                                // Loading skeleton
-                                Array.from({ length: 6 }).map((_, i) => (
-                                    <tr key={i} className="border-b border-gray-50">
-                                        {Array.from({ length: 7 }).map((_, j) => (
-                                            <td key={j} className="px-6 py-4">
-                                                <div className="h-4 bg-gray-100 rounded-lg animate-pulse" style={{ width: `${60 + Math.random() * 40}%` }} />
-                                            </td>
-                                        ))}
-                                    </tr>
+                                Array.from({ length: 5 }).map((_, i) => (
+                                    <tr key={i}><td colSpan={5} className="px-6 py-6"><div className="h-10 bg-gray-50 rounded-xl animate-pulse" /></td></tr>
                                 ))
                             ) : students.length > 0 ? (
                                 students.map((student: any, index: number) => (
                                     <motion.tr
                                         key={student.studentId}
-                                        initial={{ opacity: 0, x: -10 }}
-                                        animate={{ opacity: 1, x: 0 }}
-                                        transition={{ duration: 0.3, delay: index * 0.03 }}
-                                        className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors group"
+                                        initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.05 }}
+                                        className="group hover:bg-red-50/10 transition-all duration-300"
                                     >
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-black text-gray-300 group-hover:text-[#B50104] transition-colors">
+                                        <td className="px-6 py-5">
+                                            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs font-black text-gray-500 group-hover:bg-[#B50104] group-hover:text-white transition-colors shadow-sm">
                                                 {String(student.rollNo || index + 1).padStart(2, '0')}
-                                            </span>
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-bold text-[#191919]">{student.studentName}</span>
+                                        <td className="px-6 py-5">
+                                            <div>
+                                                <h4 className="text-sm font-bold text-[#191919] group-hover:text-[#B50104] transition-colors">{student.studentName}</h4>
+                                                <p className="text-[11px] font-medium text-gray-400 mt-0.5">{student.parentName || 'No Parent Info'}</p>
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-500 font-medium">{student.parentName || '-'}</span>
+                                        <td className="px-6 py-5">
+                                            <div>
+                                                <h4 className="text-sm font-black text-[#191919]">{(student.totalFee || 0).toLocaleString()} <span className="text-[10px] text-gray-400 font-bold">PKR</span></h4>
+                                                <p className="text-[11px] font-medium text-gray-400 mt-0.5 flex items-center gap-1">Due: <span className="text-red-400">{student.dueDate}</span></p>
+                                            </div>
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm font-black text-[#191919]">{(student.totalFee || 0).toLocaleString()} PKR</span>
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <span className="text-sm text-gray-400 font-medium">{student.dueDate}</span>
-                                        </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-6 py-5">
                                             <StatusBadge status={student.status} />
                                         </td>
-                                        <td className="px-6 py-4">
-                                            <div className="flex items-center justify-end gap-2">
-                                                {student.status === 'Paid' ? (
-                                                    <button className="flex items-center gap-1.5 text-[11px] font-bold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer group/btn">
-                                                        View Receipt
-                                                        <Eye size={13} className="group-hover/btn:scale-110 transition-transform" />
-                                                    </button>
-                                                ) : (
-                                                    <button className="flex items-center gap-1.5 text-[11px] font-bold text-[#B50104] hover:text-[#900000] transition-colors cursor-pointer group/btn">
-                                                        Collect Fee
-                                                        <Wallet size={13} className="group-hover/btn:scale-110 transition-transform" />
+                                        <td className="px-6 py-5">
+                                            <div className="flex items-center justify-end gap-3">
+                                                {student.status !== 'Paid' && (
+                                                    <button onClick={() => handleCollectFee(student)} className="flex items-center gap-2 px-4 py-2 bg-[#B50104] text-white rounded-lg shadow-md shadow-red-500/20 hover:shadow-red-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer text-xs font-bold">
+                                                        <Wallet size={14} /> Collect
                                                     </button>
                                                 )}
-                                                <span className="text-gray-200 mx-1">|</span>
-                                                <button
-                                                    onClick={() => handleWhatsApp(student)}
-                                                    className="flex items-center gap-1.5 text-[11px] font-bold text-green-600 hover:text-green-800 transition-colors cursor-pointer group/btn"
-                                                >
-                                                    Contact
-                                                    <MessageCircle size={13} className="group-hover/btn:scale-110 transition-transform" />
+                                                {student.status === 'Paid' && (
+                                                    <button className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 border border-green-100 rounded-lg hover:bg-green-100 active:scale-95 transition-all cursor-pointer text-xs font-bold">
+                                                        <CheckCircle size={14} /> Paid
+                                                    </button>
+                                                )}
+                                                <button onClick={() => handleWhatsApp(student)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-500 hover:border-green-200 hover:bg-green-50 transition-all cursor-pointer shadow-sm active:scale-90">
+                                                    <MessageCircle size={16} />
                                                 </button>
                                             </div>
                                         </td>
@@ -341,43 +304,17 @@ export const MonthlyFeeCollection = () => {
                                 ))
                             ) : (
                                 <tr>
-                                    <td colSpan={7} className="text-center py-16">
-                                        <motion.div
-                                            initial={{ opacity: 0, scale: 0.9 }}
-                                            animate={{ opacity: 1, scale: 1 }}
-                                            className="flex flex-col items-center gap-3"
-                                        >
-                                            <div className="w-16 h-16 rounded-full bg-gray-50 flex items-center justify-center">
-                                                <Users size={28} className="text-gray-300" />
-                                            </div>
-                                            <p className="text-sm font-bold text-gray-300">No students found for this filter</p>
-                                        </motion.div>
+                                    <td colSpan={5} className="py-20 text-center">
+                                        <div className="flex flex-col items-center opacity-50">
+                                            <Users size={48} className="text-gray-300 mb-4" />
+                                            <p className="text-gray-400 font-bold">No Records Found</p>
+                                        </div>
                                     </td>
                                 </tr>
                             )}
                         </tbody>
                     </table>
                 </div>
-
-                {/* Table Footer - Count */}
-                {!loading && students.length > 0 && (
-                    <div className="px-6 py-4 border-t border-gray-50 bg-gray-50/50 flex items-center justify-between">
-                        <p className="text-xs font-bold text-gray-400">
-                            Showing <span className="text-[#191919]">{students.length}</span> of <span className="text-[#191919]">{summary.totalStudents || 0}</span> students
-                        </p>
-                        <div className="flex items-center gap-4 text-xs font-bold">
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-green-500" /> Paid: {students.filter((s: any) => s.status === 'Paid').length}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-red-500" /> Unpaid: {students.filter((s: any) => s.status === 'Unpaid').length}
-                            </span>
-                            <span className="flex items-center gap-1.5">
-                                <span className="w-2 h-2 rounded-full bg-orange-500" /> Partial: {students.filter((s: any) => s.status === 'Partial Paid').length}
-                            </span>
-                        </div>
-                    </div>
-                )}
             </motion.div>
         </motion.div>
     );
