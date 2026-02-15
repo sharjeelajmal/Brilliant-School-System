@@ -7,6 +7,7 @@ import Fee from '@/models/Fee';
 import Attendance from '@/models/Attendance';
 import ClassModel from '@/models/Class';
 import SectionModel from '@/models/Section';
+import TestReport from '@/models/TestReport';
 import crypto from 'crypto';
 
 export async function GET() {
@@ -99,16 +100,59 @@ export async function GET() {
         }
 
         // Attendance Graph Data (Last 7 Days)
-        const attendanceTrend = [];
+        const last7Days = [];
         for (let i = 6; i >= 0; i--) {
             const d = new Date();
             d.setDate(d.getDate() - i);
-            attendanceTrend.push({
-                day: d.toLocaleDateString('en-US', { weekday: 'short' }),
-                present: Math.floor(Math.random() * (studentCount - (studentCount - 20) + 1) + (studentCount - 20)) || 0,
-                absent: Math.floor(Math.random() * 20) || 0,
-            });
+            last7Days.push(d.toISOString().split('T')[0]);
         }
+
+        const attendanceStats = await Attendance.aggregate([
+            {
+                $match: {
+                    date: { $in: last7Days }
+                }
+            },
+            {
+                $group: {
+                    _id: "$date",
+                    present: {
+                        $sum: { $cond: [{ $eq: ["$status", "present"] }, 1, 0] }
+                    },
+                    absent: {
+                        $sum: { $cond: [{ $eq: ["$status", "absent"] }, 1, 0] }
+                    }
+                }
+            }
+        ]);
+
+        const attendanceTrend = last7Days.map(date => {
+            const dayStat = attendanceStats.find(s => s._id === date);
+            return {
+                day: new Date(date).toLocaleDateString('en-US', { weekday: 'short' }),
+                present: dayStat ? dayStat.present : 0,
+                absent: dayStat ? dayStat.absent : 0,
+            };
+        });
+
+        // Academic Performance (Average % from Test Reports - Last 5 Test Dates)
+        const academicStats = await TestReport.aggregate([
+            {
+                $group: {
+                    _id: "$date",
+                    totalMarks: { $sum: "$totalMarks" },
+                    obtainedMarks: { $sum: "$obtainedMarks" }
+                }
+            },
+            { $sort: { _id: 1 } }, // Sort by date ascending
+            { $limit: 10 } // Limit to last 10 test dates
+        ]);
+
+        const performanceTrend = academicStats.map(stat => ({
+            day: new Date(stat._id).toLocaleDateString('en-US', { day: 'numeric', month: 'short' }),
+            present: stat.totalMarks > 0 ? Math.round((stat.obtainedMarks / stat.totalMarks) * 100) : 0
+        }));
+
 
         const absentTeachers: any[] = [];
 
@@ -136,7 +180,8 @@ export async function GET() {
                         { name: 'Boys', value: maleStudents, color: '#B50104' },
                         { name: 'Girls', value: femaleStudents, color: '#E0E0E0' }
                     ],
-                    trend: attendanceTrend
+                    trend: attendanceTrend,
+                    performance: performanceTrend
                 },
                 widgets: {
                     absentTeachers,

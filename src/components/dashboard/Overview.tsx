@@ -131,18 +131,21 @@ export const Overview = () => {
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
-                  data={data.charts.gender}
-                  innerRadius={55}
-                  outerRadius={75}
+                  data={data.charts.gender.some((g: any) => g.value > 0) ? data.charts.gender : [{ name: 'No Data', value: 1, color: '#f3f4f6' }]}
+                  innerRadius={60}
+                  outerRadius={80}
                   startAngle={90}
                   endAngle={-270}
                   dataKey="value"
                   stroke="none"
                   cornerRadius={8}
                   paddingAngle={4}
+                  isAnimationActive={true}
+                  animationDuration={1500}
+                  animationBegin={200}
                 >
-                  {data.charts.gender.map((entry: any, index: number) => (
-                    <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                  {(data.charts.gender.some((g: any) => g.value > 0) ? data.charts.gender : [{ name: 'No Data', value: 1, color: '#f3f4f6' }]).map((entry: any, index: number) => (
+                    <Cell key={`cell-${index}`} fill={entry.color || '#f3f4f6'} />
                   ))}
                 </Pie>
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
@@ -150,7 +153,7 @@ export const Overview = () => {
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
               <span className="text-3xl font-black text-[#191919] tracking-tighter drop-shadow-sm">
-                {Math.round((data.charts.gender[0].value / (data.counts.students || 1)) * 100)}%
+                {data.counts.students > 0 ? Math.round((data.charts.gender[0].value / data.counts.students) * 100) : 0}%
               </span>
               <span className="text-[9px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Boys</span>
             </div>
@@ -226,7 +229,7 @@ export const Overview = () => {
           </div>
           <div className="h-[200px] flex-1 relative z-10">
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={data.charts.trend.slice().reverse()}>
+              <AreaChart data={data.charts.performance}>
                 <defs>
                   <linearGradient id="colorProgress" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor="#10b981" stopOpacity={0.2} />
@@ -235,9 +238,9 @@ export const Overview = () => {
                 </defs>
                 <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                 <XAxis dataKey="day" axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }} dy={10} />
-                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }} />
+                <YAxis axisLine={false} tickLine={false} tick={{ fill: '#9ca3af', fontSize: 10, fontWeight: 700 }} domain={[0, 100]} />
                 <Tooltip contentStyle={{ borderRadius: '12px', border: 'none', boxShadow: '0 4px 20px rgba(0,0,0,0.1)' }} />
-                <Area type="monotone" dataKey="present" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorProgress)" activeDot={{ r: 6, strokeWidth: 0 }} />
+                <Area type="monotone" dataKey="present" name="Score %" stroke="#10b981" strokeWidth={4} fillOpacity={1} fill="url(#colorProgress)" activeDot={{ r: 6, strokeWidth: 0 }} />
               </AreaChart>
             </ResponsiveContainer>
           </div>
@@ -247,7 +250,7 @@ export const Overview = () => {
         <motion.div variants={itemVariants} className="bg-white backdrop-blur-xl bg-opacity-80 p-8 rounded-[35px] shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-white/50">
           <h3 className="text-xl font-black text-[#191919] tracking-tight mb-8">Quick Actions</h3>
           <div className="grid grid-cols-2 gap-5">
-            <QuickBtn label="New Admission" icon={UserX} color="bg-[#B50104]" onClick={() => router.push('/dashboard?tab=admission')} delay={0} />
+            <QuickBtn label="New Admission" icon={UserX} color="bg-[#B50104]" onClick={() => router.push('/dashboard?tab=forms')} delay={0} />
             <QuickBtn label="Mark Attendance" icon={CheckSquare} color="bg-[#191919]" onClick={() => router.push('/dashboard?tab=attendance')} delay={0.1} />
             <QuickBtn label="Collect Fee" icon={DollarSign} color="bg-[#191919]" onClick={() => router.push('/dashboard?tab=finance')} delay={0.2} />
             <QuickBtn label="View Reports" icon={FileText} color="bg-[#B50104]" onClick={() => router.push('/dashboard?tab=test-report')} delay={0.3} />

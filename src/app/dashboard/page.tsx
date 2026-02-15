@@ -13,6 +13,7 @@ import { ParentsOverview } from '@/components/parents/ParentsOverview';
 import { TeachersOverview } from "@/components/teachers/TeachersOverview";
 import { SubjectManager } from '@/components/dashboard/SubjectManager'; //
 // IMPORT NEW SHARED CONTENT COMPONENTS
+import { useTheme } from '@/context/ThemeContext';
 import { AttendanceContent } from "@/components/attendance/AttendanceContent";
 import { TestReportContent } from "@/components/test-report/TestReportContent";
 import { MonthlyFeeCollection } from "@/components/fee/MonthlyFeeCollection";
@@ -27,6 +28,7 @@ function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { themeColor } = useTheme();
   const tab = searchParams.get("tab") || "overview";
   const [activePage, setActivePage] = useState(tab);
 
@@ -79,20 +81,26 @@ function DashboardContent() {
               <h1 className="text-4xl md:text-5xl font-black text-[#191919] tracking-tighter leading-none mb-3 uppercase">
                 {getTitle()}
               </h1>
-              <div className="h-1.5 w-20 bg-[#B70003] rounded-full" />
+              <div
+                className="h-1.5 w-20 rounded-full"
+                style={{ backgroundColor: themeColor }}
+              />
             </div>
             <div className="flex items-center gap-4 md:gap-6 cursor-pointer group">
               <div className="text-right hidden sm:block">
-                <p className="text-[10px] font-black text-[#B70003] uppercase tracking-[3px]">
+                <p className="text-[10px] font-black uppercase tracking-[3px]" style={{ color: themeColor }}>
                   Admin Hub
                 </p>
                 <p className="text-sm md:text-lg font-bold text-[#191919] group-hover:tracking-wider transition-all">
                   M. Ahsan
                 </p>
               </div>
-              <div className="w-12 h-12 md:w-14 md:h-14 rounded-[20px] bg-[#B70003] p-1 shadow-2xl shadow-red-900/20 group-hover:rotate-3 transition-transform">
+              <div
+                className="w-12 h-12 md:w-14 md:h-14 rounded-[20px] p-1 shadow-2xl group-hover:rotate-3 transition-transform"
+                style={{ backgroundColor: themeColor, boxShadow: `0 10px 30px -10px ${themeColor}66` }}
+              >
                 <img
-                  src="https://ui-avatars.com/api/?name=M+Ahsan&background=B70003&color=fff"
+                  src={`https://ui-avatars.com/api/?name=M+Ahsan&background=${themeColor?.replace('#', '') || 'B70003'}&color=fff`}
                   className="w-full h-full rounded-[16px]"
                   alt="admin"
                 />
@@ -248,6 +256,10 @@ function DashboardContent() {
               </div>
             )}
         </AnimatePresence>
+
+        <footer className="mt-12 text-center text-xs font-bold text-gray-400 uppercase tracking-wider opacity-60">
+          © 2025 Aura Bussiness Solution | All rights reserved
+        </footer>
       </main>
     </div>
   );

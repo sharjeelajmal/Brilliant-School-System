@@ -1,48 +1,71 @@
 import { NextResponse } from 'next/server';
-import { connectDB } from '@/lib/db';
+import { connectDB as dbConnect } from '@/lib/db';
 import Student from '@/models/Student';
-import TestReport from '@/models/TestReport';
+import Fee from '@/models/Fee';
+import Attendance from '@/models/Attendance';
 
 export async function GET() {
+    await dbConnect();
     try {
-        await connectDB();
+        const today = new Date();
+        const currentMonth = today.toLocaleString('default', { month: 'long' }); // e.g., "October"
+        const currentYear = today.getFullYear();
+        const dateString = today.toISOString().split('T')[0];
 
-        // 1. Unpaid Fees (Remaining Amount > 0)
-        const unpaidStudents = await Student.find({ remainingAmount: { $gt: 0 } })
-            .select('firstName lastName remainingAmount classJoining section')
-            .limit(10);
+        // 1. Fee Defaulters (Active Students who haven't paid current month's fee)
+        // Get all active students
+        const students = await Student.find({ leavingReason: { $exists: false } }).select('_id firstName lastName rollNo classJoining section monthlyFee');
 
-        // 2. High Performers (Recent Tests > 90%)
-        const highPerformers = await TestReport.find({})
-            .sort({ createdAt: -1 })
-            .limit(20); // Fetch recent 20 to filter in memory or advanced query
+        // Get all fee records for current month/year
+        const fees = await Fee.find({
+            month: currentMonth,
+            year: currentYear,
+            feeType: 'Monthly Fee' // Assuming we only care about monthly fee default
+        }).select('studentId status');
 
-        // Advanced filter for 90% (MongoDB logic can be complex for calculated fields, doing simple loop for MVP)
-        const topStudents = [];
-        for (const report of highPerformers) {
-            if ((report.obtainedMarks / report.totalMarks) >= 0.9) {
-                // Fetch student name if possible, or just use ID/Class
-                const st = await Student.findOne({ studentId: report.studentId }).select('firstName lastName');
-                if (st) {
-                    topStudents.push({
-                        studentName: `${st.firstName} ${st.lastName}`,
-                        subject: report.subject,
-                        marks: `${report.obtainedMarks}/${report.totalMarks}`
-                    });
-                }
-                if (topStudents.length >= 5) break;
-            }
-        }
+        const paidStudentIds = fees.map(f => f.studentId.toString());
+
+        const defaulters = students.filter(s => !paidStudentIds.includes(s._id.toString())).map(s => ({
+            id: s._id,
+            name: `${s.firstName} ${s.lastName}`,
+            details: `Class ${s.classJoining}-${s.section}`,
+            amount: s.monthlyFee,
+            type: 'Fee Defaulter'
+        }));
+
+        // 2. Absent Students (Today)
+        const attendance = await Attendance.find({
+            date: dateString,
+            status: 'absent'
+        }).select('studentId');
+
+        // We need to fetch student details for these attendance records if not populated
+        // A better way is to rely on Attendance schema if it has student info or fetch again
+        // Assuming Attendance has studentId, let's filter from our fetched students list to avoid extra DB call if possible
+        // But attendance loop might include students not in our 'active' list? Unlikely.
+
+        const absentStudentIds = attendance.map(a => a.studentId.toString());
+        const absentees = students.filter(s => absentStudentIds.includes(s._id.toString())).map(s => ({
+            id: s._id,
+            name: `${s.firstName} ${s.lastName}`,
+            details: `Class ${s.classJoining}-${s.section}`,
+            type: 'Absent Today'
+        }));
 
         return NextResponse.json({
             success: true,
-            notifications: {
-                unpaid: unpaidStudents,
-                performance: topStudents
+            data: {
+                defaulters,
+                absentees,
+                summary: {
+                    defaultersCount: defaulters.length,
+                    absenteesCount: absentees.length
+                }
             }
         });
 
-    } catch (error: any) {
-        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    } catch (error) {
+        console.error('Notifications API Error:', error);
+        return NextResponse.json({ success: false, error: 'Failed to fetch notifications' }, { status: 500 });
     }
 }

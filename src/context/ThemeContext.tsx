@@ -20,7 +20,10 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
         if (storedUser) {
             try {
                 const user = JSON.parse(storedUser);
-                if (user.themeColor) setThemeColor(user.themeColor);
+                if (user.themeColor) {
+                    setThemeColor(user.themeColor);
+                    document.documentElement.style.setProperty('--primary', user.themeColor);
+                }
             } catch (e) {
                 console.error("Theme Load Error", e);
             }
@@ -29,6 +32,9 @@ export const ThemeProvider = ({ children }: { children: React.ReactNode }) => {
 
     const updateTheme = (color: string) => {
         setThemeColor(color);
+        // Update CSS Variable
+        document.documentElement.style.setProperty('--primary', color);
+
         // Update local storage user object if it exists
         const storedUser = localStorage.getItem('user');
         if (storedUser) {

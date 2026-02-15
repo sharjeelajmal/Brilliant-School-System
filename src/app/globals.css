@@ -3,6 +3,7 @@
 :root {
   --background: #ffffff;
   --foreground: #171717;
+  --primary: #B50104;
 }
 
 @theme inline {
@@ -16,6 +17,7 @@
   :root {
     --background: #0a0a0a;
     --foreground: #ededed;
+    --primary: #B50104;
   }
 }
 
@@ -24,8 +26,10 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
 .animated-box {
   will-change: transform, opacity;
-  transform: translateZ(0); /* GPU Force */
+  transform: translateZ(0);
+  /* GPU Force */
   backface-visibility: hidden;
 }

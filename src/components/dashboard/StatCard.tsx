@@ -12,17 +12,17 @@ export const StatCard = ({ label, value, index }: StatProps) => (
   <motion.div
     initial={{ opacity: 0, y: 40 }}
     animate={{ opacity: 1, y: 0 }}
-    transition={{ 
-      delay: index * 0.15, 
-      duration: 0.8, 
-      ease: [0.16, 1, 0.3, 1] 
+    transition={{
+      delay: index * 0.15,
+      duration: 0.8,
+      ease: [0.16, 1, 0.3, 1]
     }}
     whileHover={{ y: -12, scale: 1.02 }}
     className="relative group cursor-pointer h-[200px] rounded-[35px] overflow-hidden p-[1px] bg-gradient-to-br from-white/20 to-transparent shadow-2xl"
   >
     {/* Theme Background */}
     <div className="absolute inset-0 bg-[#B70003] transition-colors duration-500 group-hover:bg-[#950002]" />
-    
+
     {/* Glass Effect Layers */}
     <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-tr from-white/10 via-transparent to-transparent opacity-50" />
     <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-[60px] group-hover:bg-white/20 transition-all duration-700" />

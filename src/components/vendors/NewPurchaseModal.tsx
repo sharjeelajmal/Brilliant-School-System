@@ -90,7 +90,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                 className="bg-white w-full max-w-3xl rounded-[24px] shadow-2xl overflow-hidden flex flex-col max-h-[90vh]"
             >
                 {/* Header */}
-                <div className="px-8 py-6 bg-gradient-to-r from-[#B50104] to-[#950002] flex justify-between items-center text-white">
+                <div className="px-8 py-6 bg-gradient-to-r from-[var(--primary)] to-[var(--primary)] flex justify-between items-center text-white">
                     <div className="flex items-center gap-3">
                         <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-md">
                             <ShoppingCart size={20} />
@@ -140,7 +140,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                             type="number"
                             value={paidAmount}
                             onChange={(e) => setPaidAmount(Number(e.target.value))}
-                            className="w-full h-[55px] px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold text-[#191919] outline-none focus:border-[#B50104] transition-colors placeholder:text-gray-300"
+                            className="w-full h-[55px] px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold text-[#191919] outline-none focus:border-[var(--primary)] transition-colors placeholder:text-gray-300"
                             placeholder="0"
                         />
                     </div>
@@ -149,7 +149,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                     <div>
                         <div className="flex justify-between items-end mb-4">
                             <label className="text-xs font-bold text-gray-400 uppercase tracking-widest block">Items List</label>
-                            <button onClick={addItem} className="text-xs font-bold text-[#B50104] hover:underline flex items-center gap-1 cursor-pointer">
+                            <button onClick={addItem} className="text-xs font-bold text-[var(--primary)] hover:underline flex items-center gap-1 cursor-pointer">
                                 <Plus size={14} /> Add Row
                             </button>
                         </div>
@@ -162,7 +162,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                                             placeholder="Item Description"
                                             value={item.description}
                                             onChange={(e) => handleItemChange(i, 'description', e.target.value)}
-                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[#B50104]"
+                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[var(--primary)] placeholder:text-gray-500"
                                         />
                                     </div>
                                     <div className="w-20">
@@ -170,7 +170,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                                             type="number" placeholder="Qty"
                                             value={item.quantity}
                                             onChange={(e) => handleItemChange(i, 'quantity', Number(e.target.value))}
-                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[#B50104] text-center"
+                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[var(--primary)] text-center"
                                         />
                                     </div>
                                     <div className="w-24">
@@ -178,13 +178,13 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                                             type="number" placeholder="Rate"
                                             value={item.rate}
                                             onChange={(e) => handleItemChange(i, 'rate', Number(e.target.value))}
-                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[#B50104] text-center"
+                                            className="w-full p-3 bg-gray-50 border border-gray-100 rounded-xl font-medium text-sm outline-none focus:border-[var(--primary)] text-center"
                                         />
                                     </div>
                                     <div className="w-28 pt-3 text-right font-black text-[#191919]">
                                         {item.total.toLocaleString()}
                                     </div>
-                                    <button onClick={() => removeItem(i)} className="p-3 text-gray-300 hover:text-[#B50104] transition-colors cursor-pointer">
+                                    <button onClick={() => removeItem(i)} className="p-3 text-gray-300 hover:text-[var(--primary)] transition-colors cursor-pointer">
                                         <Trash2 size={18} />
                                     </button>
                                 </div>
@@ -200,12 +200,14 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                         </div>
                         <div className="flex justify-between w-full md:w-1/2">
                             <span className="text-sm font-bold text-gray-500">Paid Amount</span>
-                            <span className="text-lg font-bold text-green-600">-{paidAmount.toLocaleString()}</span>
+                            <span className="text-lg font-bold text-green-600">{paidAmount.toLocaleString()}</span>
                         </div>
                         <div className="w-full md:w-1/2 h-px bg-gray-200 my-2" />
                         <div className="flex justify-between w-full md:w-1/2">
-                            <span className="text-base font-black text-gray-600">Balance</span>
-                            <span className="text-2xl font-black text-[#B50104]">{balance.toLocaleString()}</span>
+                            <span className="text-base font-black text-gray-600">{balance < 0 ? 'Change / Advance' : 'Balance'}</span>
+                            <span className={`text-2xl font-black ${balance < 0 ? 'text-green-600' : 'text-[var(--primary)]'}`}>
+                                {Math.abs(balance).toLocaleString()}
+                            </span>
                         </div>
                     </div>
 
@@ -214,7 +216,7 @@ export const NewPurchaseModal = ({ vendorId, onClose, onSuccess }: { vendorId?: 
                         <button
                             disabled={loading}
                             onClick={handleSubmit}
-                            className="h-[55px] px-8 bg-[#B50104] text-white rounded-xl font-bold flex items-center gap-2 hover:bg-[#900000] hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                            className="h-[55px] px-8 bg-[var(--primary)] text-white rounded-xl font-bold flex items-center gap-2 hover:brightness-90 hover:scale-[1.02] active:scale-95 transition-all shadow-lg shadow-red-200 disabled:opacity-50 disabled:cursor-not-allowed"
                         >
                             <Save size={20} />
                             {loading ? "Saving..." : "Save Purchase"}

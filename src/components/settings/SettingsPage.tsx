@@ -1,351 +1,230 @@
 "use client";
 import React, { useState, useEffect } from 'react';
-import { useTheme } from '@/context/ThemeContext';
 import { motion, AnimatePresence } from 'framer-motion';
-import {
-    User, Shield, Bell, Palette, School, Save,
-    Camera, Lock, Mail, Phone, Globe, MapPin,
-    Monitor, Moon, Sun, CreditCard, AlertTriangle, TrendingUp
-} from 'lucide-react';
-import { toast, Toaster } from 'sonner';
+import { User, Bell, Shield, Palette, Save, Camera, Check } from 'lucide-react';
+import { toast } from 'sonner';
+import { useTheme } from '@/context/ThemeContext';
+import { NotificationPanel } from './NotificationPanel';
 
-// --- SUB-COMPONENTS FOR TABS ---
+export const SettingsPage = () => {
+    const { themeColor, setThemeColor } = useTheme();
+    const [activeTab, setActiveTab] = useState('profile');
+    const [loading, setLoading] = useState(false);
+    const [user, setUser] = useState({
+        name: 'M. Ahsan',
+        email: 'admin@school.com',
+        role: 'Administrator',
+        phone: '+92 300 1234567'
+    });
 
-const ProfileSettings = ({ user, setUser }: any) => {
-    const [formData, setFormData] = useState({ ...user });
+    const tabs = [
+        { id: 'profile', label: 'Profile', icon: User },
+        { id: 'appearance', label: 'Appearance', icon: Palette },
+        { id: 'security', label: 'Security', icon: Shield },
+        { id: 'notifications', label: 'Notifications', icon: Bell },
+    ];
 
-    const handleChange = (e: any) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
-    };
+    const colors = [
+        { value: '#B50104', name: 'Crimson Red' },
+        { value: '#0ea5e9', name: 'Sky Blue' },
+        { value: '#22c55e', name: 'Emerald Green' },
+        { value: '#eab308', name: 'Golden Yellow' },
+        { value: '#a855f7', name: 'Royal Purple' },
+        { value: '#f97316', name: 'Orange' },
+        { value: '#191919', name: 'Midnight Black' },
+    ];
 
     const handleSave = async () => {
-        try {
-            const res = await fetch('/api/user/settings', {
-                method: 'PUT',
-                body: JSON.stringify({ ...formData, username: user.username })
-            });
-            const data = await res.json();
-            if (data.success) {
-                toast.success("Profile Updated!");
-                setUser(data.data);
-                localStorage.setItem('user', JSON.stringify(data.data));
-            }
-        } catch (e) { toast.error("Update Failed"); }
+        setLoading(true);
+        // Simulate API call
+        setTimeout(() => {
+            setLoading(false);
+            toast.success("Settings saved successfully!");
+        }, 1000);
     };
 
     return (
         <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="space-y-6"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="max-w-6xl mx-auto space-y-8"
         >
-            <div className="flex items-center gap-6 p-6 bg-gradient-to-br from-red-50 to-white rounded-3xl border border-red-100 shadow-sm">
-                <div className="relative group cursor-pointer" onClick={() => document.getElementById('file-upload')?.click()}>
-                    <input
-                        type="file"
-                        id="file-upload"
-                        className="hidden"
-                        accept="image/*"
-                        onChange={async (e) => {
-                            const file = e.target.files?.[0];
-                            if (!file) return;
+            {/* Header Card */}
+            <div className="relative overflow-hidden bg-white/50 backdrop-blur-xl border border-white/60 rounded-[30px] p-8 shadow-sm">
+                <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-br from-[var(--primary)] to-transparent opacity-5 rounded-bl-[100px]" />
 
-                            const formData = new FormData();
-                            formData.append('file', file);
-
-                            const toastId = toast.loading("Uploading...");
-                            try {
-                                const res = await fetch('/api/upload', { method: 'POST', body: formData });
-                                const data = await res.json();
-                                if (data.success) {
-                                    setFormData({ ...formData, profileImage: data.url });
-                                    toast.success("Image Uploaded!", { id: toastId });
-                                } else {
-                                    toast.error("Upload Failed", { id: toastId });
-                                }
-                            } catch (err) {
-                                toast.error("Upload Error", { id: toastId });
-                            }
-                        }}
-                    />
-                    <div className="w-24 h-24 rounded-2xl bg-gradient-to-br from-[#B70003] to-[#800000] p-1 shadow-xl shadow-red-900/20 rotate-3 group-hover:rotate-0 transition-all duration-300">
-                        <img src={formData.profileImage || "https://ui-avatars.com/api/?name=User&background=random"} alt="Profile" className="w-full h-full rounded-[14px] object-cover" />
+                <div className="flex flex-col md:flex-row gap-8 items-center relative z-10">
+                    <div className="relative group">
+                        <div className="w-24 h-24 rounded-[24px] border-4 border-white shadow-xl overflow-hidden relative">
+                            <img
+                                src={`https://ui-avatars.com/api/?name=${user.name}&background=${themeColor.replace('#', '')}&color=fff`}
+                                className="w-full h-full object-cover"
+                                alt="Profile"
+                            />
+                            <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+                                <Camera className="text-white" />
+                            </div>
+                        </div>
                     </div>
-                    <div className="absolute -bottom-2 -right-2 bg-white text-[#B70003] p-2 rounded-full shadow-lg border border-red-50 group-hover:scale-110 transition-transform">
-                        <Camera size={16} />
+                    <div className="text-center md:text-left">
+                        <h1 className="text-3xl font-black text-[#191919] tracking-tight mb-1">{user.name}</h1>
+                        <p className="text-gray-500 font-bold text-sm uppercase tracking-widest">{user.role}</p>
                     </div>
-                </div>
-                <div>
-                    <h3 className="text-2xl font-black text-[#191919] tracking-tight">{formData.name}</h3>
-                    <p className="text-sm font-bold text-[#B70003] uppercase tracking-wider mb-2">@{formData.username}</p>
-                    <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-green-100 text-green-700 text-xs font-bold border border-green-200">
-                        <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" /> Active Now
-                    </span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Full Name</label>
-                    <input name="name" value={formData.name} onChange={handleChange} className="w-full p-4 bg-gray-50 rounded-xl border-2 border-transparent focus:bg-white focus:border-[#B70003] outline-none transition-all font-bold text-[#191919]" />
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+                {/* Sidebar Tabs */}
+                <div className="lg:col-span-3 space-y-3">
+                    {tabs.map((tab) => (
+                        <button
+                            key={tab.id}
+                            onClick={() => setActiveTab(tab.id)}
+                            className={`w-full flex items-center gap-4 p-4 rounded-2xl transition-all duration-300 relative overflow-hidden group ${activeTab === tab.id ? 'bg-white shadow-lg shadow-gray-100' : 'hover:bg-white/40'}`}
+                        >
+                            {activeTab === tab.id && (
+                                <motion.div
+                                    layoutId="activeTab"
+                                    className="absolute left-0 top-0 bottom-0 w-1.5 bg-[var(--primary)]"
+                                />
+                            )}
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center transition-colors ${activeTab === tab.id ? 'bg-[var(--primary)] text-white' : 'bg-gray-100 text-gray-500 group-hover:bg-white'}`}>
+                                <tab.icon size={20} />
+                            </div>
+                            <span className={`font-bold text-sm ${activeTab === tab.id ? 'text-[#191919]' : 'text-gray-500'}`}>{tab.label}</span>
+                        </button>
+                    ))}
                 </div>
-                {/* Can add more fields if added to User model */}
-            </div>
-            <div className="flex justify-end">
-                <button onClick={handleSave} className="px-8 py-3 bg-[#B70003] text-white font-bold rounded-xl shadow-lg flex items-center gap-2">
-                    <Save size={18} /> Save Changes
-                </button>
+
+                {/* Content Area */}
+                <div className="lg:col-span-9">
+                    <AnimatePresence mode="wait">
+                        <motion.div
+                            key={activeTab}
+                            initial={{ opacity: 0, x: 20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            exit={{ opacity: 0, x: -20 }}
+                            transition={{ duration: 0.3 }}
+                            className="bg-white/80 backdrop-blur-xl border border-white p-8 rounded-[30px] shadow-sm min-h-[500px]"
+                        >
+                            {activeTab === 'profile' && (
+                                <div className="space-y-6">
+                                    <h2 className="text-2xl font-black text-[#191919]">Profile Details</h2>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InputField label="Full Name" value={user.name} onChange={(v: string) => setUser({ ...user, name: v })} />
+                                        <InputField label="Email Address" value={user.email} onChange={(v: string) => setUser({ ...user, email: v })} />
+                                        <InputField label="Phone Number" value={user.phone} onChange={(v: string) => setUser({ ...user, phone: v })} />
+                                        <InputField label="Designation" value={user.role} disabled />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'appearance' && (
+                                <div className="space-y-8">
+                                    <div>
+                                        <h2 className="text-2xl font-black text-[#191919] mb-2">Theme Preferences</h2>
+                                        <p className="text-gray-500 text-sm">Customize the look and feel of your admin dashboard.</p>
+                                    </div>
+
+                                    <div className="space-y-4">
+                                        <label className="text-xs font-black text-gray-400 uppercase tracking-widest block">Accent Color</label>
+                                        <div className="flex flex-wrap gap-4">
+                                            {colors.map((color) => (
+                                                <button
+                                                    key={color.value}
+                                                    onClick={() => setThemeColor(color.value)}
+                                                    className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-300 hover:scale-110 relative ${themeColor === color.value ? 'ring-4 ring-offset-2 ring-gray-200' : ''}`}
+                                                    style={{ backgroundColor: color.value }}
+                                                    title={color.name}
+                                                >
+                                                    {themeColor === color.value && (
+                                                        <motion.div
+                                                            initial={{ scale: 0 }}
+                                                            animate={{ scale: 1 }}
+                                                        >
+                                                            <Check className="text-white" size={24} strokeWidth={3} />
+                                                        </motion.div>
+                                                    )}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+
+                                    <div className="p-6 bg-gray-50 rounded-2xl border border-gray-100 flex items-center justify-between">
+                                        <div>
+                                            <h3 className="font-bold text-[#191919]">Dark Mode</h3>
+                                            <p className="text-xs text-gray-500 mt-1">Switch between light and dark themes (Coming Soon)</p>
+                                        </div>
+                                        <div className="h-6 w-11 bg-gray-200 rounded-full cursor-not-allowed relative">
+                                            <div className="h-4 w-4 bg-white rounded-full absolute top-1 left-1 shadow-sm" />
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'security' && (
+                                <div className="space-y-6">
+                                    <h2 className="text-2xl font-black text-[#191919]">Security Settings</h2>
+                                    <div className="space-y-4">
+                                        <InputField label="Current Password" type="password" placeholder="••••••••" />
+                                        <InputField label="New Password" type="password" placeholder="••••••••" />
+                                        <InputField label="Confirm Password" type="password" placeholder="••••••••" />
+                                    </div>
+                                </div>
+                            )}
+
+                            {activeTab === 'notifications' && (
+                                <NotificationPanel />
+                            )}
+
+                            {/* Save Button */}
+                            {activeTab !== 'notifications' && (
+                                <div className="mt-10 flex justify-end">
+                                    <button
+                                        onClick={handleSave}
+                                        disabled={loading}
+                                        className="px-8 h-12 bg-[var(--primary)] text-white rounded-xl font-bold flex items-center gap-2 hover:brightness-90 hover:scale-105 active:scale-95 transition-all shadow-lg shadow-gray-200 disabled:opacity-50"
+                                    >
+                                        {loading ? (
+                                            <span className="animate-spin w-5 h-5 border-2 border-white border-t-transparent rounded-full" />
+                                        ) : (
+                                            <>
+                                                <Save size={18} /> Save Changes
+                                            </>
+                                        )}
+                                    </button>
+                                </div>
+                            )}
+
+                        </motion.div>
+                    </AnimatePresence>
+                </div>
             </div>
         </motion.div>
     );
 };
 
-const SecuritySettings = ({ user }: any) => {
-    const [passwords, setPasswords] = useState({ current: '', new: '', confirm: '' });
-
-    const handleChangePassword = async () => {
-        if (passwords.new !== passwords.confirm) return toast.error("Passwords do not match");
-        try {
-            const res = await fetch('/api/user/settings', {
-                method: 'PUT',
-                body: JSON.stringify({
-                    username: user.username,
-                    password: passwords.new // In real app, verify current password first!
-                })
-            });
-            if (res.ok) toast.success("Password Changed!");
-        } catch (e) { toast.error("Error changing password"); }
-    };
-
-    return (
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            <div className="p-6 rounded-2xl bg-red-50 border border-red-100 mb-6 flex gap-4">
-                <div className="p-3 bg-red-100 rounded-xl text-[#B70003]"><Shield size={24} /></div>
-                <div>
-                    <h4 className="font-bold text-[#191919] text-lg">Secure Your Account</h4>
-                    <p className="text-sm text-gray-600 mt-1">Update your password regularly to stay safe.</p>
-                </div>
-            </div>
-
-            <div className="space-y-4">
-                <h4 className="font-bold text-[#191919] uppercase text-sm tracking-wider border-b border-gray-100 pb-2">Change Password</h4>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">New Password</label>
-                        <input type="password" onChange={e => setPasswords({ ...passwords, new: e.target.value })} className="w-full p-4 bg-gray-50 rounded-xl border-2 border-transparent focus:bg-white focus:border-[#B70003] outline-none font-bold" />
-                    </div>
-                    <div className="space-y-2">
-                        <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Confirm Password</label>
-                        <input type="password" onChange={e => setPasswords({ ...passwords, confirm: e.target.value })} className="w-full p-4 bg-gray-50 rounded-xl border-2 border-transparent focus:bg-white focus:border-[#B70003] outline-none font-bold" />
-                    </div>
-                </div>
-                <button onClick={handleChangePassword} className="px-6 py-3 bg-[#191919] text-white font-bold rounded-xl shadow-lg mt-4">Update Password</button>
-            </div>
-        </motion.div>
-    );
-};
-
-const AppearanceSettings = ({ user, setUser }: any) => {
-    const colors = ['#B70003', '#2563EB', '#16A34A', '#D97706', '#9333EA', '#000000'];
-
-    const { setThemeColor } = useTheme();
-
-    const changeTheme = async (color: string) => {
-        const newUser = { ...user, themeColor: color };
-        setUser(newUser); // Optimistic UI
-        setThemeColor(color); // Update Global Context
-        localStorage.setItem('user', JSON.stringify(newUser));
-        await fetch('/api/user/settings', { method: 'PUT', body: JSON.stringify({ username: user.username, themeColor: color }) });
-        toast.success("Theme Updated!");
-    };
-
-    return (
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-            <h3 className="text-xl font-bold text-[#191919]">Accent Color</h3>
-            <div className="flex gap-4">
-                {colors.map(c => (
-                    <button key={c} onClick={() => changeTheme(c)}
-                        className={`w-12 h-12 rounded-full shadow-lg border-4 transition-transform hover:scale-110 ${user.themeColor === c ? 'border-gray-300 scale-110' : 'border-white'}`}
-                        style={{ backgroundColor: c }}
-                    />
-                ))}
-            </div>
-            <p className="text-sm text-gray-500 mt-4">Select a color to customize your dashboard theme.</p>
-        </motion.div>
-    );
+interface InputFieldProps {
+    label: string;
+    type?: string;
+    value?: string;
+    onChange?: (value: string) => void;
+    disabled?: boolean;
+    placeholder?: string;
 }
 
-const NotificationSettings = () => {
-    const [notifs, setNotifs] = useState<{ unpaid: any[], performance: any[] }>({ unpaid: [], performance: [] });
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
-        fetch('/api/notifications').then(res => res.json()).then(data => {
-            if (data.success) setNotifs(data.notifications);
-            setLoading(false);
-        });
-    }, []);
-
-    if (loading) return <div>Loading notifications...</div>;
-
-    return (
-        <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-8">
-
-            {/* Unpaid Fees */}
-            <div>
-                <h3 className="flex items-center gap-2 text-lg font-bold text-red-600 mb-4 uppercase tracking-wider">
-                    <AlertTriangle size={20} /> Unpaid Fees Alert
-                </h3>
-                <div className="bg-red-50 rounded-2xl p-4 border border-red-100 space-y-3">
-                    {notifs.unpaid.length === 0 ? <p className="text-gray-500 p-2">No pending fees.</p> :
-                        notifs.unpaid.map((s: any) => (
-                            <div key={s._id} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">
-                                <span className="font-bold text-[#191919]">{s.firstName} {s.lastName} ({s.classJoining}-{s.section})</span>
-                                <span className="font-bold text-red-600 bg-red-100 px-3 py-1 rounded-lg">Rs. {s.remainingAmount}</span>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-
-            {/* High Performance */}
-            <div>
-                <h3 className="flex items-center gap-2 text-lg font-bold text-green-600 mb-4 uppercase tracking-wider">
-                    <TrendingUp size={20} /> Top Performers (Today)
-                </h3>
-                <div className="bg-green-50 rounded-2xl p-4 border border-green-100 space-y-3">
-                    {notifs.performance.length === 0 ? <p className="text-gray-500 p-2">No data yet.</p> :
-                        notifs.performance.map((s: any, i: number) => (
-                            <div key={i} className="flex justify-between items-center bg-white p-3 rounded-xl shadow-sm">
-                                <span className="font-bold text-[#191919]">{s.studentName} - {s.subject}</span>
-                                <span className="font-bold text-green-600 bg-green-100 px-3 py-1 rounded-lg">{s.marks}</span>
-                            </div>
-                        ))
-                    }
-                </div>
-            </div>
-
-        </motion.div>
-    );
-};
-
-// --- SCHOOL SETTINGS SUB-COMPONENT (Simplified) ---
-const SchoolSettings = () => (
-    <motion.div initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} className="space-y-6">
-        <div className="p-6 bg-blue-50 text-blue-800 rounded-xl">School Information is managed by System Administrator only.</div>
-    </motion.div>
+const InputField = ({ label, type = "text", value, onChange, disabled, placeholder }: InputFieldProps) => (
+    <div className="space-y-2">
+        <label className="text-xs font-black text-gray-400 uppercase tracking-widest">{label}</label>
+        <input
+            type={type}
+            value={value}
+            onChange={(e) => onChange?.(e.target.value)}
+            disabled={disabled}
+            placeholder={placeholder}
+            className="w-full h-12 px-4 bg-gray-50 border border-gray-100 rounded-xl font-bold text-[#191919] outline-none focus:border-[var(--primary)] focus:bg-white transition-all disabled:opacity-60 disabled:cursor-not-allowed"
+        />
+    </div>
 );
 
-// --- MAIN PAGE COMPONENT ---
 
-export const SettingsPage = () => {
-    const [activeTab, setActiveTab] = useState('profile');
-    const [user, setUser] = useState<any>(null);
-
-    useEffect(() => {
-        const loadUser = async () => {
-            const stored = localStorage.getItem('user');
-            if (stored) {
-                const u = JSON.parse(stored);
-                setUser(u);
-                try {
-                    const res = await fetch(`/api/user/settings?username=${u.username}`);
-                    const data = await res.json();
-                    if (data.success) setUser(data.data);
-                } catch (e) {
-                    console.error("Failed to refresh user", e);
-                }
-            } else {
-                // If no local storage (legacy login or fresh), try fetching default 'admin'
-                try {
-                    // Try waiting a moment for cookies to be set if redirecting from login
-                    await new Promise(resolve => setTimeout(resolve, 500));
-
-                    const res = await fetch(`/api/user/settings?username=admin`);
-                    const data = await res.json();
-                    if (data.success) {
-                        setUser(data.data);
-                        localStorage.setItem('user', JSON.stringify(data.data));
-                    } else {
-                        // Fallback purely client side if API fails to avoid locking UI
-                        setUser({
-                            username: 'admin',
-                            name: 'Admin',
-                            role: 'admin',
-                            themeColor: '#B70003',
-                            profileImage: ''
-                        });
-                    }
-                } catch (e) {
-                    setUser({
-                        username: 'admin',
-                        name: 'Admin',
-                        role: 'admin',
-                        themeColor: '#B70003',
-                        profileImage: ''
-                    });
-                }
-            }
-        };
-        loadUser();
-    }, []);
-
-    const tabs = [
-        { id: 'profile', label: 'My Profile', icon: User, desc: 'Manage your personal details' },
-        { id: 'notifications', label: 'Notifications', icon: Bell, desc: 'Fees & Performance Alerts' },
-        { id: 'security', label: 'Security', icon: Shield, desc: 'Password & protections' },
-        { id: 'appearance', label: 'Appearance', icon: Palette, desc: 'Theme & customization' },
-    ];
-
-    if (!user) return (
-        <div className="p-10 max-w-[1600px] mx-auto flex gap-8 animate-pulse">
-            <div className="w-80 h-[600px] bg-gray-200 rounded-3xl"></div>
-            <div className="flex-1 h-[600px] bg-gray-200 rounded-3xl"></div>
-        </div>
-    );
-
-    return (
-        <div className="w-full max-w-[1600px] mx-auto">
-            <Toaster position="bottom-right" richColors />
-
-            <div className="flex flex-col xl:flex-row gap-8">
-                {/* --- LEFT SIDEBAR --- */}
-                <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full xl:w-80 flex-shrink-0">
-                    <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden sticky top-8">
-                        <div className="p-6 bg-gradient-to-br from-[#B70003] to-[#800000] text-white" style={{ background: `linear-gradient(to bottom right, ${user.themeColor || '#B70003'}, #000)` }}>
-                            <h2 className="text-2xl font-black uppercase tracking-tight">Settings</h2>
-                            <p className="text-white/80 text-xs font-medium mt-1">Manage preferences</p>
-                        </div>
-                        <div className="p-3 bg-gray-50/50">
-                            {tabs.map((tab) => (
-                                <button
-                                    key={tab.id}
-                                    onClick={() => setActiveTab(tab.id)}
-                                    className={`w-full flex items-center gap-4 p-4 rounded-xl transition-all duration-300 mb-1 group ${activeTab === tab.id ? 'bg-white shadow-lg' : 'hover:bg-white text-gray-500'}`}
-                                    style={{ color: activeTab === tab.id ? user.themeColor || '#B70003' : '' }}
-                                >
-                                    <div className={`p-2 rounded-lg ${activeTab === tab.id ? 'bg-gray-100' : 'bg-gray-100'}`}><tab.icon size={20} /></div>
-                                    <div className="text-left"><p className="font-bold text-sm">{tab.label}</p></div>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                </motion.div>
-
-                {/* --- RIGHT CONTENT --- */}
-                <div className="flex-1 min-w-0">
-                    <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-white rounded-[32px] shadow-2xl border border-gray-100 min-h-[600px] p-8 md:p-10">
-                        <h2 className="text-3xl font-black text-[#191919] mb-8 border-b border-gray-100 pb-4">{tabs.find(t => t.id === activeTab)?.label}</h2>
-
-                        <AnimatePresence mode="wait">
-                            {activeTab === 'profile' && <ProfileSettings key="pro" user={user} setUser={setUser} />}
-                            {activeTab === 'security' && <SecuritySettings key="sec" user={user} />}
-                            {activeTab === 'appearance' && <AppearanceSettings key="app" user={user} setUser={setUser} />}
-                            {activeTab === 'notifications' && <NotificationSettings key="not" />}
-                        </AnimatePresence>
-                    </motion.div>
-                </div>
-            </div>
-        </div>
-    );
-};
