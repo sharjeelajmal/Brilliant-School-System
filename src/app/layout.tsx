@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Montserrat } from 'next/font/google'; // Font wapis aa gaya
 import "./globals.css";
+import { ThemeProvider } from '@/context/ThemeContext';
 
 // Font configure kiya
 const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '700'] });
@@ -14,7 +15,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       {/* Body pe class lagayi */}
-      <body className={montserrat.className}>{children}</body>
+      <body className={montserrat.className}>
+        <ThemeProvider>
+          {children}
+        </ThemeProvider>
+      </body>
     </html>
   );
 }

@@ -10,34 +10,34 @@ export async function POST(req: Request) {
 
     // --- CHECK CAPACITY LOGIC START ---
     if (body.classJoining && body.section) {
-        // 1. Section ki details dhoondo
-        const sectionDoc = await Section.findOne({ 
-            className: body.classJoining, 
-            name: body.section 
+      // 1. Section ki details dhoondo
+      const sectionDoc = await Section.findOne({
+        className: body.classJoining,
+        name: body.section
+      });
+
+      if (sectionDoc) {
+        // 2. Abhi kitnay bachay hain count karo
+        const currentCount = await Student.countDocuments({
+          classJoining: body.classJoining,
+          section: body.section
         });
 
-        if (sectionDoc) {
-            // 2. Abhi kitnay bachay hain count karo
-            const currentCount = await Student.countDocuments({ 
-                classJoining: body.classJoining, 
-                section: body.section 
-            });
-
-            // 3. Agar full hai to error do
-            if (currentCount >= sectionDoc.maxCapacity) {
-                return NextResponse.json({ 
-                    success: false, 
-                    message: `Admission Failed! Section ${body.section} is Full. (Capacity: ${sectionDoc.maxCapacity})` 
-                }, { status: 400 });
-            }
+        // 3. Agar full hai to error do
+        if (currentCount >= sectionDoc.maxCapacity) {
+          return NextResponse.json({
+            success: false,
+            message: `Admission Failed! Section ${body.section} is Full. (Capacity: ${sectionDoc.maxCapacity})`
+          }, { status: 400 });
         }
+      }
     }
     // --- CHECK CAPACITY LOGIC END ---
 
     // ... Baki code same rahega ...
     const numericFields = [
-      'monthlyFee', 'annualFee', 'admissionFee', 'academyFee', 
-      'nazraFee', 'uniformBooksCharges', 'stationaryCharges', 
+      'monthlyFee', 'annualFee', 'admissionFee', 'academyFee',
+      'nazraFee', 'uniformBooksCharges', 'stationaryCharges',
       'otherCharges', 'lateFeeFine', 'monthlyIncome',
       'discount', 'totalPayable', 'amountPaying', 'remainingAmount'
     ];
@@ -49,24 +49,24 @@ export async function POST(req: Request) {
     });
 
     // Auto Roll No Logic...
-    const lastStudent = await Student.findOne({}, { rollNo: 1 }).sort({ rollNo: -1 });
+    const lastStudent = await Student.findOne({ classJoining: body.classJoining, section: body.section }, { rollNo: 1 }).sort({ rollNo: -1 });
     const newRollNo = (lastStudent && lastStudent.rollNo) ? lastStudent.rollNo + 1 : 1;
     body.rollNo = newRollNo;
 
     const newStudent = await Student.create(body);
 
-    return NextResponse.json({ 
-      success: true, 
-      message: 'Student Registered Successfully!', 
-      data: newStudent 
+    return NextResponse.json({
+      success: true,
+      message: 'Student Registered Successfully!',
+      data: newStudent
     }, { status: 201 });
 
   } catch (error: any) {
     console.error("Student Save Error:", error);
-    return NextResponse.json({ 
-      success: false, 
-      message: 'Registration Failed', 
-      error: error.message 
+    return NextResponse.json({
+      success: false,
+      message: 'Registration Failed',
+      error: error.message
     }, { status: 500 });
   }
 }

@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IStudent extends Document {
   // New Field
-  rollNo: number; 
+  rollNo: number;
 
   // ... (Baaki purani fields same rahengi)
   firstName: string;
@@ -45,7 +45,7 @@ export interface IStudent extends Document {
   stationaryCharges: number;
   otherCharges: number;
   lateFeeFine: number;
-  
+
   discount: number;
   totalPayable: number;
   amountPaying: number;
@@ -54,7 +54,7 @@ export interface IStudent extends Document {
 
 const StudentSchema = new Schema<IStudent>({
   // New Field Added
-  rollNo: { type: Number, unique: true }, 
+  rollNo: { type: Number },
 
   // ... (Baaki Schema same rahega)
   firstName: { type: String, required: true },

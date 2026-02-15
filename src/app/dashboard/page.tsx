@@ -21,6 +21,7 @@ import { StaffPayroll } from "@/components/payroll/StaffPayroll";
 // NEW COMPONENT
 import { VendorList } from "@/components/vendors/VendorList";
 import { PurchasesList } from "@/components/vendors/PurchasesList";
+import { SettingsPage } from "@/components/settings/SettingsPage";
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
@@ -58,6 +59,7 @@ function DashboardContent() {
     if (activePage === "payroll") return "Staff Payroll";
     if (activePage === "vendors") return "Supplier Management";
     if (activePage === "purchases") return "Purchase History";
+    if (activePage === "settings") return "System Settings";
     return activePage.replace("-", " ");
   };
 
@@ -229,6 +231,16 @@ function DashboardContent() {
                 <div className="mb-4">
                   <PurchasesList />
                 </div>
+              </motion.div>
+            ) : activePage === "settings" ? (
+              <motion.div
+                key="settings"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
+              >
+                <SettingsPage />
               </motion.div>
             ) : (
               <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">

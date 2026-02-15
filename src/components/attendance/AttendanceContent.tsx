@@ -83,7 +83,12 @@ export const AttendanceContent = () => {
                     records
                 })
             });
-            if (res.ok) toast.success("Attendance Saved Successfully!");
+            if (res.ok) {
+                toast.success("Attendance Saved Successfully!");
+                setTimeout(() => {
+                    window.location.reload();
+                }, 1000);
+            }
             else toast.error("Failed to save");
         } catch (e) { toast.error("Network Error"); }
     };

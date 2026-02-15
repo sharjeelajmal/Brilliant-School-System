@@ -1,5 +1,6 @@
 "use client";
 import React from 'react';
+import { useTheme } from '@/context/ThemeContext';
 import { motion } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Users, Wallet, Settings, LogOut,
@@ -17,6 +18,7 @@ interface SidebarProps {
 
 export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: SidebarProps) => {
   const router = useRouter();
+  const { themeColor } = useTheme();
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
@@ -55,16 +57,17 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
     >
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="absolute -right-3 top-9 bg-[#B70003] text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform z-[100] cursor-pointer flex items-center justify-center border-2 border-white"
+        className="absolute -right-3 top-9 text-white p-1 rounded-full shadow-lg hover:scale-110 transition-transform z-[100] cursor-pointer flex items-center justify-center border-2 border-white"
+        style={{ backgroundColor: themeColor }}
       >
         {isOpen ? <ChevronLeft size={14} /> : <ChevronRight size={14} />}
       </button>
 
       <div className={`p-6 flex items-center ${isOpen ? 'gap-3' : ''} transition-all ${!isOpen && 'justify-center'}`}>
-        <div className="w-10 h-10 bg-[#B70003] rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20">E</div>
+        <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20" style={{ backgroundColor: themeColor }}>E</div>
         <motion.div animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="whitespace-nowrap overflow-hidden">
           <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">EduSmart</h1>
-          <p className="text-[9px] font-bold text-[#B70003] tracking-widest uppercase">System</p>
+          <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: themeColor }}>System</p>
         </motion.div>
       </div>
 
@@ -73,9 +76,13 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
           <div key={item.id} className="relative group">
             <button
               onClick={() => setActivePage(item.id)}
-              className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl transition-all duration-200 relative group cursor-pointer ${activePage === item.id ? 'bg-[#B70003] text-white shadow-md shadow-red-200' : 'text-gray-500 hover:bg-red-50 hover:text-[#B70003]'} ${!isOpen && 'justify-center'}`}
+              className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl transition-all duration-200 relative group cursor-pointer ${activePage === item.id ? 'text-white shadow-md' : 'text-gray-500 hover:bg-gray-50'} ${!isOpen && 'justify-center'}`}
+              style={{
+                backgroundColor: activePage === item.id ? themeColor : '',
+                color: activePage === item.id ? 'white' : ''
+              }}
             >
-              <item.icon size={20} strokeWidth={activePage === item.id ? 2.5 : 2} className="flex-shrink-0" />
+              <item.icon size={20} strokeWidth={activePage === item.id ? 2.5 : 2} className="flex-shrink-0" style={{ color: activePage !== item.id ? 'inherit' : 'white' }} />
               <motion.span animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="font-bold text-xs whitespace-nowrap overflow-hidden">{item.label}</motion.span>
             </button>
             {!isOpen && (
@@ -89,7 +96,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
       </div>
 
       <div className="p-3 mb-2 relative group">
-        <button onClick={handleLogout} className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-red-600 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
+        <button onClick={handleLogout} className={`w-full flex items-center ${isOpen ? 'gap-3' : ''} p-3 rounded-xl text-gray-400 hover:bg-gray-100 transition-all cursor-pointer ${!isOpen && 'justify-center'}`}>
           <LogOut size={20} />
           <motion.span animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="font-bold text-xs whitespace-nowrap overflow-hidden">Logout</motion.span>
         </button>

@@ -11,25 +11,33 @@ export default function LoginPage() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const router = useRouter();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     // --- AUTH LOGIC ---
-    if (username === "admin" && password === "12345") {
-      setStatus('success');
-      // Admin Role Set
-      document.cookie = "token=valid; path=/; max-age=86400"; 
-      document.cookie = "role=admin; path=/; max-age=86400"; 
-      setTimeout(() => router.push('/dashboard'), 2000);
-    } 
-    else if (username === "teacher" && password === "12345") {
-      setStatus('success');
-      // Teacher Role Set
-      document.cookie = "token=valid; path=/; max-age=86400"; 
-      document.cookie = "role=teacher; path=/; max-age=86400"; 
-      setTimeout(() => router.push('/attendance'), 2000); // Redirect to Attendance Page
-    } 
-    else {
+    // --- AUTH LOGIC ---
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+      const data = await res.json();
+
+      if (data.success) {
+        setStatus('success');
+        // Store details in cookies/localstorage
+        document.cookie = `token=valid; path=/; max-age=86400`;
+        document.cookie = `role=${data.user.role}; path=/; max-age=86400`;
+        localStorage.setItem('user', JSON.stringify(data.user)); // Store full user object
+
+        setTimeout(() => {
+          if (data.user.role === 'teacher') router.push('/attendance');
+          else router.push('/dashboard');
+        }, 2000);
+      } else {
+        setStatus('error');
+      }
+    } catch (e) {
       setStatus('error');
     }
   };
@@ -38,7 +46,7 @@ export default function LoginPage() {
   // Sirf return ke andar ka code waisa hi rakhein
   return (
     <div className="min-h-screen flex items-center justify-center bg-[#FDFDFD] relative overflow-hidden font-['Montserrat']">
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 30 }}
         animate={{ opacity: 1, y: 0 }}
         className="z-10 bg-white border border-[#EEEEEE] rounded-[20px] w-full max-w-[500px] p-12 relative shadow-2xl"
@@ -47,7 +55,7 @@ export default function LoginPage() {
         <h1 className="text-[32px] font-bold text-[#191919] text-center mb-10 mt-4">EduSmart Portal</h1>
 
         <form onSubmit={handleLogin} className="space-y-8">
-            <div className="relative">
+          <div className="relative">
             <label className="text-[14px] font-medium text-[#191919] mb-2 block">Username</label>
             <input type="text" onChange={(e) => setUsername(e.target.value)} className="w-full h-[60px] border border-[#CCCCCC] rounded-[12px] px-6 outline-none focus:border-[#B70003] transition-all bg-white text-[#191919]" placeholder="Enter username" />
           </div>
@@ -67,7 +75,7 @@ export default function LoginPage() {
       <AnimatePresence>
         {status !== 'idle' && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-50 flex items-center justify-center bg-black/20 backdrop-blur-sm">
-             <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }} className="bg-white rounded-[24px] p-8 w-[400px] text-center shadow-2xl relative">
+            <motion.div initial={{ scale: 0.8 }} animate={{ scale: 1 }} exit={{ scale: 0.8 }} className="bg-white rounded-[24px] p-8 w-[400px] text-center shadow-2xl relative">
               <button onClick={() => setStatus('idle')} className="absolute right-4 top-4"><X size={20} /></button>
               <h2 className="text-2xl font-bold text-[#191919] mb-2">{status === 'success' ? 'Welcome Back!' : 'Access Denied'}</h2>
               <p className="text-gray-500 text-sm">{status === 'success' ? 'Redirecting to portal...' : "Invalid credentials provided."}</p>
