@@ -14,39 +14,47 @@ interface SidebarProps {
   setIsOpen: (value: boolean) => void;
   activePage: string;
   setActivePage: (page: string) => void;
+  role?: string; // NEW PROP FOR ROLE
 }
 
-export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: SidebarProps) => {
+export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage, role = 'admin' }: SidebarProps) => {
   const router = useRouter();
   const { themeColor } = useTheme();
 
   const handleLogout = () => {
     document.cookie = "token=; path=/; max-age=0";
     document.cookie = "role=; path=/; max-age=0";
+    localStorage.removeItem('user'); // Clear user data
     router.push('/login');
   };
 
-  const menuItems = [
-    { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-    { id: 'classes', label: 'Classes & Sections', icon: BookOpen },
-    { id: 'subjects', label: 'Subjects Manager', icon: ClipboardList }, // 👈 Ye Nayi Line Add Ki Hai
-    { id: 'forms', label: 'Student Admission', icon: FileText },
-    { id: 'parents', label: 'Parents', icon: Users },
-    { id: 'teachers', label: 'Teachers', icon: GraduationCap },
-    { id: 'students', label: 'Students List', icon: User },
+  // --- MENU ITEMS DEFINITION ---
+  const allMenuItems = [
+    // ADMIN ONLY
+    { id: 'overview', label: 'Overview', icon: LayoutDashboard, roles: ['admin'] },
 
-    // --- NEW ADMIN TABS ADDED ---
-    { id: 'attendance', label: 'Attendance', icon: ClipboardList },
-    { id: 'diary', label: 'Class Diary', icon: BookOpen },
-    { id: 'test-report', label: 'Test Reports', icon: FileBarChart2 },
+    // SHARED / TEACHER ACCESSIBLE
+    { id: 'attendance', label: 'Attendance', icon: ClipboardList, roles: ['admin', 'teacher'] },
+    { id: 'diary', label: 'Class Diary', icon: BookOpen, roles: ['admin', 'teacher'] },
+    { id: 'test-report', label: 'Test Reports', icon: FileBarChart2, roles: ['admin', 'teacher'] },
+    { id: 'complaints', label: 'Complaints', icon: MessageSquare, roles: ['admin', 'teacher'] }, // Shared
 
-    { id: 'finance', label: 'Fee Collection', icon: Wallet },
-    { id: 'payroll', label: 'Staff Payroll', icon: UserPlus },
-    { id: 'vendors', label: 'Suppliers', icon: Briefcase },
-    { id: 'purchases', label: 'Purchase History', icon: FileBarChart2 }, // NEW
-    { id: 'complaints', label: 'Complaints', icon: MessageSquare },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    // ADMIN ONLY
+    { id: 'classes', label: 'Classes & Sections', icon: BookOpen, roles: ['admin'] },
+    { id: 'subjects', label: 'Subjects Manager', icon: ClipboardList, roles: ['admin'] },
+    { id: 'forms', label: 'Student Admission', icon: FileText, roles: ['admin'] },
+    { id: 'parents', label: 'Parents', icon: Users, roles: ['admin'] },
+    { id: 'teachers', label: 'Teachers', icon: GraduationCap, roles: ['admin'] },
+    { id: 'students', label: 'Students List', icon: User, roles: ['admin'] },
+    { id: 'finance', label: 'Fee Collection', icon: Wallet, roles: ['admin'] },
+    { id: 'payroll', label: 'Staff Payroll', icon: UserPlus, roles: ['admin'] },
+    { id: 'vendors', label: 'Suppliers', icon: Briefcase, roles: ['admin'] },
+    { id: 'purchases', label: 'Purchase History', icon: FileBarChart2, roles: ['admin'] },
+    { id: 'settings', label: 'Settings', icon: Settings, roles: ['admin'] },
   ];
+
+  // FILTER MENU ITEMS BASED ON ROLE
+  const menuItems = allMenuItems.filter(item => item.roles.includes(role));
 
   return (
     <motion.div
@@ -67,7 +75,9 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage }: Sideba
         <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20" style={{ backgroundColor: themeColor }}>E</div>
         <motion.div animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="whitespace-nowrap overflow-hidden">
           <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">EduSmart</h1>
-          <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: themeColor }}>System</p>
+          <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: themeColor }}>
+            {role === 'teacher' ? 'Teacher Portal' : 'Admin System'}
+          </p>
         </motion.div>
       </div>
 

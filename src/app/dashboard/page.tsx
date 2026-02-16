@@ -31,10 +31,26 @@ function DashboardContent() {
   const { themeColor } = useTheme();
   const tab = searchParams.get("tab") || "overview";
   const [activePage, setActivePage] = useState(tab);
+  const [userRole, setUserRole] = useState('admin'); // NEW STATE
+  const [userName, setUserName] = useState('Admin User'); // NEW STATE
 
   useEffect(() => {
     const savedState = localStorage.getItem("sidebarOpen");
     if (savedState !== null) setIsOpen(JSON.parse(savedState));
+
+    // --- GET USER ROLE ---
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      const user = JSON.parse(userStr);
+      setUserRole(user.role || 'admin');
+      setUserName(user.name || 'Admin User');
+
+      // If teacher lands on overview (which they can't access), redirect to attendance
+      if (user.role === 'teacher' && tab === 'overview') {
+        setActivePage('attendance');
+        router.replace('/dashboard?tab=attendance');
+      }
+    }
   }, []);
 
   const handleSidebarToggle = (state: boolean) => {
@@ -72,6 +88,7 @@ function DashboardContent() {
         setIsOpen={handleSidebarToggle}
         activePage={activePage}
         setActivePage={handlePageChange}
+        role={userRole}
       />
 
       <main className="flex-1 p-8 md:p-12 h-screen overflow-y-auto overflow-x-hidden">
@@ -89,10 +106,10 @@ function DashboardContent() {
             <div className="flex items-center gap-4 md:gap-6 cursor-pointer group">
               <div className="text-right hidden sm:block">
                 <p className="text-[10px] font-black uppercase tracking-[3px]" style={{ color: themeColor }}>
-                  Admin Hub
+                  {userRole === 'teacher' ? 'Teacher Portal' : 'Admin Hub'}
                 </p>
                 <p className="text-sm md:text-lg font-bold text-[#191919] group-hover:tracking-wider transition-all">
-                  M. Ahsan
+                  {userName}
                 </p>
               </div>
               <div
@@ -100,7 +117,7 @@ function DashboardContent() {
                 style={{ backgroundColor: themeColor, boxShadow: `0 10px 30px -10px ${themeColor}66` }}
               >
                 <img
-                  src={`https://ui-avatars.com/api/?name=M+Ahsan&background=${themeColor?.replace('#', '') || 'B70003'}&color=fff`}
+                  src={`https://ui-avatars.com/api/?name=${userName.replace(' ', '+')}&background=${themeColor?.replace('#', '') || 'B70003'}&color=fff`}
                   className="w-full h-full rounded-[16px]"
                   alt="admin"
                 />
