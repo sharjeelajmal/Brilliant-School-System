@@ -72,11 +72,11 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage, role = '
       </button>
 
       <div className={`p-6 flex items-center ${isOpen ? 'gap-3' : ''} transition-all ${!isOpen && 'justify-center'}`}>
-        <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20" style={{ backgroundColor: themeColor }}>E</div>
+        <div className="w-10 h-10 rounded-xl flex-shrink-0 flex items-center justify-center text-white font-black text-xl shadow-md z-20" style={{ backgroundColor: themeColor }}>B</div>
         <motion.div animate={{ opacity: isOpen ? 1 : 0, width: isOpen ? 'auto' : 0 }} className="whitespace-nowrap overflow-hidden">
-          <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">EduSmart</h1>
+          <h1 className="font-black text-lg text-[#191919] uppercase tracking-tighter leading-none">BRILLIANT</h1>
           <p className="text-[9px] font-bold tracking-widest uppercase" style={{ color: themeColor }}>
-            {role === 'teacher' ? 'Teacher Portal' : 'Admin System'}
+            SCHOOL & ACADEMY
           </p>
         </motion.div>
       </div>

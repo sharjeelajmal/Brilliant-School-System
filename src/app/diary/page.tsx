@@ -1,15 +1,16 @@
-"use client";
 import React from 'react';
 import { TeacherHeader } from '@/components/layout/TeacherHeader';
 import { ClassDiary } from '@/components/diary/ClassDiary';
+import { TeacherFooter } from '@/components/layout/TeacherFooter';
 
 export default function TeacherDiaryPage() {
     return (
-        <div className="min-h-screen bg-[#FDFDFD] font-['Montserrat'] pb-20 md:pb-0">
+        <div className="min-h-screen bg-[#FDFDFD] font-['Montserrat'] pb-20 md:pb-0 flex flex-col">
             <TeacherHeader title="Class Diary" activePage="diary" />
-            <main className="max-w-[1200px] mx-auto p-4 md:p-8 mt-24 md:mt-0">
+            <main className="max-w-[1200px] mx-auto p-4 md:p-8 mt-24 md:mt-0 flex-1 w-full">
                 <ClassDiary mode="teacher" />
             </main>
+            <TeacherFooter />
         </div>
     );
 }

@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
-import { Montserrat } from 'next/font/google'; // Font wapis aa gaya
+import { Montserrat, Alexandria } from 'next/font/google'; // Font wapis aa gaya
 import "./globals.css";
 import { ThemeProvider } from '@/context/ThemeContext';
 
 // Font configure kiya
-const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '700'] });
+const montserrat = Montserrat({ subsets: ['latin'], weight: ['400', '700'], variable: '--font-montserrat' });
+const alexandria = Alexandria({ subsets: ['latin'], weight: ['300', '400', '500', '700'], variable: '--font-alexandria' });
 
 export const metadata: Metadata = {
   title: "School Managememt",
@@ -15,7 +16,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en">
       {/* Body pe class lagayi */}
-      <body className={montserrat.className}>
+      <body className={`${montserrat.className} ${alexandria.variable}`}>
         <ThemeProvider>
           {children}
         </ThemeProvider>

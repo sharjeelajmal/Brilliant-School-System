@@ -11,107 +11,144 @@ import { CustomDropdown } from '@/components/ui/CustomDropdown';
 import { SmartPhoneInput } from '@/components/ui/SmartPhoneInput';
 
 // --- PRINTABLE TEMPLATE (Student Version) ---
-const PrintableTemplate = ({ data }: { data: any }) => (
-  <div className="hidden print:block font-sans p-8 bg-white text-black max-w-[210mm] mx-auto">
 
-    {/* Header */}
-    <div className="flex justify-between items-start border-b-4 border-[#B70003] pb-6 mb-8">
-      <div>
-        <h1 className="text-4xl font-extrabold uppercase tracking-tight text-[#B70003]">EduSmart</h1>
-        <p className="text-lg font-semibold tracking-widest text-gray-600 uppercase mt-1">Student Admission Form</p>
-      </div>
-      <div className="text-right">
-        {/* ROLL NO DISPLAY */}
-        <div className="mb-2">
-          <span className="text-sm font-bold text-gray-500 uppercase">Roll No:</span>
-          <div className="text-3xl font-black text-[#B70003]">{data.rollNo || "---"}</div>
-        </div>
+import { Alexandria } from 'next/font/google';
 
-        {data.photoUrl ? (
-          <div className="w-32 h-40 border-2 border-[#B70003] flex items-center justify-center overflow-hidden">
-            <span className="text-xs">Photo Attached</span>
-          </div>
-        ) : (
-          <div className="w-32 h-40 bg-gray-100 border-2 border-dashed border-gray-300 flex items-center justify-center text-xs font-bold text-gray-400">
-            PASTE PHOTO
-          </div>
-        )}
+// --- MODERN BLUE WAVE PRINT TABLE TEMPLATE ---
+const PrintableTemplate = ({ data }: { data: any }) => {
+  // Helper for rendering fields with underlines
+  const Field = ({ label, value, top, left, width }: { label: string, value: string, top: string, left: string, width: string }) => (
+    <div className="absolute flex flex-col justify-end" style={{ top, left, width, height: '12px' }}>
+      <div className="flex items-end w-full border-b border-[#3A3A3A] pb-[1px]">
+        <span className="font-['Alexandria'] font-medium text-[10px] text-[#3A3A3A] mr-1 whitespace-nowrap">{label}</span>
+        <span className="font-['Alexandria'] font-bold text-[10px] text-black flex-1 text-center truncate">{value}</span>
       </div>
     </div>
+  );
 
-    {/* Section 1: Student Details */}
-    <div className="mb-8">
-      <h3 className="bg-gray-100 text-[#191919] font-bold uppercase text-sm py-2 px-4 mb-4 border-l-4 border-[#B70003]">01. Student Information</h3>
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm px-4">
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Full Name:</span> <span className="font-bold">{data.firstName} {data.lastName}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Date of Birth:</span> <span className="font-bold">{data.dob}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">B-Form/CNIC:</span> <span className="font-bold">{data.studentCnic}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Gender:</span> <span className="font-bold">{data.gender}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Religion:</span> <span className="font-bold">{data.religion}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Nationality:</span> <span className="font-bold">{data.nationality}</span></div>
-      </div>
-    </div>
+  return (
+    <div className="hidden print:block font-['Alexandria'] bg-white text-black w-[595px] h-[842px] mx-auto relative overflow-hidden">
 
-    {/* Section 2: Guardian Info */}
-    <div className="mb-8">
-      <h3 className="bg-gray-100 text-[#191919] font-bold uppercase text-sm py-2 px-4 mb-4 border-l-4 border-[#B70003]">02. Guardian Information</h3>
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm px-4">
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Guardian Name:</span> <span className="font-bold">{data.parentFirstName} {data.parentLastName}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Relation:</span> <span className="font-bold">{data.relation}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">CNIC:</span> <span className="font-bold">{data.parentCnic}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Mobile No:</span> <span className="font-bold">{data.mobileNo}</span></div>
-        <div className="col-span-2 flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium shrink-0">Address:</span> <span className="font-bold">{data.address}</span></div>
+      {/* --- HEADER --- */}
+      {/* Group 961 - Header Container */}
+      <div className="absolute w-[595px] h-[127px] left-[calc(50%-595px/2)] top-0 transform scale-x-[-1] z-0">
+        {/* Vector 1 */}
+        <div className="absolute left-0 right-0 top-0 bottom-[84.92%] bg-gradient-to-r from-[#032841] via-[#01578C] to-[#006091] transform scale-x-[-1]"></div>
+        {/* Vector 2 */}
+        <div className="absolute left-0 right-0 top-0 bottom-[86.18%] bg-gradient-to-r from-[#071E3A] via-[#124770] to-[#012F55] transform scale-x-[-1]"></div>
+        {/* Vector 3 */}
+        <div className="absolute left-[52.24%] right-0 top-0 bottom-[89.94%] bg-gradient-to-r from-[#011B36] via-[#072C4C] to-[#033861] transform scale-x-[-1]"></div>
       </div>
-    </div>
 
-    {/* Section 3: Enrollment */}
-    <div className="mb-8">
-      <h3 className="bg-gray-100 text-[#191919] font-bold uppercase text-sm py-2 px-4 mb-4 border-l-4 border-[#B70003]">03. Official Enrollment</h3>
-      <div className="grid grid-cols-2 gap-x-12 gap-y-4 text-sm px-4">
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Admission Date:</span> <span className="font-bold">{data.joiningDate}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Class Admitted:</span> <span className="font-bold">{data.classJoining}</span></div>
-        <div className="flex border-b border-dotted border-gray-300 pb-1"><span className="w-32 text-gray-500 font-medium">Section:</span> <span className="font-bold">{data.section}</span></div>
+      {/* Logo Placeholder (WhatsApp Image) */}
+      <div className="absolute w-[74px] h-[66px] left-[22px] top-[23px] z-10 flex items-center justify-center bg-white rounded-full shadow-sm p-1">
+        <img src="/logo.jpg" alt="Logo" className="w-[50px] h-[50px] object-contain" />
       </div>
-    </div>
 
-    {/* Section 4: Fees */}
-    <div className="mb-12">
-      <h3 className="bg-gray-100 text-[#191919] font-bold uppercase text-sm py-2 px-4 mb-4 border-l-4 border-[#B70003]">04. Agreed Fee Structure</h3>
-      <div className="grid grid-cols-3 gap-6 px-4">
-        <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
-          <p className="text-xs text-gray-500 uppercase font-bold mb-1">Monthly Tuition</p>
-          <p className="text-xl font-black">{data.monthlyFee} <span className="text-xs font-medium">PKR</span></p>
-        </div>
-        <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
-          <p className="text-xs text-gray-500 uppercase font-bold mb-1">Admission Fee</p>
-          <p className="text-xl font-black">{data.admissionFee} <span className="text-xs font-medium">PKR</span></p>
-        </div>
-        <div className="border border-gray-200 p-4 rounded-lg bg-gray-50">
-          <p className="text-xs text-gray-500 uppercase font-bold mb-1">Annual Charges</p>
-          <p className="text-xl font-black">{data.annualFee} <span className="text-xs font-medium">PKR</span></p>
-        </div>
+      {/* School Name */}
+      <div className="absolute w-[424px] h-[24px] left-[calc(50%-424px/2-60.5px)] top-[40px] font-['Alexandria'] font-bold text-[20px] leading-[24px] text-[#0A024B] z-10">
+        BRILLIANT SCIENCE SCHOOL & ACADEMY
       </div>
-    </div>
 
-    {/* Footer */}
-    <div className="flex justify-between items-end mt-20 pt-8 border-t-2 border-gray-100">
-      <div className="text-center">
-        <p className="text-xs font-bold uppercase mb-12">Admitting Authority</p>
-        <div className="w-48 border-t border-black"></div>
-        <p className="text-[10px] font-bold text-gray-500 mt-2">Principal Signature</p>
+      {/* Contact Info */}
+      <div className="absolute w-[66px] h-[10px] left-[calc(50%-66px/2-239.5px)] top-[127px] font-['Alexandria'] font-light text-[8px] leading-[10px] text-[#3A3A3A]">
+        +92 322 4525320
       </div>
-      <div className="text-center">
-        <p className="text-xs font-bold uppercase mb-12">Guardian Acknowledgement</p>
-        <div className="w-48 border-t border-black"></div>
-        <p className="text-[10px] font-bold text-gray-500 mt-2">Parent/Guardian Signature</p>
+      <div className="absolute w-[257px] h-[10px] left-[calc(50%-257px/2-144px)] top-[139px] font-['Alexandria'] font-light text-[8px] leading-[10px] text-[#3A3A3A]">
+        Maryam park Mangal bazar wali gali attari saroba sofiabad Lahore.
       </div>
-    </div>
+      <div className="absolute w-[136px] h-[7px] left-[calc(50%-136px/2+202.5px)] top-[141px] font-['Alexandria'] font-light text-[6px] leading-[7px] text-[#3A3A3A]">
+        Project of YouTube channel "Student ki Dunya"
+      </div>
 
-    <div className="fixed bottom-8 left-0 w-full text-center text-[10px] text-gray-400">
-      Generated by EduSmart School System • {new Date().toLocaleDateString()}
+      {/* Blue Line Seperator */}
+      <div className="absolute w-[545px] h-0 left-[calc(50%-545px/2)] top-[161px] border-[3px] border-[#0A024B]"></div>
+
+      {/* Title */}
+      <div className="absolute w-[187px] h-[24px] left-[calc(50%-187px/2+179px)] top-[171px] font-['Alexandria'] font-bold text-[20px] leading-[24px] text-[#0A024B]">
+        ADMISSION FORM
+      </div>
+
+      {/* --- SECTIONS --- */}
+
+      {/* 1. Personal Information */}
+      <div className="absolute w-[112px] h-[12px] left-[calc(50%-112px/2-216.5px)] top-[215px] font-['Alexandria'] font-bold text-[10px] leading-[12px] text-[#0A024B]">
+        Personal Information:
+      </div>
+
+      <Field label="First Name:" value={data.firstName} top="247px" left="calc(50% - 246px/2 - 149.5px)" width="246px" />
+      <Field label="Last Name:" value={data.lastName} top="247px" left="calc(50% - 256px/2 + 142.5px)" width="256px" />
+
+      <Field label="Gender:" value={data.gender} top="274px" left="calc(50% - 245px/2 - 150px)" width="245px" />
+      <Field label="Date of Birth:" value={data.dob} top="274px" left="calc(50% - 261px/2 + 145px)" width="261px" />
+
+      <Field label="Birth Certificate No.:" value={data.studentCnic} top="301px" left="calc(50% - 244px/2 - 150.5px)" width="244px" />
+      <Field label="Religion:" value={data.religion || 'Islam'} top="301px" left="calc(50% - 261px/2 + 145px)" width="261px" />
+
+      <Field label="Nationality:" value={data.nationality || 'Pakistani'} top="328px" left="calc(50% - 246px/2 - 149.5px)" width="246px" />
+      <Field label="Previous School Name:" value={data.previousSchool} top="328px" left="calc(50% - 258px/2 + 143.5px)" width="258px" />
+
+      <Field label="Last Class Completed:" value={data.lastClass} top="355px" left="calc(50% - 241px/2 - 152px)" width="241px" />
+      <Field label="Reason of Leaving:" value={data.leavingReason} top="355px" left="calc(50% - 259px/2 + 144px)" width="259px" />
+
+      {/* Separator Line */}
+      <div className="absolute w-[545px] h-0 left-[calc(50%-545px/2)] top-[387px] border border-[#3A3A3A]"></div>
+
+
+      {/* 2. Parents/Guardians Information */}
+      <div className="absolute w-[162px] h-[12px] left-[calc(50%-162px/2-191.5px)] top-[407px] font-['Alexandria'] font-bold text-[10px] leading-[12px] text-[#0A024B]">
+        Parents/Guardians Information:
+      </div>
+
+      {/* Note: Coordinates for Parent First Name/Last Name reused from Student Section but shifted down? 
+                Wait, CSS provided says "First Name... top: 439px". Using that. */}
+      <Field label="First Name:" value={data.parentFirstName} top="439px" left="calc(50% - 246px/2 - 149.5px)" width="246px" />
+      <Field label="Last Name:" value={data.parentLastName} top="439px" left="calc(50% - 256px/2 + 142.5px)" width="256px" />
+
+      <Field label="CNIC:" value={data.parentCnic} top="466px" left="calc(50% - 245px/2 - 150px)" width="245px" />
+      <Field label="Mobile No.:" value={data.mobileNo} top="466px" left="calc(50% - 262px/2 + 145.5px)" width="262px" />
+
+      <Field label="Mobile No. 2:" value={data.emergencyContact} top="493px" left="calc(50% - 242px/2 - 151.5px)" width="242px" />
+      <Field label="WhatsApp No.:" value={data.whatsappNo} top="493px" left="calc(50% - 258px/2 + 143.5px)" width="258px" />
+
+      <Field label="Address:" value={data.address} top="520px" left="calc(50% - 546px/2 + 0.5px)" width="546px" />
+
+      <Field label="Relation with Student:" value={data.relation} top="547px" left="calc(50% - 245px/2 - 150px)" width="245px" />
+      <Field label="Occupation:" value={data.occupation} top="547px" left="calc(50% - 261px/2 + 145px)" width="261px" />
+
+      <Field label="Monthly Salary:" value={data.monthlyIncome} top="574px" left="calc(50% - 245px/2 - 150px)" width="245px" />
+      <Field label="Reference:" value={data.reference} top="574px" left="calc(50% - 261px/2 + 145px)" width="261px" />
+
+      {/* Separator Line */}
+      <div className="absolute w-[545px] h-0 left-[calc(50%-545px/2)] top-[606px] border border-[#3A3A3A]"></div>
+
+
+      {/* 3. Enrollment */}
+      <div className="absolute w-[61px] h-[12px] left-[calc(50%-61px/2-242px)] top-[626px] font-['Alexandria'] font-bold text-[10px] leading-[12px] text-[#0A024B]">
+        Enrollment:
+      </div>
+
+      <Field label="Joining Date:" value={data.joiningDate} top="658px" left="calc(50% - 243px/2 - 151px)" width="243px" />
+      <Field label="Class & Section:" value={`${data.classJoining || ''} ${data.section ? '- ' + data.section : ''}`} top="658px" left="calc(50% - 261px/2 + 145px)" width="261px" />
+
+      {/* Separator Line */}
+      <div className="absolute w-[545px] h-0 left-[calc(50%-545px/2)] top-[690px] border border-[#3A3A3A]"></div>
+
+
+      {/* 4. Fee Structure */}
+      <div className="absolute w-[72px] h-[12px] left-[calc(50%-72px/2-236.5px)] top-[710px] font-['Alexandria'] font-bold text-[10px] leading-[12px] text-[#0A024B]">
+        Fee Structure:
+      </div>
+
+      <Field label="Monthly Fee:" value={data.monthlyFee} top="742px" left="calc(50% - 248px/2 - 148.5px)" width="248px" />
+      <Field label="Monthly Fee Date:" value={data.feeDate} top="742px" left="calc(50% - 263px/2 + 146px)" width="263px" />
+
+      <Field label="Annual Fee:" value={data.annualFee} top="769px" left="calc(50% - 248px/2 - 148.5px)" width="248px" />
+      <Field label="Admission Fee:" value={data.admissionFee} top="769px" left="calc(50% - 259px/2 + 144px)" width="259px" />
+
     </div>
-  </div>
-);
+  );
+};
 
 // --- TOP STEP INDICATOR ---
 const StepIndicator = ({ currentStep, steps }: { currentStep: number, steps: string[] }) => (
@@ -142,23 +179,8 @@ export default function AdmissionForm() {
   const [classes, setClasses] = useState<string[]>([]);
   const [sections, setSections] = useState<string[]>([]);
 
-  // --- PARSE URL PARAMS ---
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const cls = params.get('class');
-    const sec = params.get('section');
-    if (cls && sec) {
-      setFormData(prev => ({ ...prev, classJoining: cls, section: sec, currentStep: 3 })); // Jump to Enrollment step? Or just set data? Let's just set data.
-      // Actually user wants "enrollment wala section hy wahan ye class or section auto select hoga"
-      // Let's also set currentStep to 3 so they see it immediately? No, user might want to fill info first.
-      // Just setting data is enough, but wait, `section` dropdown depends on `classJoining`.
-      // We need to ensure sections are fetched. The existing useEffect handling `formData.classJoining` should handle it.
-      setFormData(prev => ({ ...prev, classJoining: cls, section: sec }));
-    }
-  }, []);
-
   const [formData, setFormData] = useState({
-    rollNo: '', // ADD THIS
+    rollNo: '',
 
     // Step 1
     firstName: '', lastName: '', gender: '', dob: '',
@@ -181,6 +203,17 @@ export default function AdmissionForm() {
     amountPaying: '',
     remainingAmount: ''
   });
+
+  // --- PARSE URL PARAMS ---
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const cls = params.get('class');
+    const sec = params.get('section');
+    if (cls && sec) {
+      setFormData(prev => ({ ...prev, classJoining: cls, section: sec }));
+      setCurrentStep(3); // Jump to Enrollment step
+    }
+  }, []);
 
   const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 

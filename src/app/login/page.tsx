@@ -52,9 +52,12 @@ export default function LoginPage() {
         className="z-10 bg-white border border-[#EEEEEE] rounded-[20px] w-full max-w-[500px] p-12 relative shadow-2xl"
       >
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-[#B70003] rounded-b-full" />
-        <h1 className="text-[32px] font-bold text-[#191919] text-center mb-10 mt-4">EduSmart Portal</h1>
+        <h1 className="text-[24px] font-black text-[#191919] text-center mb-2 mt-4 uppercase leading-tight">
+          BRILLIANT SCIENCE <br /> SCHOOL & ACADEMY
+        </h1>
+        <p className="text-center text-gray-400 text-xs font-bold tracking-widest uppercase mb-8">Management Portal</p>
 
-        <form onSubmit={handleLogin} className="space-y-8">
+        <form onSubmit={handleLogin} className="space-y-6">
           <div className="relative">
             <label className="text-[14px] font-medium text-[#191919] mb-2 block">Username</label>
             <input type="text" onChange={(e) => setUsername(e.target.value)} className="w-full h-[60px] border border-[#CCCCCC] rounded-[12px] px-6 outline-none focus:border-[#B70003] transition-all bg-white text-[#191919]" placeholder="Enter username" />
@@ -70,6 +73,12 @@ export default function LoginPage() {
 
           <motion.button whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }} className="w-full h-[63px] bg-[#B70003] text-white text-[22px] font-bold cursor-pointer rounded-full mt-4 transition-all">Login</motion.button>
         </form>
+
+        <div className="mt-8 text-center border-t border-gray-100 pt-6">
+          <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
+            © 2025 Aura Bussiness Solution | All rights reserved
+          </p>
+        </div>
       </motion.div>
       {/* ... Error Popup Code Same ... */}
       <AnimatePresence>

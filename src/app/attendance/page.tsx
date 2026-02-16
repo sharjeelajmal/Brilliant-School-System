@@ -2,14 +2,16 @@
 import React from 'react';
 import { TeacherHeader } from '@/components/layout/TeacherHeader';
 import { AttendanceContent } from '@/components/attendance/AttendanceContent';
+import { TeacherFooter } from '@/components/layout/TeacherFooter';
 
 export default function AttendancePage() {
   return (
-    <div className="min-h-screen bg-[#FDFDFD] font-['Montserrat'] pb-20 md:pb-0">
+    <div className="min-h-screen bg-[#FDFDFD] font-['Montserrat'] pb-20 md:pb-0 flex flex-col">
       <TeacherHeader title="Class Attendance" activePage="attendance" />
-     <main className="max-w-[1200px] mx-auto p-4 md:p-8 mt-24 md:mt-0">
-         <AttendanceContent />
+      <main className="max-w-[1200px] mx-auto p-4 md:p-8 mt-24 md:mt-0 flex-1 w-full">
+        <AttendanceContent />
       </main>
+      <TeacherFooter />
     </div>
   );
 }
