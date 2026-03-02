@@ -2,6 +2,12 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
+  // 🔴 SOFTWARE SUSPENSION LOGIC 🔴
+  // Agar environment variable 'true' hoga, to har user ko 404 error page dikhega
+  if (process.env.APP_SUSPENDED === 'true') {
+    return NextResponse.rewrite(new URL('/404', request.url)); 
+  }
+
   const token = request.cookies.get('token');
   const role = request.cookies.get('role')?.value;
   const path = request.nextUrl.pathname;
@@ -31,6 +37,6 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  // Matcher mein '/test-report' add kiya
-  matcher: ['/dashboard/:path*', '/attendance/:path*', '/test-report/:path*','/complaints/:path*', '/login'],
+  // Matcher ko update kar diya hai taa ke suspension poori website par apply ho (static files ko chhor kar)
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
