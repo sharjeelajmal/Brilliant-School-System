@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+/* ── Bastliga signature font ── */
+@font-face {
+  font-family: 'Bastliga';
+  src: url('/fonts/Bastliga.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
@@ -32,4 +41,190 @@ body {
   transform: translateZ(0);
   /* GPU Force */
   backface-visibility: hidden;
+}
+
+/* ── Teacher Print Preview ── */
+.teacher-print-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 210mm);
+  margin: 0 auto;
+  gap: 32px;
+}
+
+.teacher-print-page {
+  flex: none;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+.teacher-print-canvas {
+  width: 595px;
+  height: 842px;
+  transform: scale(1.333333);
+  transform-origin: top left;
+}
+
+/* ── Admission Print Preview ── */
+.admission-print-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: min(100%, 210mm);
+  margin: 0 auto;
+  gap: 32px;
+}
+
+.admission-print-page {
+  flex: none;
+  width: 210mm;
+  height: 297mm;
+  overflow: hidden;
+  position: relative;
+  background: #fff;
+}
+
+.admission-print-canvas {
+  width: 595px;
+  height: 842px;
+  transform: scale(1.333333);
+  transform-origin: top left;
+}
+
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 0;
+  }
+
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+  }
+
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .fee-slip-print-root {
+    display: block !important;
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    background: #fff;
+    width: 210mm;
+    height: 297mm;
+    margin: 0;
+    overflow: hidden;
+  }
+
+  .fee-slip-page {
+    width: 210mm;
+    height: 297mm;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
+  }
+
+  .fee-slip-slot {
+    position: relative;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .fee-slip-slot:nth-child(1),
+  .fee-slip-slot:nth-child(2) {
+    border-bottom: 1px dashed #bfc2d9;
+  }
+
+  .fee-slip-slot:nth-child(1),
+  .fee-slip-slot:nth-child(3) {
+    border-right: 1px dashed #bfc2d9;
+  }
+
+  .fee-slip-card {
+    width: 97mm;
+    height: 140.5mm;
+    top: 7mm;
+    left: 4mm;
+  }
+
+  .admission-print-root {
+    display: block !important;
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    position: static !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .admission-print-page {
+    flex: none;
+    width: 210mm !important;
+    height: 297mm !important;
+    page-break-after: always;
+    break-after: page;
+    break-inside: avoid;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    position: relative;
+    background: #fff !important;
+  }
+
+  /* Last page ke baad blank page prevent karo */
+  .admission-print-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .admission-print-canvas {
+    width: 595px !important;
+    height: 842px !important;
+    transform: scale(1.333333);
+    transform-origin: top left;
+  }
+
+  /* ── Teacher print styles ── */
+  .teacher-print-root {
+    display: block !important;
+    width: 210mm;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    position: static !important;
+    overflow: visible !important;
+    transform: none !important;
+  }
+
+  .teacher-print-page {
+    flex: none;
+    width: 210mm !important;
+    height: 297mm !important;
+    page-break-after: always;
+    break-after: page;
+    break-inside: avoid;
+    margin: 0 auto !important;
+    overflow: hidden !important;
+    position: relative;
+    background: #fff !important;
+  }
+
+  .teacher-print-page:last-child {
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+  }
+
+  .teacher-print-canvas {
+    width: 595px !important;
+    height: 842px !important;
+    transform: scale(1.333333);
+    transform-origin: top left;
+  }
 }

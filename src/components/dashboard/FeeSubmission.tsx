@@ -155,7 +155,11 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
 
     const monthlyFee = parseInt(selectedStudent?.monthlyFee || 0);
     const lateFine = 500;
-    const totalAmount = feeType === 'Monthly Fee' ? monthlyFee : feeType === 'Annual Fee' ? 5000 : feeType === 'Exam Fee' ? 2000 : 0;
+    const totalAmount =
+        feeType === 'Monthly Fee' ? monthlyFee :
+            feeType === 'Annual Fee' ? 5000 :
+                feeType === 'Admission Fee' ? 5000 :
+                    feeType === 'Exam Fee' ? 2000 : 0;
 
     // Use calculated isLate
     // Removing old isLate logic block
@@ -191,12 +195,28 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                     lateFine: isLate ? lateFine : 0
                 })
             });
-            if (res.ok) {
+            const payload = await res.json();
+
+            if (res.ok && payload?.success) {
+                const paidAmount = parsedAmount;
+                const remainingAmount = Math.max(netPayable - paidAmount, 0);
+                const receiptNo = String(payload?.data?._id || '').slice(-6).toUpperCase() || 'N/A';
+                const receiptData = {
+                    receiptNo,
+                    studentName: selectedStudent?.name || 'N/A',
+                    parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
+                    month: `${month} ${year}`,
+                    totalFee: `${netPayable.toLocaleString()} PKR`,
+                    paidAmount: `${paidAmount.toLocaleString()} PKR`,
+                    remainingAmount: `${remainingAmount.toLocaleString()} PKR`,
+                    remarks: remainingAmount > 0 ? 'Partial Payment' : (isLate ? 'Late Fine Included' : 'Full Payment Received')
+                };
+
                 toast.success("Fee Submitted Successfully!");
-                if (onSuccess) onSuccess();
+                if (onSuccess) onSuccess(receiptData);
                 onClose();
             } else {
-                toast.error("Submission Failed");
+                toast.error(payload?.error || "Submission Failed");
             }
         } catch (e) { toast.error("Network Error"); }
         finally { setLoading(false); }

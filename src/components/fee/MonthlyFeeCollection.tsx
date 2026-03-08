@@ -91,6 +91,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 // Import FeeSlipTemplate
 import { FeeSlipTemplate } from './FeeSlipTemplate';
 import { FeeSubmission } from '@/components/dashboard/FeeSubmission';
+import type { FeeSlipData } from './FeeSlipTemplate';
 
 // === MAIN COMPONENT ===
 export const MonthlyFeeCollection = () => {
@@ -108,7 +109,7 @@ export const MonthlyFeeCollection = () => {
     const [selectedParent, setSelectedParent] = useState<any>(null);
 
     // Print State
-    const [printData, setPrintData] = useState<any>(null);
+    const [printData, setPrintData] = useState<FeeSlipData | null>(null);
 
     // Fetch Data
     const fetchData = useCallback(async () => {
@@ -139,6 +140,18 @@ export const MonthlyFeeCollection = () => {
         return () => clearTimeout(debounce);
     }, [fetchData]);
 
+    useEffect(() => {
+        if (!printData) return;
+        const timer = setTimeout(() => window.print(), 100);
+        return () => clearTimeout(timer);
+    }, [printData]);
+
+    useEffect(() => {
+        const clearPrintState = () => setPrintData(null);
+        window.addEventListener('afterprint', clearPrintState);
+        return () => window.removeEventListener('afterprint', clearPrintState);
+    }, []);
+
     // Handlers
     const handleWhatsApp = (student: any) => {
         let number = (student.whatsappNo || student.mobileNo || '').replace(/[^0-9]/g, '');
@@ -162,11 +175,6 @@ export const MonthlyFeeCollection = () => {
             remainingAmount: `${remainingAmount > 0 ? remainingAmount.toLocaleString() : '0'} PKR`,
             remarks: remainingAmount > 0 ? 'Partial Payment' : 'Full Payment Received'
         });
-
-        // Trigger print after state update
-        setTimeout(() => {
-            window.print();
-        }, 100);
     };
 
     const handleCollectFee = async (student: any) => {
@@ -221,7 +229,11 @@ export const MonthlyFeeCollection = () => {
                         <FeeSubmission
                             parent={selectedParent}
                             onClose={() => setShowFeeModal(false)}
-                            onSuccess={() => { fetchData(); setShowFeeModal(false); }}
+                            onSuccess={(receiptData: FeeSlipData) => {
+                                fetchData();
+                                setShowFeeModal(false);
+                                if (receiptData) setPrintData(receiptData);
+                            }}
                         />
                     )}
                 </AnimatePresence>
