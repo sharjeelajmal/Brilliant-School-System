@@ -2,7 +2,7 @@ import mongoose, { Schema, Document } from 'mongoose';
 
 export interface IUser extends Document {
     username: string;
-    password?: string; // Stored as plain text for now, should be hashed in production
+    password?: string; // Stored as bcrypt hash
     role: string;
     name: string;
     profileImage: string;

@@ -11,7 +11,7 @@ export const SettingsPage = () => {
     const [activeTab, setActiveTab] = useState('profile');
     const [loading, setLoading] = useState(false);
     const [user, setUser] = useState({
-        name: 'M. Ahsan',
+        name: 'Ray Mehboob',
         email: 'admin@school.com',
         role: 'Administrator',
         phone: '+92 300 1234567'

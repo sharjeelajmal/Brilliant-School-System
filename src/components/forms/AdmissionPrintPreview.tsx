@@ -135,7 +135,7 @@ function PageHeader({ showFormTitle }: { showFormTitle?: boolean }) {
 
       {/* School name */}
       <div className="absolute text-white" style={{ top: "18px", left: "98px", fontFamily: "Alexandria, sans-serif", fontWeight: 700, fontSize: "13px", lineHeight: "16px" }}>
-        BRILLIANT SCIENCE SCHOOL &amp; ACADEMY
+        SKILL GRACE SCHOOL SYSTEM
       </div>
       <div className="absolute" style={{ top: "37px", left: "98px", fontFamily: "Alexandria, sans-serif", fontWeight: 300, fontSize: "7px", lineHeight: "9px", color: "#B0C4E8" }}>
         Project of YouTube channel &quot;Student ki Dunya&quot;
@@ -185,7 +185,7 @@ function PageHeader({ showFormTitle }: { showFormTitle?: boolean }) {
    ├ Required Docs divider  : 306
    │  doc list              : 334
    └ Signatures             : 742 / 750
-      "Ahsan"               : 666
+      "Ray Mehboob"         : 666
    ══════════════════════════════════════════════════════════════════════ */
 
 export function AdmissionPrintPreview({ data, className = "" }: { data: AdmissionPrintData; className?: string }) {
@@ -319,22 +319,22 @@ export function AdmissionPrintPreview({ data, className = "" }: { data: Admissio
             Principal Signature
           </div>
 
-          {/* "Ahsan" — Bastliga local font, above Principal line */}
+          {/* "Ray Mehboob" — Bastliga local font, above Principal line */}
           <div
             className="absolute text-center"
             style={{
-              top: "666px",
+              top: "696px",
               left: "360px",
               width: "195px",
               fontFamily: "'Bastliga', cursive",
               fontWeight: 400,
-              fontSize: "64px",
+              fontSize: "45px",
               lineHeight: "100%",
               letterSpacing: "0",
               color: "#0A024B",
             }}
           >
-            Ahsan
+            Mehboob Ilahi
           </div>
         </div>
       </div>

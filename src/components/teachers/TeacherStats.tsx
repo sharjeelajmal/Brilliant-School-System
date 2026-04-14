@@ -2,12 +2,12 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 
-const RedStatCard = ({ label, value, delay }: { label: string, value: number | string, delay: number }) => (
+const RedStatCard = ({ label, value, delay, className = "" }: { label: string, value: number | string, delay: number, className?: string }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ delay, duration: 0.5 }}
-    className="relative h-[130px] rounded-[16px] overflow-hidden bg-[#B50104] shadow-xl flex flex-col justify-center px-6 group cursor-default"
+    className={`relative h-[130px] rounded-[16px] overflow-hidden bg-[#B50104] shadow-xl flex flex-col justify-center px-6 group cursor-default ${className}`}
   >
     <div className="absolute -right-6 -top-6 w-32 h-32 bg-[#C60205] opacity-60 rounded-full group-hover:scale-110 transition-transform duration-500" />
     <div className="absolute right-12 bottom-[-20px] w-20 h-20 bg-[#C60205] opacity-60 rounded-full" />
@@ -21,12 +21,17 @@ const RedStatCard = ({ label, value, delay }: { label: string, value: number | s
 
 export const TeacherStats = ({ stats }: { stats: any }) => {
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       <RedStatCard label="Total Teachers" value={stats.total} delay={0} />
       <RedStatCard label="Male Teachers" value={stats.male} delay={0.1} />
       <RedStatCard label="Female Teachers" value={stats.female} delay={0.2} />
-      {/* Best Teacher Logic abhi static hai kyunke 'Rating' field DB ma nahi hai */}
-      <RedStatCard label="Most Experienced" value={stats.best || "N/A"} delay={0.3} />
+      {/* Most Experienced - Occupies full width on desktop */}
+      <RedStatCard 
+        label="Most Experienced" 
+        value={stats.best || "N/A"} 
+        delay={0.3} 
+        className="lg:col-span-3"
+      />
     </div>
   );
 };

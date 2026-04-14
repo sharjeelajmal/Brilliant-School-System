@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import User from '@/models/User';
+import bcrypt from 'bcryptjs';
 
 export async function POST(req: Request) {
     try {
@@ -10,12 +11,13 @@ export async function POST(req: Request) {
         // 1. Auto-Seed Logic: If no users, create default admin
         const userCount = await User.countDocuments();
         if (userCount === 0) {
+            const hashedPassword = await bcrypt.hash('mehboob@dmin326', 10);
             await User.create({
-                username: 'admin',
-                password: '12345', // In production, hash this!
+                username: 'admin@gmail.com',
+                password: hashedPassword,
                 role: 'admin',
-                name: 'Super Admin',
-                profileImage: 'https://ui-avatars.com/api/?name=Super+Admin&background=B70003&color=fff'
+                name: 'Ray Mehboob',
+                profileImage: 'https://ui-avatars.com/api/?name=Ray+Mehboob&background=B70003&color=fff'
             });
             console.log("Default Admin Seeded");
         }
@@ -23,7 +25,12 @@ export async function POST(req: Request) {
         // 2. Find User
         const user = await User.findOne({ username });
 
-        if (!user || user.password !== password) {
+        if (!user) {
+            return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
+        }
+
+        const isMatch = await bcrypt.compare(password, user.password);
+        if (!isMatch) {
             return NextResponse.json({ success: false, message: 'Invalid credentials' }, { status: 401 });
         }
 

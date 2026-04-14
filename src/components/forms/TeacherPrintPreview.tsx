@@ -79,7 +79,7 @@ function PageHeader({ showTitle }: { showTitle?: boolean }) {
             <div className="absolute rounded-full" style={{ left: "100px", bottom: "14px", height: "2px", width: "100px", background: "#F59E0B", opacity: 0.8 }} />
             <div className="absolute rounded-full" style={{ top: "12px", left: "90px", height: "6px", width: "6px", background: "#F59E0B", opacity: 0.7 }} />
             <div className="absolute text-white" style={{ top: "18px", left: "98px", fontFamily: "Alexandria,sans-serif", fontWeight: 700, fontSize: "13px", lineHeight: "16px" }}>
-                BRILLIANT SCIENCE SCHOOL &amp; ACADEMY
+                SKILL GRACE SCHOOL SYSTEM
             </div>
             <div className="absolute" style={{ top: "37px", left: "98px", fontFamily: "Alexandria,sans-serif", fontWeight: 300, fontSize: "7px", lineHeight: "9px", color: "#B0C4E8" }}>
                 Project of YouTube channel &quot;Student ki Dunya&quot;
@@ -162,9 +162,8 @@ export function TeacherPrintPreview({ data, className = "" }: { data: TeacherPri
                         Principal Signature
                     </div>
 
-                    {/* "Ahsan" above Principal line — moved below last field (692px+gap) */}
                     <div className="absolute text-center" style={{ top: "712px", left: "360px", width: "195px", fontFamily: "'Bastliga', cursive", fontWeight: 400, fontSize: "64px", lineHeight: "100%", letterSpacing: "0", color: "#0A024B" }}>
-                        Ahsan
+                        Ray Mehboob
                     </div>
                 </div>
             </div>

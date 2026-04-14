@@ -53,7 +53,7 @@ export default function LoginPage() {
       >
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-[#B70003] rounded-b-full" />
         <h1 className="text-[24px] font-black text-[#191919] text-center mb-2 mt-4 uppercase leading-tight">
-          BRILLIANT SCIENCE <br /> SCHOOL & ACADEMY
+          SKILL GRACE <br /> SCHOOL SYSTEM
         </h1>
         <p className="text-center text-gray-400 text-xs font-bold tracking-widest uppercase mb-8">Management Portal</p>
 
@@ -76,7 +76,7 @@ export default function LoginPage() {
 
         <div className="mt-8 text-center border-t border-gray-100 pt-6">
           <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">
-            © 2025 Aura Bussiness Solution | All rights reserved
+            © 2026 Sharry Ad Vision | All rights reserved
           </p>
         </div>
       </motion.div>

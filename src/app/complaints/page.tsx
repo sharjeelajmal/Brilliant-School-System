@@ -26,11 +26,11 @@ export default function ComplaintPage() {
          <div className="flex items-center gap-3 text-right">
             <div>
                <p className="text-[13px] text-[#C3C3C3] font-normal">Hello,</p>
-               <p className="text-[20px] text-[#3C3C3C] font-bold">M. Ahsan</p>
+               <p className="text-[20px] text-[#3C3C3C] font-bold">Ray Mehboob</p>
             </div>
             <div className="w-[50px] h-[50px] rounded-[4px] border border-[#CCCCCC] overflow-hidden p-0.5 bg-white">
                <img 
-                 src="https://ui-avatars.com/api/?name=M+Ahsan&background=B50104&color=fff&rounded=true" 
+                 src="https://ui-avatars.com/api/?name=Ray+Mehboob&background=B50104&color=fff&rounded=true" 
                  alt="User" 
                  className="w-full h-full object-cover rounded-[2px]" 
                />

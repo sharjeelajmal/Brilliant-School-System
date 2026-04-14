@@ -54,7 +54,7 @@ export const FeeSlipTemplate = ({ data }: FeeSlipProps) => {
                             </div>
 
                             <div className="absolute w-[212px] h-[12px] left-[calc(50%-106px)] top-[61px] text-center text-[10px] leading-[12px] font-bold text-[#0A024B] font-['Alexandria',sans-serif]">
-                                BRILLIANT SCIENCE SCHOOL & ACADEMY
+                                SKILL GRACE SCHOOL SYSTEM
                             </div>
 
                             <div className="absolute w-[136px] h-[7px] left-[calc(50%-68px)] top-[76px] text-center text-[6px] leading-[7px] font-light text-[#3A3A3A] font-['Alexandria',sans-serif]">

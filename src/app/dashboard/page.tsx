@@ -275,7 +275,7 @@ function DashboardContent() {
         </AnimatePresence>
 
         <footer className="mt-12 text-center text-xs font-bold text-gray-400 uppercase tracking-wider opacity-60">
-          © 2025 Aura Bussiness Solution | All rights reserved
+          © 2026 Sharry Ad Vision | All rights reserved
         </footer>
       </main>
     </div>
