@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, Trash2, Save, CheckCircle } from "lucide-react";
+import { Save, CheckCircle, User } from "lucide-react";
 import { toast, Toaster } from "sonner";
 import { useRouter } from "next/navigation";
 
@@ -43,10 +43,8 @@ export default function AdmissionForm() {
   const router = useRouter();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
   const [classes, setClasses] = useState<string[]>([]);
   const [sections, setSections] = useState<string[]>([]);
-  const [photoPreview, setPhotoPreview] = useState<string | null>(null);
 
   const [formData, setFormData] = useState({
     rollNo: "",
@@ -79,7 +77,7 @@ export default function AdmissionForm() {
     section: "",
     monthlyFee: "",
     feeDate: "",
-    annualFee: "",
+    transportFee: "",
     admissionFee: "",
     academyFee: "",
     nazraFee: "",
@@ -148,7 +146,7 @@ export default function AdmissionForm() {
     const totalFees =
       val(formData.monthlyFee) +
       val(formData.admissionFee) +
-      val(formData.annualFee) +
+      val(formData.transportFee) +
       val(formData.academyFee) +
       val(formData.nazraFee) +
       val(formData.uniformBooksCharges) +
@@ -175,7 +173,7 @@ export default function AdmissionForm() {
   }, [
     formData.monthlyFee,
     formData.admissionFee,
-    formData.annualFee,
+    formData.transportFee,
     formData.academyFee,
     formData.nazraFee,
     formData.uniformBooksCharges,
@@ -193,21 +191,6 @@ export default function AdmissionForm() {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const previewUrl = URL.createObjectURL(file);
-      setPhotoPreview(previewUrl);
-      setFormData({ ...formData, photoUrl: file.name });
-    }
-  };
-
-  const handleRemovePhoto = (e: React.MouseEvent) => {
-    e.stopPropagation();
-    setPhotoPreview(null);
-    setFormData({ ...formData, photoUrl: "" });
-    if (fileInputRef.current) fileInputRef.current.value = "";
-  };
 
   const nextStep = () => setCurrentStep((prev) => Math.min(prev + 1, 4));
   const prevStep = () => setCurrentStep((prev) => Math.max(prev - 1, 1));
@@ -256,31 +239,24 @@ export default function AdmissionForm() {
           {currentStep === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
               <div className="flex gap-8">
-                <div
-                  onClick={() => !photoPreview && fileInputRef.current?.click()}
-                  className={`w-[180px] h-[180px] bg-gray-50 border-2 border-dashed ${
-                    photoPreview ? "border-solid border-[#B70003]" : "border-gray-300"
-                  } rounded-2xl flex flex-col items-center justify-center text-gray-400 cursor-pointer hover:border-[#B70003] hover:text-[#B70003] transition-all group order-last overflow-hidden relative`}
-                >
-                  <input type="file" ref={fileInputRef} onChange={handleFileChange} className="hidden" accept="image/*" />
-                  {photoPreview ? (
-                    <>
-                      <img src={photoPreview} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button onClick={handleRemovePhoto} className="p-3 bg-white text-red-600 rounded-full shadow-lg hover:scale-110 transition-transform cursor-pointer">
-                          <Trash2 size={20} />
-                        </button>
-                      </div>
-                    </>
-                  ) : (
-                    <>
-                      <div className="p-3 bg-white rounded-full shadow-sm mb-2 group-hover:scale-110 transition-transform">
-                        <Upload size={24} />
-                      </div>
-                      <span className="text-xs font-bold uppercase">Upload Photo</span>
-                    </>
-                  )}
-                </div>
+              {/* Gender-Based Auto Avatar */}
+              <div className="w-[180px] h-[180px] rounded-2xl border-2 border-gray-100 overflow-hidden bg-gray-50 flex flex-col items-center justify-center order-last relative shadow-sm">
+                {formData.gender === 'Boy' ? (
+                  <img src="/Boy.png" alt="Boy Avatar" className="w-full h-full object-cover" />
+                ) : formData.gender === 'Girl' ? (
+                  <img src="/Girl.png" alt="Girl Avatar" className="w-full h-full object-cover" />
+                ) : (
+                  <div className="flex flex-col items-center gap-2 text-gray-300">
+                    <User size={48} />
+                    <span className="text-[10px] font-bold uppercase tracking-wide text-center px-2">Select Gender<br/>for Avatar</span>
+                  </div>
+                )}
+                {formData.gender && (
+                  <div className="absolute bottom-0 inset-x-0 bg-[#B70003]/80 text-white text-[10px] font-bold uppercase text-center py-1.5 backdrop-blur-sm">
+                    {formData.gender}
+                  </div>
+                )}
+              </div>
 
                 <div className="flex-1 grid grid-cols-2 gap-6">
                   <CustomInput label="First Name" name="firstName" value={formData.firstName} onChange={handleChange} type="text" />
@@ -377,7 +353,7 @@ export default function AdmissionForm() {
                 <div className="grid grid-cols-3 gap-6 [&>*:nth-child(2)]:mt-4">
                   <CustomInput label="Monthly Fee" name="monthlyFee" value={formData.monthlyFee} onChange={handleChange} type="number" suffix="PKR" />
                   <CustomDatePicker label="Fee Start Date" name="feeDate" value={formData.feeDate} onChange={handleCustomChange} disableFuture={false} />
-                  <CustomInput label="Annual Fee" name="annualFee" value={formData.annualFee} onChange={handleChange} type="number" suffix="PKR" />
+                  <CustomInput label="Transport Fee" name="transportFee" value={formData.transportFee} onChange={handleChange} type="number" suffix="PKR" />
                 </div>
                 <div className="grid grid-cols-3 gap-6">
                   <CustomInput label="Admission Fee" name="admissionFee" value={formData.admissionFee} onChange={handleChange} type="number" suffix="PKR" />

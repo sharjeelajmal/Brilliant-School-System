@@ -272,7 +272,7 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
             {/* TABLE */}
             <div className="bg-white rounded-[24px] shadow-xl border border-gray-100 overflow-hidden min-h-[400px]">
                 <div className="grid grid-cols-12 gap-4 py-5 px-6 bg-gray-50 border-b border-gray-100 font-bold text-xs uppercase tracking-wider text-[#3C3C3C]">
-                    <div className="col-span-1">Roll No</div>
+                    <div className="col-span-1">Sr No</div>
                     <div className="col-span-3">Full Name</div>
                     <div className="col-span-1">Gender</div>
                     <div className="col-span-2">Class & Sec</div>
@@ -302,7 +302,7 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                                     className="grid grid-cols-12 gap-4 items-center py-4 px-6 border-b border-gray-50 hover:bg-red-50/30 transition-colors group"
                                 >
-                                    <div className="col-span-1 font-bold text-gray-400 text-sm">#{s.rollNo || '---'}</div>
+                                    <div className="col-span-1 font-bold text-gray-400 text-sm">#{(students.indexOf(s) + 1).toString().padStart(2, '0')}</div>
 
                                     <div className="col-span-3 flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[#B50104] font-bold text-xs border border-gray-200">

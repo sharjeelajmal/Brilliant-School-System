@@ -81,7 +81,7 @@ export async function POST(req: Request) {
 
     // ... Baki code same rahega ...
     const numericFields = [
-      'monthlyFee', 'annualFee', 'admissionFee', 'academyFee',
+      'monthlyFee', 'transportFee', 'admissionFee', 'academyFee',
       'nazraFee', 'uniformBooksCharges', 'stationaryCharges',
       'otherCharges', 'lateFeeFine', 'monthlyIncome',
       'discount', 'totalPayable', 'amountPaying', 'remainingAmount'

@@ -50,25 +50,37 @@ export default function TeacherPreviewPage() {
 
             const pdf = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
 
+            // Expert-Level Fix: Wait for fonts AND add a physical buffer for the DOM to stabilize
+            if (document.fonts?.ready) await document.fonts.ready;
+            await new Promise((resolve) => setTimeout(resolve, 500));
+
             for (let i = 0; i < pageEls.length; i++) {
                 const snapshot = await h2c(pageEls[i], {
-                    scale: 2,
+                    scale: 4,
                     useCORS: true,
                     allowTaint: true,
                     logging: false,
                     backgroundColor: "#ffffff",
                     width: 595,
                     height: 842,
-                    windowWidth: 1200,
+                    windowWidth: 595,
                     windowHeight: 842,
                     onclone: (_doc: Document, clonedEl: HTMLElement) => {
                         clonedEl.style.overflow = "visible";
                         clonedEl.style.width = "595px";
                         clonedEl.style.height = "842px";
+                        clonedEl.style.margin = "0";
+                        clonedEl.style.padding = "0";
+                        clonedEl.style.setProperty("-webkit-font-smoothing", "antialiased");
+                        clonedEl.style.setProperty("-moz-osx-font-smoothing", "grayscale");
+
                         const inner = clonedEl.querySelector(".teacher-print-canvas") as HTMLElement | null;
                         if (inner) {
                             inner.style.transform = "none";
-                            inner.style.transformOrigin = "unset";
+                            inner.style.transformOrigin = "top left";
+                            inner.style.position = "absolute";
+                            inner.style.top = "0";
+                            inner.style.left = "0";
                             inner.style.width = "595px";
                             inner.style.height = "842px";
                         }
@@ -76,7 +88,7 @@ export default function TeacherPreviewPage() {
                 });
 
                 if (i > 0) pdf.addPage();
-                pdf.addImage(snapshot.toDataURL("image/jpeg", 0.97), "JPEG", 0, 0, 210, 297);
+                pdf.addImage(snapshot.toDataURL("image/png"), "PNG", 0, 0, 210, 297, undefined, 'FAST');
             }
 
             const fileName = `${data?.firstName || "teacher"}-${data?.lastName || "hiring"}-form.pdf`;

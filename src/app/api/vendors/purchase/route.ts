@@ -88,3 +88,33 @@ export async function POST(req: Request) {
         return NextResponse.json({ success: false, error: error.message }, { status: 500 });
     }
 }
+// DELETE: Delete Purchase
+export async function DELETE(req: Request) {
+    try {
+        await connectDB();
+        const { searchParams } = new URL(req.url);
+        const id = searchParams.get('id');
+
+        if (!id) return NextResponse.json({ success: false, error: "ID required" }, { status: 400 });
+
+        // 1. Find Purchase to get balance and vendorId
+        const purchase = await Purchase.findById(id);
+        if (!purchase) return NextResponse.json({ success: false, error: "Purchase not found" }, { status: 404 });
+
+        const { vendorId, balance } = purchase;
+
+        // 2. Reduce Vendor Outstanding Amount
+        if (balance !== 0) {
+            await Vendor.findByIdAndUpdate(vendorId, {
+                $inc: { outstandingAmount: -balance }
+            });
+        }
+
+        // 3. Delete Purchase
+        await Purchase.findByIdAndDelete(id);
+
+        return NextResponse.json({ success: true, message: "Purchase deleted successfully" });
+    } catch (error: any) {
+        return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    }
+}

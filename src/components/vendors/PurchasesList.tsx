@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Filter, Plus, ChevronDown, CheckCircle, ArrowRight, Eye } from 'lucide-react';
+import { Search, Filter, Plus, ChevronDown, CheckCircle, ArrowRight, Eye, Trash2, AlertTriangle } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 import { NewPurchaseModal } from './NewPurchaseModal';
 import { PurchaseDetails } from './PurchaseDetails';
@@ -43,13 +43,56 @@ const FilterBar = ({ search, setSearch, onAdd }: any) => (
     </div>
 );
 
+// --- DELETE CONFIRMATION MODAL ---
+const DeletePopup = ({ isOpen, onClose, onConfirm, isDeleting }: any) => {
+    if (!isOpen) return null;
+    return (
+        <div className="fixed inset-0 z-[99999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 animate-in fade-in duration-200">
+            <motion.div
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="bg-white rounded-[24px] shadow-2xl w-full max-w-sm p-6 text-center font-['Montserrat']"
+            >
+                <div className="w-16 h-16 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4 text-[#B50104]">
+                    <AlertTriangle size={32} />
+                </div>
+                <h3 className="text-xl font-black text-[#191919] mb-2">Delete Purchase?</h3>
+                <p className="text-sm text-gray-500 font-medium mb-6">
+                    This action cannot be undone. Are you sure you want to remove this purchase record? 
+                    The supplier's outstanding balance will be adjusted accordingly.
+                </p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={onClose}
+                        className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors cursor-pointer"
+                    >
+                        Cancel
+                    </button>
+                    <button
+                        onClick={onConfirm}
+                        disabled={isDeleting}
+                        className="flex-1 py-3 bg-[#B50104] text-white font-bold rounded-xl hover:bg-[#900000] shadow-lg shadow-red-200 transition-colors disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+                    >
+                        {isDeleting ? "Deleting..." : "Yes, Delete"}
+                    </button>
+                </div>
+            </motion.div>
+        </div>
+    );
+};
+
 export const PurchasesList = () => {
     const [purchases, setPurchases] = useState<any[]>([]);
     const [stats, setStats] = useState<any>({ totalSpent: 0, paidAmount: 0, remainingAmount: 0, unpaidBills: 0 });
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [showModal, setShowModal] = useState(false);
-    const [selectedPurchase, setSelectedPurchase] = useState<any>(null); // NEW STATE
+    const [selectedPurchase, setSelectedPurchase] = useState<any>(null);
+
+    // Delete State
+    const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     // FETCH DATA
     const fetchData = async () => {
@@ -76,6 +119,31 @@ export const PurchasesList = () => {
         fetchData();
     }, []);
 
+    const handleDeleteClick = (e: React.MouseEvent, id: string) => {
+        e.stopPropagation(); // Prevents opening the details modal
+        setDeleteId(id);
+    };
+
+    const confirmDelete = async () => {
+        if (!deleteId) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/vendors/purchase?id=${deleteId}`, { method: "DELETE" });
+            const result = await res.json();
+            if (result.success) {
+                toast.success("Purchase deleted successfully");
+                fetchData();
+            } else {
+                toast.error(result.error || "Delete failed");
+            }
+        } catch {
+            toast.error("Delete failed");
+        } finally {
+            setIsDeleting(false);
+            setDeleteId(null);
+        }
+    };
+
     // Filter Logic
     const filteredPurchases = purchases.filter(p =>
         p.vendorId?.name?.toLowerCase().includes(search.toLowerCase()) ||
@@ -92,6 +160,18 @@ export const PurchasesList = () => {
                     onSuccess={() => { setShowModal(false); fetchData(); }}
                 />
             )}
+
+            {/* DELETE POPUP */}
+            <AnimatePresence>
+                {deleteId && (
+                    <DeletePopup
+                        isOpen={!!deleteId}
+                        onClose={() => setDeleteId(null)}
+                        onConfirm={confirmDelete}
+                        isDeleting={isDeleting}
+                    />
+                )}
+            </AnimatePresence>
 
             {/* NEW DETAIL MODAL */}
             <AnimatePresence>
@@ -155,10 +235,20 @@ export const PurchasesList = () => {
                                     <div className={`text-sm font-black text-right ${p.balance > 0 ? 'text-[#B50104]' : 'text-gray-300'}`}>
                                         {p.balance > 0 ? p.balance.toLocaleString() : 'Cleared'}
                                     </div>
-                                    <button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-[#B50104] hover:text-white transition-all opacity-0 group-hover:opacity-100">
-                                        <ArrowRight size={14} />
-                                    </button>
+                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <button
+                                            onClick={(e) => handleDeleteClick(e, p._id)}
+                                            className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500 hover:bg-[#B50104] hover:text-white transition-all shadow-sm"
+                                            title="Delete Purchase"
+                                        >
+                                            <Trash2 size={14} />
+                                        </button>
+                                        <button className="w-8 h-8 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-[#B50104] hover:text-white transition-all">
+                                            <ArrowRight size={14} />
+                                        </button>
+                                    </div>
                                 </div>
+
                             </motion.div>
                         ))
                     ) : (

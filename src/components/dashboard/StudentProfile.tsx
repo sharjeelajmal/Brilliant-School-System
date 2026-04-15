@@ -48,7 +48,9 @@ const InfoRow = ({ label, value, name, isEditing, onChange, icon: Icon, placehol
                 />
             )
         ) : (
-            <span className="font-bold text-[#191919] text-xs md:text-sm text-left sm:text-right pl-0 sm:pl-4">{value && value !== '0' ? value : '-'}</span>
+            <span className="font-bold text-[#191919] text-xs md:text-sm text-left sm:text-right pl-0 sm:pl-4">
+                {(value !== undefined && value !== null && value !== '') ? value : '-'}
+            </span>
         )}
     </div>
 );
@@ -321,12 +323,12 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                             <InfoRow label="Admission Fee" name="admissionFee" value={formData.admissionFee} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
                         </div>
                         <div className="space-y-1">
-                            <InfoRow label="Annual Fee" name="annualFee" value={formData.annualFee} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
-                            <InfoRow label="Academy Fee" name="academyFee" value={formData.academyFee} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            <InfoRow label="Transport Fee" name="transportFee" value={formData.transportFee ?? formData.annualFee ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            <InfoRow label="Academy Fee" name="academyFee" value={formData.academyFee ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
                         </div>
                         <div className="space-y-1">
-                            <InfoRow label="Exam/Books Charges" name="uniformBooksCharges" value={formData.uniformBooksCharges} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
-                            <InfoRow label="Other Charges" name="otherCharges" value={formData.otherCharges} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            <InfoRow label="Exam/Books Charges" name="uniformBooksCharges" value={formData.uniformBooksCharges ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            <InfoRow label="Other Charges" name="otherCharges" value={formData.otherCharges ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
                         </div>
                         {/* Highlighted Total */}
                         <div className="flex flex-col justify-center items-center bg-green-50 rounded-xl p-2 border border-green-100">
@@ -371,7 +373,8 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                             name: `${data.firstName} ${data.lastName}`,
                             class: data.classJoining,
                             photo: data.photoUrl,
-                            monthlyFee: data.monthlyFee
+                            monthlyFee: data.monthlyFee,
+                            transportFee: data.transportFee
                         }]
                     }}
                     onClose={() => setShowFeeForm(false)}

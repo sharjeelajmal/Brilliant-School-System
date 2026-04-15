@@ -37,7 +37,7 @@ export interface IStudent extends Document {
 
   monthlyFee: number;
   feeDate: string;
-  annualFee: number;
+  transportFee: number;
   admissionFee: number;
   academyFee: number;
   nazraFee: number;
@@ -89,7 +89,7 @@ const StudentSchema = new Schema<IStudent>({
 
   monthlyFee: { type: Number, default: 0 },
   feeDate: { type: String },
-  annualFee: { type: Number, default: 0 },
+  transportFee: { type: Number, default: 0 },
   admissionFee: { type: Number, default: 0 },
   academyFee: { type: Number, default: 0 },
   nazraFee: { type: Number, default: 0 },

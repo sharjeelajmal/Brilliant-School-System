@@ -255,7 +255,7 @@ export const MonthlyFeeCollection = () => {
                 </div>
 
                 {/* === STAT CARDS === */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <div className="grid grid-cols-2 gap-6">
                     <RedStatCard label="Total Fee" value={summary.totalFee?.toLocaleString() || '0'} delay={0} />
                     <RedStatCard label="Collected Fee" value={summary.collectedFee?.toLocaleString() || '0'} delay={0.1} />
                     <RedStatCard label="Remaining Fee" value={summary.remainingFee?.toLocaleString() || '0'} delay={0.2} />

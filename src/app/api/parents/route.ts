@@ -37,7 +37,11 @@ export async function GET() {
             class: student.classJoining,
             photo: student.photoUrl,
             gender: student.gender,
-            monthlyFee: student.monthlyFee || 0
+            monthlyFee: student.monthlyFee || 0,
+            transportFee: student.transportFee || 0,
+            academyFee: student.academyFee || 0,
+            admissionFee: student.admissionFee || 0,
+            examFee: student.uniformBooksCharges || 0,
         });
     });
 

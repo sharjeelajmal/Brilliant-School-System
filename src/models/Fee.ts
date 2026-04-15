@@ -10,7 +10,7 @@ const FeeSchema = new mongoose.Schema({
     parentCnic: { type: String, required: true },
     feeType: {
         type: String,
-        enum: ['Monthly Fee', 'Admission Fee', 'Exam Fee', 'Annual Fee', 'Other'],
+        enum: ['Monthly Fee', 'Admission Fee', 'Exam Fee', 'Transport Fee', 'Other'],
         default: 'Monthly Fee',
     },
     amount: { type: Number, required: true },
