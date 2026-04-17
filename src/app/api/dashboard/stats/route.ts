@@ -20,7 +20,7 @@ export async function GET() {
         const [
             studentCount,
             teacherCount,
-            activeStudents,
+            activeStudentsCount,
             uniqueParents,
             fees,
             purchases,
@@ -29,7 +29,8 @@ export async function GET() {
             classes,
             todaysAttendance,
             recentStudents,
-            allSections
+            allSections,
+            activeStudentsList
         ] = await Promise.all([
             Student.countDocuments({ status: 'Active' }),
             Teacher.countDocuments({ status: 'Active' }),
@@ -42,11 +43,18 @@ export async function GET() {
             ClassModel.find({}),
             Attendance.find({ date: todayStr }),
             Student.find({ status: 'Active' }).sort({ createdAt: -1 }).limit(5),
-            SectionModel.find({})
+            SectionModel.find({}),
+            Student.find({ status: 'Active' }, { _id: 1 })
         ]);
 
+        const activeIds = new Set(activeStudentsList.map((s: any) => s._id.toString()));
+
         const parentCount = uniqueParents.length;
-        const totalEarnings = fees.reduce((acc, fee) => (acc + (fee.amountPaid || 0)), 0) || 0;
+        const totalEarnings = fees.reduce((acc, fee) => {
+            // Only count fees for active students
+            const isActive = activeIds.has(fee.studentId.toString());
+            return isActive ? (acc + (fee.amount || 0)) : acc;
+        }, 0) || 0;
         const totalExpenses = purchases.reduce((acc, p) => (acc + (p.totalAmount || 0)), 0) || 0;
         const netProfit = (totalEarnings - totalExpenses) || 0;
 
@@ -163,7 +171,7 @@ export async function GET() {
                     students: studentCount || 0,
                     teachers: teacherCount || 0,
                     parents: parentCount || 0,
-                    activeStudents: activeStudents || 0
+                    activeStudents: activeStudentsCount || 0
                 },
                 attendance: {
                     present: presentStudents || 0,

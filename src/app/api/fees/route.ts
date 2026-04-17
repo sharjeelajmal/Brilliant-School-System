@@ -34,7 +34,12 @@ export async function GET(req: Request) {
 
             // Build student fee map
             const feeMap: any = {};
-            monthFees.forEach((f: any) => {
+            const activeIds = new Set(allStudents.map((s: any) => s._id.toString()));
+            
+            // Only count fees for students who are in the active list
+            const validFees = monthFees.filter((f: any) => activeIds.has(f.studentId.toString()));
+
+            validFees.forEach((f: any) => {
                 feeMap[f.studentId.toString()] = f;
             });
 
@@ -92,7 +97,7 @@ export async function GET(req: Request) {
 
             // Calculate summary stats
             const totalFeeSum = allStudents.reduce((sum: number, s: any) => sum + (s.monthlyFee || 0), 0);
-            const collectedFee = monthFees.reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+            const collectedFee = students.reduce((sum: number, s: any) => sum + (s.paidAmount || 0), 0);
             const remainingFee = totalFeeSum - collectedFee;
             const studentsUnpaid = allStudents.filter((s: any) => !feeMap[s._id.toString()]).length;
 
