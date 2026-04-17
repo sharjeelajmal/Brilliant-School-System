@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import {
   LayoutDashboard, FileText, Users, Wallet, Settings, LogOut,
   ChevronLeft, ChevronRight, UserPlus, BookOpen, MessageSquare,
-  ClipboardList, FileBarChart2, User, GraduationCap, Briefcase // NEW ICONS IMPORTED
+  ClipboardList, FileBarChart2, User, GraduationCap, Briefcase, UserX
 } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -46,6 +46,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage, role = '
     { id: 'parents', label: 'Parents', icon: Users, roles: ['admin'] },
     { id: 'teachers', label: 'Teachers', icon: GraduationCap, roles: ['admin'] },
     { id: 'students', label: 'Students List', icon: User, roles: ['admin'] },
+    { id: 'deleted-students', label: 'Deleted Students', icon: UserX, roles: ['admin'] },
     { id: 'finance', label: 'Fee Collection', icon: Wallet, roles: ['admin'] },
     { id: 'payroll', label: 'Staff Payroll', icon: UserPlus, roles: ['admin'] },
     { id: 'vendors', label: 'Suppliers', icon: Briefcase, roles: ['admin'] },

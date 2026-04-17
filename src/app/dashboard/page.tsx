@@ -23,6 +23,7 @@ import { StaffPayroll } from "@/components/payroll/StaffPayroll";
 import { VendorList } from "@/components/vendors/VendorList";
 import { PurchasesList } from "@/components/vendors/PurchasesList";
 import { SettingsPage } from "@/components/settings/SettingsPage";
+import { DeletedStudentsList } from "@/components/students/DeletedStudentsList";
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
@@ -78,6 +79,7 @@ function DashboardContent() {
     if (activePage === "vendors") return "Supplier Management";
     if (activePage === "purchases") return "Purchase History";
     if (activePage === "settings") return "System Settings";
+    if (activePage === "deleted-students") return "Deleted Students";
     return activePage.replace("-", " ");
   };
 
@@ -266,6 +268,15 @@ function DashboardContent() {
                 transition={{ duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
               >
                 <SettingsPage />
+              </motion.div>
+            ) : activePage === "deleted-students" ? (
+              <motion.div
+                key="deleted-students"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <DeletedStudentsList />
               </motion.div>
             ) : (
               <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">

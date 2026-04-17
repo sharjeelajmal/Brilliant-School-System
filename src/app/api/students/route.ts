@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Student from '@/models/Student';
+import DeletedStudent from '@/models/DeletedStudent';
 
 export async function GET(req: Request) {
   try {
@@ -9,6 +10,32 @@ export async function GET(req: Request) {
     const className = searchParams.get('class');
     const sectionName = searchParams.get('section');
     const id = searchParams.get('id');
+    const checkRollNo = searchParams.get('checkRollNo');
+    const excludeId = searchParams.get('excludeId');
+
+    // 0. Check if a rollNo is already taken by another student (in either collection)
+    if (checkRollNo) {
+      const num = Number(checkRollNo);
+      const queryActive: any = { rollNo: num };
+      if (excludeId) queryActive._id = { $ne: excludeId };
+      const existingActive = await Student.findOne(queryActive).select('firstName lastName');
+      
+      const existingDeleted = await DeletedStudent.findOne({ srNo: num }).select('firstName lastName');
+
+      if (existingActive) {
+        return NextResponse.json({
+          success: true, conflict: true, source: 'active',
+          studentName: `${existingActive.firstName} ${existingActive.lastName}`.trim()
+        }, { status: 200 });
+      }
+      if (existingDeleted) {
+        return NextResponse.json({
+          success: true, conflict: true, source: 'deleted',
+          studentName: `${existingDeleted.firstName} ${existingDeleted.lastName}`.trim()
+        }, { status: 200 });
+      }
+      return NextResponse.json({ success: true, conflict: false }, { status: 200 });
+    }
 
     // 1. Single Student Fetch (Profile ke liye)
     if (id) {
@@ -92,15 +119,48 @@ export async function GET(req: Request) {
   }
 }
 
-// DELETE method same rahega...
+// DELETE — Archive student to DeletedStudent collection first, then remove
 export async function DELETE(req: Request) {
   try {
     await connectDB();
     const { searchParams } = new URL(req.url);
     const id = searchParams.get('id');
     if (!id) return NextResponse.json({ error: "ID required" }, { status: 400 });
+
+    // Parse reason from request body
+    let reason = 'No reason provided';
+    try {
+      const body = await req.json();
+      if (body?.reason) reason = body.reason;
+    } catch { /* body may be empty */ }
+
+    // Fetch full student record before deleting
+    const student = await Student.findById(id);
+    if (!student) return NextResponse.json({ error: "Student not found" }, { status: 404 });
+
+    // Archive into DeletedStudent collection
+    await DeletedStudent.create({
+      srNo: student.rollNo || 0,
+      firstName: student.firstName,
+      lastName: student.lastName,
+      fatherName: `${student.parentFirstName || ''} ${student.parentLastName || ''}`.trim(),
+      dob: student.dob || '',
+      gender: student.gender || '',
+      admissionDate: student.joiningDate || '',
+      endingDate: new Date().toISOString().split('T')[0],
+      admissionClass: student.classJoining || '',
+      endingClass: student.classJoining || '',  // same unless manually edited
+      reason,
+      mobileNo: student.mobileNo || '',
+      address: student.address || '',
+      section: student.section || '',
+      studentCnic: student.studentCnic || '',
+    });
+
+    // Now permanently delete from Student collection
     await Student.findByIdAndDelete(id);
-    return NextResponse.json({ success: true, message: "Deleted" }, { status: 200 });
+
+    return NextResponse.json({ success: true, message: "Student archived and deleted" }, { status: 200 });
   } catch (error: any) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
@@ -114,6 +174,28 @@ export async function PUT(req: Request) {
 
     if (!_id) {
       return NextResponse.json({ success: false, error: "Student ID (_id) is required" }, { status: 400 });
+    }
+
+    // If rollNo is being updated, check for global uniqueness across ALL collections
+    if (updateData.rollNo !== undefined) {
+      const num = Number(updateData.rollNo);
+      const conflictActive = await Student.findOne({
+        rollNo: num,
+        _id: { $ne: _id }
+      }).select('firstName lastName');
+
+      const conflictDeleted = await DeletedStudent.findOne({ srNo: num }).select('firstName lastName');
+
+      const conflict = conflictActive || conflictDeleted;
+
+      if (conflict) {
+        return NextResponse.json({
+          success: false,
+          conflict: true,
+          studentName: `${conflict.firstName} ${conflict.lastName}`.trim(),
+          error: `Sr No ${num} is already assigned to ${conflict.firstName} ${conflict.lastName} ${conflictActive ? '' : '(Deleted)'}`
+        }, { status: 409 });
+      }
     }
 
     const updatedStudent = await Student.findByIdAndUpdate(

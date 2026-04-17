@@ -184,7 +184,7 @@ export const PurchasesList = () => {
             </AnimatePresence>
 
             {/* STATS ROW */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <StatCard label="Amount Spent" value={stats.totalSpent.toLocaleString()} delay={0.1} />
                 <StatCard label="Paid Amount" value={stats.paidAmount.toLocaleString()} delay={0.2} />
                 <StatCard label="Remaining Amount" value={stats.remainingAmount.toLocaleString()} subtext="Outstanding Dues" delay={0.3} />
@@ -235,7 +235,7 @@ export const PurchasesList = () => {
                                     <div className={`text-sm font-black text-right ${p.balance > 0 ? 'text-[#B50104]' : 'text-gray-300'}`}>
                                         {p.balance > 0 ? p.balance.toLocaleString() : 'Cleared'}
                                     </div>
-                                    <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex gap-2">
                                         <button
                                             onClick={(e) => handleDeleteClick(e, p._id)}
                                             className="w-8 h-8 rounded-full bg-red-50 flex items-center justify-center text-red-500 hover:bg-[#B50104] hover:text-white transition-all shadow-sm"

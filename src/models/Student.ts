@@ -105,7 +105,7 @@ const StudentSchema = new Schema<IStudent>({
 
 }, { timestamps: true });
 
-// Roll number is unique only within class + section.
-StudentSchema.index({ classJoining: 1, section: 1, rollNo: 1 }, { unique: true });
+// Roll number is unique globally across the entire school.
+StudentSchema.index({ rollNo: 1 }, { unique: true });
 
 export default mongoose.models.Student || mongoose.model<IStudent>('Student', StudentSchema);

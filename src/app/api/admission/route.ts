@@ -1,56 +1,42 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Student from '@/models/Student';
-import Section from '@/models/Section'; // Section Model Import Karein
+import DeletedStudent from '@/models/DeletedStudent';
+import Section from '@/models/Section';
+import SrNoCounter from '@/models/SrNoCounter';
 
-let rollNoIndexReady = false;
+async function findNextAvailableSrNo() {
+  let counter = await SrNoCounter.findOneAndUpdate(
+    { _id: 'studentSrNo' },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true }
+  );
+  
+  let currentSrNo = counter.seq;
+  let isAvailable = false;
 
-async function ensureSectionScopedRollNoIndex() {
-  if (rollNoIndexReady) return;
+  while (!isAvailable) {
+    const existsActive = await Student.findOne({ rollNo: currentSrNo });
+    const existsDeleted = await DeletedStudent.findOne({ srNo: currentSrNo });
 
-  const indexes = await Student.collection.indexes();
-
-  const globalRollNoIndexes = indexes.filter((index) => {
-    const keys = Object.keys(index.key || {});
-    return index.unique && keys.length === 1 && index.key.rollNo === 1;
-  });
-
-  for (const index of globalRollNoIndexes) {
-    if (!index.name) continue;
-    try {
-      await Student.collection.dropIndex(index.name);
-    } catch (error: unknown) {
-      const mongoError = error as { code?: number };
-      if (mongoError.code !== 27) {
-        throw error;
-      }
+    if (!existsActive && !existsDeleted) {
+      isAvailable = true;
+    } else {
+      // If taken, increment counter and try again
+      counter = await SrNoCounter.findOneAndUpdate(
+        { _id: 'studentSrNo' },
+        { $inc: { seq: 1 } },
+        { new: true }
+      );
+      currentSrNo = counter.seq;
     }
   }
-
-  const hasSectionScopedIndex = indexes.some((index) => {
-    const key = index.key || {};
-    return (
-      index.unique &&
-      key.classJoining === 1 &&
-      key.section === 1 &&
-      key.rollNo === 1
-    );
-  });
-
-  if (!hasSectionScopedIndex) {
-    await Student.collection.createIndex(
-      { classJoining: 1, section: 1, rollNo: 1 },
-      { unique: true }
-    );
-  }
-
-  rollNoIndexReady = true;
+  return currentSrNo;
 }
 
 export async function POST(req: Request) {
   try {
     await connectDB();
-    await ensureSectionScopedRollNoIndex();
     const body = await req.json();
 
     // --- CHECK CAPACITY LOGIC START ---
@@ -93,38 +79,20 @@ export async function POST(req: Request) {
       }
     });
 
-    // Ignore incoming rollNo and generate it per class + section scope.
-    delete body.rollNo;
+    // Normalize classJoining and section
+    body.classJoining = String(body.classJoining || '').trim();
+    body.section = String(body.section || '').trim();
 
-    const classJoining = String(body.classJoining || '').trim();
-    const section = String(body.section || '').trim();
-    body.classJoining = classJoining;
-    body.section = section;
+    // Generate globally unique Sr No with collision handling
+    const globalSrNo = await findNextAvailableSrNo();
 
-    const rollScope = { classJoining, section };
-    let newStudent = null;
-
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const lastStudent = await Student.findOne(rollScope, { rollNo: 1 }).sort({ rollNo: -1 });
-      const newRollNo = (lastStudent && lastStudent.rollNo) ? lastStudent.rollNo + 1 : 1;
-
-      try {
-        newStudent = await Student.create({
-          ...body,
-          rollNo: newRollNo
-        });
-        break;
-      } catch (error: unknown) {
-        const mongoError = error as { code?: number };
-
-        if (mongoError.code !== 11000 || attempt === 2) {
-          throw error;
-        }
-      }
-    }
+    const newStudent = await Student.create({
+      ...body,
+      rollNo: globalSrNo,
+    });
 
     if (!newStudent) {
-      throw new Error('Unable to generate roll number');
+      throw new Error('Unable to create student');
     }
 
     return NextResponse.json({

@@ -3,15 +3,98 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
     Search, Plus, Filter, ChevronDown, Check, X,
-    User, MessageCircle, Eye, Calendar, Trash2, AlertTriangle
+    User, MessageCircle, Eye, Calendar, Trash2, AlertTriangle, Pencil, Loader2
 } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 
 // --- IMPORT EXISTING PROFILE COMPONENT ---
 import { StudentProfile } from '@/components/dashboard/StudentProfile';
 
-// --- 1. DELETE MODAL ---
-const DeleteModal = ({ isOpen, onClose, onConfirm }: any) => {
+// --- EDITABLE SR NO COMPONENT ---
+const EditableSrNo = ({ student, onSaved }: { student: any; onSaved: (id: string, newRollNo: number) => void }) => {
+    const [editing, setEditing] = useState(false);
+    const [value, setValue] = useState(String(student.rollNo ?? ''));
+    const [saving, setSaving] = useState(false);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (editing) inputRef.current?.focus();
+    }, [editing]);
+
+    const handleSave = async () => {
+        const newSrNo = Number(value);
+        if (!value.trim() || isNaN(newSrNo) || newSrNo <= 0) {
+            toast.error('Please enter a valid Sr No');
+            setValue(String(student.rollNo ?? ''));
+            setEditing(false);
+            return;
+        }
+        // No change
+        if (newSrNo === student.rollNo) { setEditing(false); return; }
+
+        setSaving(true);
+        try {
+            const res = await fetch('/api/students', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ _id: student._id, rollNo: newSrNo }),
+            });
+            const data = await res.json();
+            if (res.status === 409 && data.conflict) {
+                toast.error(`Sr No ${newSrNo} is already assigned to "${data.studentName}". Please try another number.`);
+                setValue(String(student.rollNo ?? ''));
+            } else if (data.success) {
+                toast.success(`Sr No updated to ${newSrNo} successfully`);
+                onSaved(student._id, newSrNo);
+            } else {
+                toast.error(data.error || 'Update failed');
+                setValue(String(student.rollNo ?? ''));
+            }
+        } catch {
+            toast.error('Network error');
+            setValue(String(student.rollNo ?? ''));
+        } finally {
+            setSaving(false);
+            setEditing(false);
+        }
+    };
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Enter') handleSave();
+        if (e.key === 'Escape') { setValue(String(student.rollNo ?? '')); setEditing(false); }
+    };
+
+    if (saving) {
+        return <div className="flex items-center gap-1 text-gray-400"><Loader2 size={14} className="animate-spin" /></div>;
+    }
+
+    if (editing) {
+        return (
+            <input
+                ref={inputRef}
+                type="number"
+                value={value}
+                onChange={e => setValue(e.target.value)}
+                onBlur={handleSave}
+                onKeyDown={handleKeyDown}
+                className="w-14 h-7 border border-[#B50104] rounded-lg px-2 text-xs font-bold text-[#B50104] outline-none text-center [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+            />
+        );
+    }
+
+    return (
+        <div
+            onClick={() => setEditing(true)}
+            title="Click to edit Sr No"
+            className="inline-flex items-center gap-1 group/sr cursor-pointer"
+        >
+            <span className="font-bold text-gray-400 text-sm">#{String(student.rollNo ?? '—').padStart(2, '0')}</span>
+            <Pencil size={11} className="text-gray-300 group-hover/sr:text-[#B50104] transition-colors" />
+        </div>
+    );
+};
+
+const DeleteModal = ({ isOpen, onClose, onConfirm, reason, setReason }: any) => {
     if (!isOpen) return null;
     return (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
@@ -19,19 +102,36 @@ const DeleteModal = ({ isOpen, onClose, onConfirm }: any) => {
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.9 }}
-                className="bg-white rounded-[24px] shadow-2xl w-full max-w-[320px] p-6 text-center font-['Montserrat']"
+                className="bg-white rounded-[24px] shadow-2xl w-full max-w-[380px] p-6 font-['Montserrat']"
             >
-                <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4 text-[#B50104]">
-                    <AlertTriangle size={32} />
+                <div className="flex flex-col items-center text-center mb-5">
+                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mb-4 text-[#B50104]">
+                        <AlertTriangle size={32} />
+                    </div>
+                    <h3 className="text-lg font-black text-[#191919] mb-1">Delete Student?</h3>
+                    <p className="text-sm text-gray-500 font-medium">This action cannot be undone. Please provide a reason for deletion.</p>
                 </div>
-                <h3 className="text-lg font-black text-[#191919] mb-2">Delete Student?</h3>
-                <p className="text-sm text-gray-500 font-medium mb-6">Are you sure? This action will permanently remove the student record.</p>
+
+                <div className="mb-5">
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-wider mb-2">Reason for Deletion *</label>
+                    <textarea
+                        value={reason}
+                        onChange={(e) => setReason(e.target.value)}
+                        placeholder="e.g. Transfer, TC issued, Fees unpaid..."
+                        rows={3}
+                        className="w-full border border-gray-200 rounded-xl p-3 text-sm font-medium text-[#191919] outline-none focus:border-[#B50104] focus:ring-1 focus:ring-[#B50104]/20 resize-none transition-all"
+                    />
+                </div>
 
                 <div className="flex gap-3">
                     <button onClick={onClose} className="flex-1 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-colors cursor-pointer">
                         Cancel
                     </button>
-                    <button onClick={onConfirm} className="flex-1 py-3 bg-[#B50104] text-white font-bold rounded-xl hover:bg-[#900000] shadow-lg shadow-red-200 transition-colors cursor-pointer">
+                    <button
+                        onClick={onConfirm}
+                        disabled={!reason.trim()}
+                        className="flex-1 py-3 bg-[#B50104] text-white font-bold rounded-xl hover:bg-[#900000] shadow-lg shadow-red-200 transition-colors disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
                         Delete
                     </button>
                 </div>
@@ -126,6 +226,14 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
     // STATE FOR PROFILE VIEW & DELETE
     const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
     const [deleteId, setDeleteId] = useState<string | null>(null);
+    const [deleteReason, setDeleteReason] = useState('');
+
+    // Handler to update rollNo in local state after successful API save
+    const handleRollNoSaved = (id: string, newRollNo: number) => {
+        const update = (list: any[]) => list.map(s => s._id === id ? { ...s, rollNo: newRollNo } : s);
+        setStudents(prev => update(prev));
+        setFilteredStudents(prev => update(prev));
+    };
 
     // Filters
     const [search, setSearch] = useState('');
@@ -197,12 +305,15 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
 
     // Handle Delete
     const confirmDelete = async () => {
-        if (!deleteId) return;
+        if (!deleteId || !deleteReason.trim()) return;
         try {
-            const res = await fetch(`/api/students?id=${deleteId}`, { method: 'DELETE' });
+            const res = await fetch(`/api/students?id=${deleteId}`, {
+                method: 'DELETE',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reason: deleteReason.trim() }),
+            });
             if (res.ok) {
                 toast.success("Student Deleted Successfully!");
-                // Remove from local state immediately for speed
                 setStudents(prev => prev.filter(s => s._id !== deleteId));
                 setFilteredStudents(prev => prev.filter(s => s._id !== deleteId));
                 setStats(prev => ({ ...prev, total: prev.total - 1 }));
@@ -210,7 +321,7 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
                 toast.error("Failed to delete student");
             }
         } catch (error) { toast.error("Error deleting student"); }
-        finally { setDeleteId(null); }
+        finally { setDeleteId(null); setDeleteReason(''); }
     };
 
     // --- SHOW SHARED PROFILE ---
@@ -224,7 +335,15 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
 
             {/* DELETE MODAL */}
             <AnimatePresence>
-                {deleteId && <DeleteModal isOpen={!!deleteId} onClose={() => setDeleteId(null)} onConfirm={confirmDelete} />}
+                {deleteId && (
+                    <DeleteModal
+                        isOpen={!!deleteId}
+                        onClose={() => { setDeleteId(null); setDeleteReason(''); }}
+                        onConfirm={confirmDelete}
+                        reason={deleteReason}
+                        setReason={setDeleteReason}
+                    />
+                )}
             </AnimatePresence>
 
             {/* HEADER */}
@@ -302,7 +421,9 @@ export const StudentsOverview = ({ onNavigate }: { onNavigate: (page: string) =>
                                     initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.03 }}
                                     className="grid grid-cols-12 gap-4 items-center py-4 px-6 border-b border-gray-50 hover:bg-red-50/30 transition-colors group"
                                 >
-                                    <div className="col-span-1 font-bold text-gray-400 text-sm">#{(students.indexOf(s) + 1).toString().padStart(2, '0')}</div>
+                                <div className="col-span-1">
+                                        <EditableSrNo student={s} onSaved={handleRollNoSaved} />
+                                    </div>
 
                                     <div className="col-span-3 flex items-center gap-3">
                                         <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-[#B50104] font-bold text-xs border border-gray-200">
