@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useRef } from 'react';
-import { motion } from 'framer-motion';
-import { Search, UserX, Calendar, BookOpen, Pencil, Loader2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { Search, UserX, Calendar, BookOpen, Pencil, Loader2, Trash2, AlertTriangle, FileText, X } from 'lucide-react';
 import { toast, Toaster } from 'sonner';
 
 // --- STAT CARD ---
@@ -116,12 +116,204 @@ const EditableDeletedSrNo = ({ student, onSaved }: { student: any; onSaved: (id:
     );
 };
 
+// --- REASON VIEW MODAL ---
+const ReasonViewModal = ({
+    student,
+    onClose
+}: {
+    student: any;
+    onClose: () => void;
+}) => (
+    <AnimatePresence>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+            onClick={onClose}
+        >
+            <motion.div
+                initial={{ scale: 0.88, opacity: 0, y: 24 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.88, opacity: 0, y: 24 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                className="bg-white rounded-[28px] shadow-2xl w-full max-w-lg overflow-hidden"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="bg-[#191919] px-8 pt-8 pb-6 relative">
+                    <button
+                        onClick={onClose}
+                        className="absolute right-6 top-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors"
+                    >
+                        <X size={20} />
+                    </button>
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white/10 flex items-center justify-center flex-shrink-0">
+                            <FileText size={28} className="text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-white font-black text-xl tracking-tight leading-tight uppercase">
+                                Deletion Reason
+                            </h2>
+                            <p className="text-gray-400 text-xs font-bold uppercase tracking-widest mt-0.5">
+                                Full Detail
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-8 py-8">
+                    <div className="mb-6">
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-1">Student Information</p>
+                        <div className="flex items-center gap-3">
+                            <div className="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-[#B50104] font-black italic shadow-inner">
+                                #{student.srNo}
+                            </div>
+                            <div>
+                                <p className="text-[#191919] font-black text-lg leading-tight uppercase">
+                                    {student.firstName} {student.lastName}
+                                </p>
+                                <p className="text-gray-500 font-bold text-xs">Father: {student.fatherName}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="bg-gray-50 rounded-[20px] p-6 border border-gray-100 shadow-inner">
+                        <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-3">Complete Reason</p>
+                        <p className="text-[#191919] font-bold text-base leading-relaxed italic">
+                            "{student.reason || 'No reason provided.'}"
+                        </p>
+                    </div>
+
+                    <div className="mt-8">
+                        <button
+                            onClick={onClose}
+                            className="w-full h-14 rounded-2xl bg-[#191919] text-white font-black text-sm hover:scale-[1.02] active:scale-[0.98] transition-all shadow-xl shadow-gray-200"
+                        >
+                            CLOSE
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
+    </AnimatePresence>
+);
+
+// --- PERMANENT DELETE CONFIRMATION MODAL ---
+const PermanentDeleteModal = ({
+    student,
+    onConfirm,
+    onCancel,
+    isDeleting,
+}: {
+    student: any;
+    onConfirm: () => void;
+    onCancel: () => void;
+    isDeleting: boolean;
+}) => (
+    <AnimatePresence>
+        <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.55)', backdropFilter: 'blur(4px)' }}
+            onClick={onCancel}
+        >
+            <motion.div
+                initial={{ scale: 0.88, opacity: 0, y: 24 }}
+                animate={{ scale: 1, opacity: 1, y: 0 }}
+                exit={{ scale: 0.88, opacity: 0, y: 24 }}
+                transition={{ type: 'spring', stiffness: 320, damping: 28 }}
+                className="bg-white rounded-[28px] shadow-2xl w-full max-w-md overflow-hidden"
+                onClick={e => e.stopPropagation()}
+            >
+                {/* Red header strip */}
+                <div className="bg-gradient-to-r from-[#B50104] to-[#8B0000] px-8 pt-8 pb-6">
+                    <div className="flex items-center gap-4">
+                        <div className="w-14 h-14 rounded-2xl bg-white/20 flex items-center justify-center flex-shrink-0">
+                            <AlertTriangle size={28} className="text-white" />
+                        </div>
+                        <div>
+                            <h2 className="text-white font-black text-xl tracking-tight leading-tight">
+                                Permanently Delete
+                            </h2>
+                            <p className="text-red-200 text-xs font-bold uppercase tracking-widest mt-0.5">
+                                Irreversible Action
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Body */}
+                <div className="px-8 py-6 space-y-5">
+                    <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
+                        <p className="text-sm font-bold text-[#191919]">
+                            Are you sure you want to permanently delete the record of:
+                        </p>
+                        <p className="text-[#B50104] font-black text-lg mt-1">
+                            {student.firstName} {student.lastName}
+                            <span className="text-gray-400 font-bold text-sm ml-2">(Sr #{student.srNo})</span>
+                        </p>
+                    </div>
+
+                    <div className="space-y-2">
+                        <div className="flex items-start gap-2 text-gray-600 text-xs font-bold">
+                            <span className="mt-0.5 text-[#B50104] flex-shrink-0">✕</span>
+                            <span>This record will be permanently deleted from the archive.</span>
+                        </div>
+                        <div className="flex items-start gap-2 text-gray-600 text-xs font-bold">
+                            <span className="mt-0.5 text-green-600 flex-shrink-0">✓</span>
+                            <span>Sr No <strong>#{student.srNo}</strong> will be freed and can be assigned to a new student.</span>
+                        </div>
+                        <div className="flex items-start gap-2 text-gray-600 text-xs font-bold">
+                            <span className="mt-0.5 text-[#B50104] flex-shrink-0">!</span>
+                            <span>This action cannot be undone.</span>
+                        </div>
+                    </div>
+
+                    {/* Buttons */}
+                    <div className="flex gap-3 pt-1">
+                        <button
+                            onClick={onCancel}
+                            disabled={isDeleting}
+                            className="flex-1 h-12 rounded-2xl border-2 border-gray-200 text-gray-600 font-black text-sm hover:bg-gray-50 transition-colors disabled:opacity-50"
+                        >
+                            Cancel
+                        </button>
+                        <button
+                            id="confirm-permanent-delete-btn"
+                            onClick={onConfirm}
+                            disabled={isDeleting}
+                            className="flex-1 h-12 rounded-2xl bg-[#B50104] text-white font-black text-sm hover:bg-[#8B0000] transition-colors flex items-center justify-center gap-2 shadow-lg shadow-red-200 disabled:opacity-60"
+                        >
+                            {isDeleting ? (
+                                <><Loader2 size={16} className="animate-spin" /> Deleting...</>
+                            ) : (
+                                <><Trash2 size={16} />Delete Permanently</>
+                            )}
+                        </button>
+                    </div>
+                </div>
+            </motion.div>
+        </motion.div>
+    </AnimatePresence>
+);
+
 
 export const DeletedStudentsList = () => {
     const [students, setStudents] = useState<any[]>([]);
     const [filtered, setFiltered] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
+
+    // Modal states
+    const [confirmStudent, setConfirmStudent] = useState<any | null>(null);
+    const [viewReasonStudent, setViewReasonStudent] = useState<any | null>(null);
+    const [isDeleting, setIsDeleting] = useState(false);
 
     const handleSrNoSaved = (id: string, newSrNo: number) => {
         const update = (list: any[]) => list.map(s => s._id === id ? { ...s, srNo: newSrNo } : s);
@@ -157,9 +349,33 @@ export const DeletedStudentsList = () => {
         ));
     }, [search, students]);
 
+    // Handle permanent delete
+    const handlePermanentDelete = async () => {
+        if (!confirmStudent) return;
+        setIsDeleting(true);
+        try {
+            const res = await fetch(`/api/students/deleted?id=${confirmStudent._id}`, {
+                method: 'DELETE',
+            });
+            const data = await res.json();
+            if (data.success) {
+                toast.success(`${confirmStudent.firstName} ${confirmStudent.lastName}'s record has been permanently deleted.. Sr No #${confirmStudent.srNo} is now free.`);
+                // Remove from local state
+                setStudents(prev => prev.filter(s => s._id !== confirmStudent._id));
+                setFiltered(prev => prev.filter(s => s._id !== confirmStudent._id));
+            } else {
+                toast.error(data.error || 'Delete failed');
+            }
+        } catch {
+            toast.error('Network error. Please try again.');
+        } finally {
+            setIsDeleting(false);
+            setConfirmStudent(null);
+        }
+    };
+
     // Stats
     const totalDeleted = students.length;
-    const classes = new Set(students.map(s => s.admissionClass)).size;
     const thisMonth = students.filter(s => {
         if (!s.endingDate) return false;
         const d = new Date(s.endingDate);
@@ -170,6 +386,24 @@ export const DeletedStudentsList = () => {
     return (
         <div className="space-y-8 pb-20 font-['Montserrat']">
             <Toaster richColors position="top-center" />
+
+            {/* Permanent Delete Confirmation Modal */}
+            {confirmStudent && (
+                <PermanentDeleteModal
+                    student={confirmStudent}
+                    onConfirm={handlePermanentDelete}
+                    onCancel={() => !isDeleting && setConfirmStudent(null)}
+                    isDeleting={isDeleting}
+                />
+            )}
+
+            {/* Reason View Modal */}
+            {viewReasonStudent && (
+                <ReasonViewModal
+                    student={viewReasonStudent}
+                    onClose={() => setViewReasonStudent(null)}
+                />
+            )}
 
             {/* STATS */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -199,8 +433,8 @@ export const DeletedStudentsList = () => {
             <div className="bg-white border border-gray-100 rounded-[24px] shadow-sm overflow-hidden">
                 {/* Header */}
                 <div className="grid gap-3 p-5 border-b border-gray-100 bg-gray-50/60"
-                    style={{ gridTemplateColumns: '60px 1fr 1fr 80px 120px 110px 110px 110px 110px' }}>
-                    {['Sr No', 'Name', 'Father Name', 'DOB', 'Adm. Class → End Class', 'Admission Date', 'Deletion Date', 'Reason', 'Gender'].map((h, i) => (
+                    style={{ gridTemplateColumns: '60px 1fr 1fr 80px 140px 110px 110px 110px 90px 80px' }}>
+                    {['Sr No', 'Name', 'Father Name', 'DOB', 'Adm. Class → End Class', 'Admission Date', 'Deletion Date', 'Reason', 'Gender', 'Action'].map((h, i) => (
                         <div key={i} className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{h}</div>
                     ))}
                 </div>
@@ -224,7 +458,7 @@ export const DeletedStudentsList = () => {
                                 animate={{ opacity: 1, y: 0 }}
                                 transition={{ delay: i * 0.04 }}
                                 className="grid gap-3 p-5 border-b border-gray-50 hover:bg-red-50/20 transition-colors items-center"
-                                style={{ gridTemplateColumns: '60px 1fr 1fr 80px 120px 110px 110px 110px 110px' }}
+                                style={{ gridTemplateColumns: '60px 1fr 1fr 80px 140px 110px 110px 110px 90px 80px' }}
                             >
                                 {/* Sr No */}
                                 <EditableDeletedSrNo student={s} onSaved={handleSrNoSaved} />
@@ -260,9 +494,13 @@ export const DeletedStudentsList = () => {
                                     {formatDate(s.endingDate)}
                                 </div>
 
-                                {/* Reason */}
-                                <div className="text-xs font-bold text-gray-500 truncate" title={s.reason}>
-                                    <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-lg line-clamp-1">
+                                {/* Reason (Clickable) */}
+                                <div
+                                    onClick={() => setViewReasonStudent(s)}
+                                    className="text-xs font-bold text-gray-500 truncate cursor-pointer hover:bg-orange-100/50 rounded-lg p-1 transition-all"
+                                    title="Click to view full reason"
+                                >
+                                    <span className="bg-orange-50 text-orange-600 px-2 py-1 rounded-lg line-clamp-1 border border-orange-100">
                                         {s.reason || '—'}
                                     </span>
                                 </div>
@@ -272,6 +510,18 @@ export const DeletedStudentsList = () => {
                                     <span className={`text-xs font-bold px-2 py-1 rounded-lg ${s.gender === 'Boy' ? 'bg-blue-50 text-blue-700' : 'bg-pink-50 text-pink-600'}`}>
                                         {s.gender || '—'}
                                     </span>
+                                </div>
+
+                                {/* Action — Permanently Delete */}
+                                <div className="flex items-center justify-center">
+                                    <button
+                                        id={`perm-delete-btn-${s._id}`}
+                                        onClick={() => setConfirmStudent(s)}
+                                        title="Permanently Delete this record"
+                                        className="w-9 h-9 rounded-xl bg-red-50 hover:bg-[#B50104] text-[#B50104] hover:text-white flex items-center justify-center transition-all duration-200 group/del hover:shadow-md hover:shadow-red-200"
+                                    >
+                                        <Trash2 size={15} className="transition-transform group-hover/del:scale-110" />
+                                    </button>
                                 </div>
                             </motion.div>
                         ))

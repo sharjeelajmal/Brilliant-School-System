@@ -178,25 +178,33 @@ export const MonthlyFeeCollection = () => {
     };
 
     const handleCollectFee = async (student: any) => {
-        // Fallback to CNIC if parentId is missing (Common in imported data)
-        const lookupKey = student.parentId || student.parentCnic;
+        const hasCnic = !!student.parentCnic;
+        const hasPhone = !!(student.whatsappNo || student.mobileNo);
 
-        if (!lookupKey) return toast.error("Parent record/CNIC not found for this student");
+        if (!hasCnic && !hasPhone) {
+            return toast.error("No parent CNIC or phone number found for this student");
+        }
 
         const toastId = toast.loading("Loading Parent Details...");
         try {
-            // Fetch all parents (Currently API doesn't support direct filtering efficiently, so we fetch and find)
-            // Optimization: If API supports ?cnic=... later, update this.
             const res = await fetch(`/api/parents`);
             const data = await res.json();
 
             if (data.success) {
-                // Find parent by ID or CNIC
-                const found = data.data.find((p: any) =>
-                    p._id === lookupKey ||
-                    p.cnic === lookupKey ||
-                    p.cnic === student.parentCnic
-                );
+                let found = null;
+
+                if (hasCnic) {
+                    // Primary: match by CNIC
+                    found = data.data.find((p: any) => p.cnic === student.parentCnic);
+                }
+
+                if (!found && hasPhone) {
+                    // Fallback: match by WhatsApp number, then mobile number
+                    found = data.data.find((p: any) =>
+                        (student.whatsappNo && p.whatsappNo === student.whatsappNo) ||
+                        (student.mobileNo && p.mobileNo === student.mobileNo)
+                    );
+                }
 
                 if (found) {
                     setSelectedParent(found);
@@ -281,7 +289,7 @@ export const MonthlyFeeCollection = () => {
                         <table className="w-full min-w-[1000px]">
                             <thead>
                                 <tr className="bg-gray-50 border-b border-gray-200">
-                                    <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Roll No.</th>
+                                    <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Sr No</th>
                                     <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Student Details</th>
                                     <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Fee Info</th>
                                     <th className="text-left px-6 py-5 text-[11px] font-black text-gray-400 uppercase tracking-widest">Status</th>
@@ -302,7 +310,7 @@ export const MonthlyFeeCollection = () => {
                                         >
                                             <td className="px-6 py-5">
                                                 <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs font-black text-gray-500 group-hover:bg-[#B50104] group-hover:text-white transition-colors shadow-sm">
-                                                    {String(student.rollNo || index + 1).padStart(2, '0')}
+                                                    {String(student.rollNo || '—').padStart(2, '0')}
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">
@@ -321,15 +329,17 @@ export const MonthlyFeeCollection = () => {
                                                 <StatusBadge status={student.status} />
                                             </td>
                                             <td className="px-6 py-5">
-                                                <div className="flex items-center justify-end gap-3">
+                                            <div className="flex items-center justify-end gap-3">
+                                                    {/* Collect: visible when monthly fee NOT fully paid */}
                                                     {student.status !== 'Paid' && (
                                                         <button onClick={() => handleCollectFee(student)} className="flex items-center gap-2 px-4 py-2 bg-[#B50104] text-white rounded-lg shadow-md shadow-red-500/20 hover:shadow-red-500/40 hover:scale-105 active:scale-95 transition-all cursor-pointer text-xs font-bold">
                                                             <Wallet size={14} /> Collect
                                                         </button>
                                                     )}
-                                                    {student.status === 'Paid' && (
-                                                        <button onClick={() => handlePrint(student)} className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 border border-green-100 rounded-lg hover:bg-green-100 active:scale-95 transition-all cursor-pointer text-xs font-bold" title="Print Fee Slip">
-                                                            <CheckCircle size={14} /> Paid
+                                                    {/* Receipt: visible when ANY fee type has been collected this month */}
+                                                    {student.paidFeeTypes && student.paidFeeTypes.length > 0 && (
+                                                        <button onClick={() => handlePrint(student)} className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-600 border border-green-100 rounded-lg hover:bg-green-100 active:scale-95 transition-all cursor-pointer text-xs font-bold" title="Print Fee Receipt">
+                                                            <Eye size={14} /> Receipt
                                                         </button>
                                                     )}
                                                     <button onClick={() => handleWhatsApp(student)} className="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center text-gray-400 hover:text-green-500 hover:border-green-200 hover:bg-green-50 transition-all cursor-pointer shadow-sm active:scale-90">

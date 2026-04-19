@@ -29,38 +29,50 @@ export async function GET(req: Request) {
                 monthlyFee: 1, classJoining: 1, section: 1, mobileNo: 1, whatsappNo: 1
             }).sort({ rollNo: 1 });
 
-            // Get fees for this month/year
-            const monthFees = await Fee.find({ month: targetMonth, year: targetYear, feeType: 'Monthly Fee' });
+            // Get ALL fee types for this month/year (not just Monthly Fee)
+            const monthFees = await Fee.find({ month: targetMonth, year: targetYear });
 
-            // Build student fee map
-            const feeMap: any = {};
+            // Filter to active students only
             const activeIds = new Set(allStudents.map((s: any) => s._id.toString()));
-            
-            // Only count fees for students who are in the active list
             const validFees = monthFees.filter((f: any) => activeIds.has(f.studentId.toString()));
 
+            // Group ALL fees by studentId (supports multiple fee types per student)
+            const feesByStudent: Record<string, any[]> = {};
             validFees.forEach((f: any) => {
-                feeMap[f.studentId.toString()] = f;
+                const sId = f.studentId.toString();
+                if (!feesByStudent[sId]) feesByStudent[sId] = [];
+                feesByStudent[sId].push(f);
             });
 
             // Build combined data
             let students = allStudents.map((s: any) => {
-                const fee = feeMap[s._id.toString()];
+                const studentFees = feesByStudent[s._id.toString()] || [];
+                const monthlyFeeRecord = studentFees.find((f: any) => f.feeType === 'Monthly Fee');
+                // Array of all fee types collected this month for this student
+                const paidFeeTypes: string[] = studentFees.map((f: any) => f.feeType);
+
                 const totalFee = s.monthlyFee || 0;
                 let status = 'Unpaid';
                 let paidAmount = 0;
                 let feeDate = null;
                 let feeId = null;
 
-                if (fee) {
-                    paidAmount = fee.amount || 0;
-                    feeDate = fee.date;
-                    feeId = fee._id;
+                if (monthlyFeeRecord) {
+                    // Monthly fee found
+                    paidAmount = monthlyFeeRecord.amount || 0;
+                    feeDate = monthlyFeeRecord.date;
+                    feeId = monthlyFeeRecord._id;
                     if (paidAmount >= totalFee) {
                         status = 'Paid';
                     } else if (paidAmount > 0) {
                         status = 'Partial Paid';
                     }
+                } else if (studentFees.length > 0) {
+                    // Other fee types (Transport, Academy etc.) collected but not Monthly Fee
+                    status = 'Partial Paid';
+                    const lastFee = studentFees[studentFees.length - 1];
+                    feeDate = lastFee?.date;
+                    feeId = lastFee?._id;
                 }
 
                 return {
@@ -74,6 +86,7 @@ export async function GET(req: Request) {
                     totalFee,
                     paidAmount,
                     status,
+                    paidFeeTypes,  // NEW: array of collected fee types this month
                     dueDate: `10/${targetMonth}/${targetYear}`,
                     feeDate,
                     feeId,
@@ -97,9 +110,18 @@ export async function GET(req: Request) {
 
             // Calculate summary stats
             const totalFeeSum = allStudents.reduce((sum: number, s: any) => sum + (s.monthlyFee || 0), 0);
-            const collectedFee = students.reduce((sum: number, s: any) => sum + (s.paidAmount || 0), 0);
+            // collectedFee = only Monthly Fee amounts (not transport/academy etc.)
+            const collectedFee = allStudents.reduce((sum: number, s: any) => {
+                const fees = feesByStudent[s._id.toString()] || [];
+                const mf = fees.find((f: any) => f.feeType === 'Monthly Fee');
+                return sum + (mf ? (mf.amount || 0) : 0);
+            }, 0);
             const remainingFee = totalFeeSum - collectedFee;
-            const studentsUnpaid = allStudents.filter((s: any) => !feeMap[s._id.toString()]).length;
+            // studentsUnpaid = students who haven't paid Monthly Fee yet
+            const studentsUnpaid = allStudents.filter((s: any) => {
+                const fees = feesByStudent[s._id.toString()] || [];
+                return !fees.some((f: any) => f.feeType === 'Monthly Fee');
+            }).length;
 
             return NextResponse.json({
                 success: true,

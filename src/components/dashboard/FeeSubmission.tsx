@@ -161,8 +161,22 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
             const feesData = await feesRes.json();
             if (!studentData.success || !feesData.success) return;
 
-            const joiningDate = new Date(studentData.data.joiningDate || `${new Date().getFullYear()}-01-01`);
             const paidFees = feesData.data || [];
+
+            // --- KEY FIX: If NO fee history exists for this student,
+            // default to CURRENT month (not joining date month).
+            // This prevents showing months of dues when software is newly purchased.
+            if (paidFees.length === 0) {
+                const now = new Date();
+                setMonth(MONTHS[now.getMonth()]);
+                setYear(now.getFullYear());
+                setIsLate(now.getDate() > 10);
+                setPreviousDues(0);
+                return;
+            }
+
+            // Has fee history — find the next unpaid month from joining date
+            const joiningDate = new Date(studentData.data.joiningDate || new Date().toISOString().split('T')[0]);
             const paidMonths = new Set(paidFees.map((f: any) => `${f.month} ${f.year}`));
 
             const currentDate = new Date();
@@ -197,16 +211,17 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
             }
             setIsLate(late);
 
-            // Calculate real previous dues (unpaid months * monthlyFee)
+            // Previous dues: count unpaid months since joining vs paid monthly fee count
             const paidMonthlyCount = paidFees.filter((f: any) => f.feeType === 'Monthly Fee').length;
             const joiningMonth = joiningDate.getMonth();
-            const joiningYear = joiningDate.getFullYear();
+            const joiningYr = joiningDate.getFullYear();
             const currentMonthIdx = currentDate.getMonth();
             const currentYearIdx = currentDate.getFullYear();
-            const totalMonthsElapsed = (currentYearIdx - joiningYear) * 12 + (currentMonthIdx - joiningMonth);
+            const totalMonthsElapsed = (currentYearIdx - joiningYr) * 12 + (currentMonthIdx - joiningMonth);
             const unpaidMonths = Math.max(0, totalMonthsElapsed - paidMonthlyCount);
             const studentFee = parseInt(studentData.data.monthlyFee) || 0;
             setPreviousDues(unpaidMonths > 1 ? (unpaidMonths - 1) * studentFee : 0);
+
         } catch (e) { console.error(e); }
         finally { setCalculating(false); }
     }, [selectedStudent, date]);

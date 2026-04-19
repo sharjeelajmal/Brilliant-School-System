@@ -13,6 +13,33 @@ export async function GET() {
   }
 }
 
+// DELETE: Permanently remove a deleted student record (frees their Sr No)
+export async function DELETE(req: Request) {
+  try {
+    await connectDB();
+    const { searchParams } = new URL(req.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json({ success: false, error: 'Student ID is required' }, { status: 400 });
+    }
+
+    const deleted = await DeletedStudent.findByIdAndDelete(id);
+
+    if (!deleted) {
+      return NextResponse.json({ success: false, error: 'Record not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: `Student record permanently deleted. Sr No ${deleted.srNo} is now free.`,
+    }, { status: 200 });
+
+  } catch (error: any) {
+    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+  }
+}
+
 import Student from '@/models/Student';
 
 // PATCH: Update srNo of a deleted student with global duplicate check

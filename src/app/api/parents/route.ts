@@ -12,7 +12,8 @@ export async function GET() {
     const parentsMap = new Map();
 
     students.forEach((student: any) => {
-        const parentId = student.parentCnic || `unknown-${student._id}`; 
+        // Group by CNIC first; if missing use WhatsApp/mobile so siblings still group together
+        const parentId = student.parentCnic || student.whatsappNo || student.mobileNo || `unknown-${student._id}`;
         
         if (!parentsMap.has(parentId)) {
             parentsMap.set(parentId, {
@@ -21,6 +22,7 @@ export async function GET() {
                 parentFirstName: student.parentFirstName,
                 parentLastName: student.parentLastName,
                 mobileNo: student.mobileNo,
+                whatsappNo: student.whatsappNo,  // Added for phone-based matching
                 cnic: student.parentCnic,
                 occupation: student.parentOccupation,
                 address: student.address,
