@@ -14,7 +14,7 @@ export const SuspendedScreen = () => {
 
       <div className="min-h-screen flex flex-col items-center justify-center p-4 md:p-6 relative z-10 w-full">
         <div className="max-w-xl w-full text-center py-10">
-          
+
           {/* Animated Icon */}
           <motion.div
             initial={{ scale: 0, rotate: -180 }}
@@ -41,7 +41,7 @@ export const SuspendedScreen = () => {
               ACCESS <span className="text-[#B50104]">DENIED</span>
             </h1>
             <div className="h-1 w-16 md:w-20 bg-[#B50104] mx-auto rounded-full mb-8" />
-            
+
             <p className="text-gray-400 text-sm md:text-xl font-medium mb-10 leading-relaxed max-w-sm md:max-w-lg mx-auto px-4 md:px-0">
               Subscription or monthly fee is overdue. Please settle the dues to continue using <span className="text-white font-bold underline decoration-[#B50104]">Skill Grace School System</span>.
             </p>
@@ -75,7 +75,7 @@ export const SuspendedScreen = () => {
               </div>
               <div className="min-w-0">
                 <p className="text-white font-bold text-sm">Support 24/7</p>
-                <p className="text-gray-500 text-xs break-all lg:break-normal">sharyy326@gmail.com</p>
+                <p className="text-gray-500 text-xs break-all lg:break-normal">sharjeelajmalg786@gmail.com</p>
               </div>
             </motion.div>
           </div>

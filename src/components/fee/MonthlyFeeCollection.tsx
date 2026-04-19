@@ -161,16 +161,20 @@ export const MonthlyFeeCollection = () => {
     };
 
     const handlePrint = (student: any) => {
-        const totalFee = student.totalFee || 0;
+        const monthlyFee = student.totalFee || 0;
+        const transportFee = student.transportFee || 0;
+        const netExpected = monthlyFee + transportFee;
         const paidAmount = student.paidAmount || 0;
-        const remainingAmount = totalFee - paidAmount;
+        const remainingAmount = netExpected - paidAmount;
 
         setPrintData({
             receiptNo: (student.feeId || 'N/A').slice(-6).toUpperCase(),
             studentName: student.studentName,
             parentName: student.parentName,
             month: `${month} ${year}`,
-            totalFee: `${totalFee.toLocaleString()} PKR`,
+            monthlyFee: `${monthlyFee.toLocaleString()} PKR`,
+            transportFee: `${transportFee.toLocaleString()} PKR`,
+            totalFee: `${netExpected.toLocaleString()} PKR`,
             paidAmount: `${paidAmount.toLocaleString()} PKR`,
             remainingAmount: `${remainingAmount > 0 ? remainingAmount.toLocaleString() : '0'} PKR`,
             remarks: remainingAmount > 0 ? 'Partial Payment' : 'Full Payment Received'
@@ -321,8 +325,10 @@ export const MonthlyFeeCollection = () => {
                                             </td>
                                             <td className="px-6 py-5">
                                                 <div>
-                                                    <h4 className="text-sm font-black text-[#191919]">{(student.totalFee || 0).toLocaleString()} <span className="text-[10px] text-gray-400 font-bold">PKR</span></h4>
-                                                    <p className="text-[11px] font-medium text-gray-400 mt-0.5 flex items-center gap-1">Due: <span className="text-red-400">{student.dueDate}</span></p>
+                                                    <h4 className="text-sm font-black text-[#191919]">{((student.totalFee || 0) + (student.transportFee || 0)).toLocaleString()} <span className="text-[10px] text-gray-400 font-bold">PKR</span></h4>
+                                                    <p className="text-[11px] font-medium text-gray-400 mt-0.5 flex items-center gap-1">
+                                                        {student.totalFee.toLocaleString()} + {student.transportFee.toLocaleString()}(T)
+                                                    </p>
                                                 </div>
                                             </td>
                                             <td className="px-6 py-5">

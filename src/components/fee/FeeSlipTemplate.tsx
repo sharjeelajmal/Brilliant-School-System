@@ -5,6 +5,8 @@ export interface FeeSlipData {
     studentName: string;
     parentName: string;
     month: string;
+    monthlyFee?: string;
+    transportFee?: string;
     totalFee: string;
     paidAmount: string;
     remainingAmount: string;
@@ -73,13 +75,15 @@ export const FeeSlipTemplate = ({ data }: FeeSlipProps) => {
                                 <span className="text-black font-bold flex-1 text-center truncate">{data.receiptNo}</span>
                             </div>
 
-                            <Field label="Student(s) Name:" value={data.studentName} top={150} left="calc(50% - 214px/2 - 3px)" width={214} />
-                            <Field label="Parents Name:" value={data.parentName} top={177} left="calc(50% - 213px/2 - 3.5px)" width={213} />
-                            <Field label="For Month:" value={data.month} top={204} left="calc(50% - 216px/2 - 2px)" width={216} />
-                            <Field label="Total Fee:" value={data.totalFee} top={231} left="calc(50% - 214px/2 - 3px)" width={214} />
-                            <Field label="Paid Amount:" value={data.paidAmount} top={258} left="calc(50% - 218px/2 - 1px)" width={218} />
-                            <Field label="Remaining Amount:" value={data.remainingAmount} top={285} left="calc(50% - 217px/2 - 1.5px)" width={217} />
-                            <Field label="Remarks:" value={data.remarks} top={312} left="calc(50% - 219px/2 - 0.5px)" width={219} />
+                            <Field label="Student(s) Name:" value={data.studentName} top={140} left="calc(50% - 214px/2 - 3px)" width={214} />
+                            <Field label="Parents Name:" value={data.parentName} top={162} left="calc(50% - 213px/2 - 3.5px)" width={213} />
+                            <Field label="For Month:" value={data.month} top={184} left="calc(50% - 216px/2 - 2px)" width={216} />
+                            <Field label="Monthly Fee:" value={data.monthlyFee || '0 PKR'} top={206} left="calc(50% - 214px/2 - 3px)" width={214} />
+                            <Field label="Transport Fee:" value={data.transportFee || '0 PKR'} top={228} left="calc(50% - 214px/2 - 3px)" width={214} />
+                            <Field label="Total Payable:" value={data.totalFee} top={250} left="calc(50% - 214px/2 - 3px)" width={214} />
+                            <Field label="Paid Amount:" value={data.paidAmount} top={272} left="calc(50% - 218px/2 - 1px)" width={218} />
+                            <Field label="Remaining Amount:" value={data.remainingAmount} top={294} left="calc(50% - 217px/2 - 1.5px)" width={217} />
+                            <Field label="Remarks:" value={data.remarks} top={316} left="calc(50% - 219px/2 - 0.5px)" width={219} />
 
                             <div className="absolute w-[88px] h-[16px] left-[calc(50%-44px)] top-[382px] text-center text-[13px] leading-[16px] font-bold text-[#0A024B] font-['Alexandria',sans-serif]">
                                 THANK YOU !

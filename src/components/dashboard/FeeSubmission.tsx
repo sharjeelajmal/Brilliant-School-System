@@ -116,7 +116,7 @@ const monthMap: { [key: string]: number } = {
 
 export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
-    const [feeType, setFeeType] = useState('');
+    const [feeType, setFeeType] = useState('Monthly Fee');
     const [month, setMonth] = useState('');
     const [year, setYear] = useState<number>(new Date().getFullYear());
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -126,7 +126,8 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
     const [loading, setLoading] = useState(false);
 
     // Editable breakdown amounts
-    const [baseFeeAmount, setBaseFeeAmount] = useState(0);
+    const [monthlyFeeAmount, setMonthlyFeeAmount] = useState(0);
+    const [transportFeeAmount, setTransportFeeAmount] = useState(0);
     const [lateFineAmount, setLateFineAmount] = useState(500);
     const [previousDues, setPreviousDues] = useState(0);
 
@@ -135,18 +136,27 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
         if (parent?.children?.length > 0) setSelectedStudent(parent.children[0]);
     }, [parent]);
 
-    // Sync baseFeeAmount when feeType or student changes
+    // Sync fees when student or feeType changes
     useEffect(() => {
-        if (!selectedStudent || !feeType) { setBaseFeeAmount(0); return; }
-        const s = selectedStudent;
-        const amount =
-            feeType === 'Monthly Fee' ? (parseInt(s.monthlyFee) || 0) :
-            feeType === 'Transport Fee' ? (parseInt(s.transportFee) || 0) :
-            feeType === 'Admission Fee' ? (parseInt(s.admissionFee) || 0) :
-            feeType === 'Exam Fee' ? (parseInt(s.examFee) || 0) :
-            feeType === 'Academy Fee' ? (parseInt(s.academyFee) || 0) : 0;
-        setBaseFeeAmount(amount);
-    }, [feeType, selectedStudent]);
+        if (!selectedStudent) {
+            setMonthlyFeeAmount(0);
+            setTransportFeeAmount(0);
+            return;
+        }
+        
+        if (feeType === 'Monthly Fee') {
+            setMonthlyFeeAmount(parseInt(selectedStudent.monthlyFee) || 0);
+            setTransportFeeAmount(parseInt(selectedStudent.transportFee) || 0);
+        } else {
+            const amount =
+                feeType === 'Transport Fee' ? (parseInt(selectedStudent.transportFee) || 0) :
+                feeType === 'Admission Fee' ? (parseInt(selectedStudent.admissionFee) || 0) :
+                feeType === 'Exam Fee' ? (parseInt(selectedStudent.examFee) || 0) :
+                feeType === 'Academy Fee' ? (parseInt(selectedStudent.academyFee) || 0) : 0;
+            setMonthlyFeeAmount(amount);
+            setTransportFeeAmount(0);
+        }
+    }, [selectedStudent, feeType]);
 
     // Calculate Dues on Student / Date Change
     const calculateDues = useCallback(async () => {
@@ -229,14 +239,16 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
     useEffect(() => { calculateDues(); }, [calculateDues]);
 
     // Real-time calculations
-    const netPayable = baseFeeAmount + (isLate ? lateFineAmount : 0) + previousDues;
+    const netPayable = feeType === 'Monthly Fee' 
+        ? (monthlyFeeAmount + transportFeeAmount + (isLate ? lateFineAmount : 0) + previousDues)
+        : monthlyFeeAmount;
     const paying = parseInt(amountPaying) || 0;
     const totalOutstanding = Math.max(0, netPayable - paying);
 
     const handleDateChange = (_name: string, value: string) => setDate(value);
 
     const handleSubmit = async () => {
-        if (!feeType || !amountPaying) return toast.error("Please fill all required fields");
+        if (!amountPaying) return toast.error("Please enter amount paying");
         const parsedAmount = parseInt(amountPaying);
         if (isNaN(parsedAmount) || parsedAmount <= 0) return toast.error("Please enter a valid amount");
         if (calculating) return toast.error("Please wait... calculating fees");
@@ -244,40 +256,115 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
         setLoading(true);
         try {
             await new Promise(resolve => setTimeout(resolve, 500));
-            const res = await fetch('/api/fees', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    studentId: selectedStudent.studentId,
-                    parentCnic: parent.cnic,
-                    feeType,
-                    amount: parsedAmount,
-                    month,
-                    year,
-                    status: 'Paid',
-                    lateFine: isLate ? lateFineAmount : 0
-                })
-            });
-            const payload = await res.json();
 
-            if (res.ok && payload?.success) {
-                const remainingAmount = Math.max(netPayable - parsedAmount, 0);
-                const receiptNo = String(payload?.data?._id || '').slice(-6).toUpperCase() || 'N/A';
-                const receiptData = {
-                    receiptNo,
-                    studentName: selectedStudent?.name || 'N/A',
-                    parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
-                    month: `${month} ${year}`,
-                    totalFee: `${netPayable.toLocaleString()} PKR`,
-                    paidAmount: `${parsedAmount.toLocaleString()} PKR`,
-                    remainingAmount: `${remainingAmount.toLocaleString()} PKR`,
-                    remarks: remainingAmount > 0 ? 'Partial Payment' : (isLate ? 'Late Fine Included' : 'Full Payment Received')
-                };
-                toast.success("Fee Submitted Successfully!");
-                if (onSuccess) onSuccess(receiptData);
-                onClose();
-            } else {
-                toast.error(payload?.error || "Submission Failed");
+            // --- CASE A: Combined Monthly Fee Collection ---
+            if (feeType === 'Monthly Fee') {
+                let remainingPaying = parsedAmount;
+                
+                // 1. Monthly Fee Portion (includes Late Fine + Previous Dues)
+                const monthlyPortion = monthlyFeeAmount + (isLate ? lateFineAmount : 0) + previousDues;
+                const payingToMonthly = Math.min(remainingPaying, monthlyPortion);
+                remainingPaying -= payingToMonthly;
+
+                // 2. Transport Fee Portion
+                const payingToTransport = Math.min(remainingPaying, transportFeeAmount);
+                remainingPaying -= payingToTransport;
+
+                const mainRes = await fetch('/api/fees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: selectedStudent.studentId,
+                        parentCnic: parent.cnic,
+                        feeType: 'Monthly Fee',
+                        amount: payingToMonthly,
+                        month,
+                        year,
+                        status: payingToMonthly >= monthlyPortion ? 'Paid' : 'Partial Paid',
+                        lateFine: isLate ? lateFineAmount : 0
+                    })
+                });
+                const payload = await mainRes.json();
+
+                if (mainRes.ok && payload?.success) {
+                    // Submit Transport Fee if any portion allocated
+                    if (payingToTransport > 0 || (transportFeeAmount > 0 && parsedAmount >= netPayable)) {
+                        await fetch('/api/fees', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                studentId: selectedStudent.studentId,
+                                parentCnic: parent.cnic,
+                                feeType: 'Transport Fee',
+                                amount: payingToTransport,
+                                month,
+                                year,
+                                status: payingToTransport >= transportFeeAmount ? 'Paid' : 'Partial Paid',
+                                lateFine: 0
+                            })
+                        });
+                    }
+
+                    const remainingAmount = Math.max(netPayable - parsedAmount, 0);
+                    const receiptNo = String(payload?.data?._id || '').slice(-6).toUpperCase() || 'N/A';
+                    const receiptData = {
+                        receiptNo,
+                        studentName: selectedStudent?.name || 'N/A',
+                        parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
+                        month: `${month} ${year}`,
+                        monthlyFee: `${monthlyFeeAmount.toLocaleString()} PKR`,
+                        transportFee: `${transportFeeAmount.toLocaleString()} PKR`,
+                        totalFee: `${netPayable.toLocaleString()} PKR`,
+                        paidAmount: `${parsedAmount.toLocaleString()} PKR`,
+                        remainingAmount: `${remainingAmount.toLocaleString()} PKR`,
+                        remarks: remainingAmount > 0 ? 'Partial Payment' : (isLate ? 'Late Fine Included' : 'Full Payment Received')
+                    };
+                    toast.success("Fees Submitted Successfully!");
+                    if (onSuccess) onSuccess(receiptData);
+                    onClose();
+                } else {
+                    toast.error(payload?.error || "Submission Failed");
+                }
+            } 
+            // --- CASE B: Single Fee Type Collection ---
+            else {
+                const res = await fetch('/api/fees', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        studentId: selectedStudent.studentId,
+                        parentCnic: parent.cnic,
+                        feeType,
+                        amount: parsedAmount,
+                        month,
+                        year,
+                        status: parsedAmount >= monthlyFeeAmount ? 'Paid' : 'Partial Paid',
+                        lateFine: 0
+                    })
+                });
+                const payload = await res.json();
+
+                if (res.ok && payload?.success) {
+                    const remainingAmount = Math.max(monthlyFeeAmount - parsedAmount, 0);
+                    const receiptNo = String(payload?.data?._id || '').slice(-6).toUpperCase() || 'N/A';
+                    const receiptData = {
+                        receiptNo,
+                        studentName: selectedStudent?.name || 'N/A',
+                        parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
+                        month: `${month} ${year}`,
+                        monthlyFee: feeType === 'Monthly Fee' ? `${monthlyFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                        transportFee: feeType === 'Transport Fee' ? `${parsedAmount.toLocaleString()} PKR` : '0 PKR',
+                        totalFee: `${monthlyFeeAmount.toLocaleString()} PKR`,
+                        paidAmount: `${parsedAmount.toLocaleString()} PKR`,
+                        remainingAmount: `${remainingAmount.toLocaleString()} PKR`,
+                        remarks: remainingAmount > 0 ? 'Partial Payment' : 'Full Payment Received'
+                    };
+                    toast.success(`${feeType} Submitted!`);
+                    if (onSuccess) onSuccess(receiptData);
+                    onClose();
+                } else {
+                    toast.error(payload?.error || "Submission Failed");
+                }
             }
         } catch (e) { toast.error("Network Error"); }
         finally { setLoading(false); }
@@ -407,38 +494,62 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                                 </p>
 
                                 <div className="space-y-4">
-                                    {/* Base Fee Amount */}
-                                    <EditableAmountRow
-                                        label={feeType ? `${feeType}${feeType === 'Monthly Fee' ? ` (${month} ${year})` : ''}` : 'Select Fee Type First'}
-                                        amount={baseFeeAmount}
-                                        onChange={setBaseFeeAmount}
-                                        icon={FileText}
-                                        bgColor="bg-gray-50"
-                                        borderColor="border-transparent hover:border-gray-200"
-                                    />
+                                    {feeType === 'Monthly Fee' ? (
+                                        <>
+                                            {/* Monthly Fee Amount */}
+                                            <EditableAmountRow
+                                                label={`Monthly Fee (${month} ${year})`}
+                                                amount={monthlyFeeAmount}
+                                                onChange={setMonthlyFeeAmount}
+                                                icon={FileText}
+                                                bgColor="bg-gray-50"
+                                                borderColor="border-transparent hover:border-gray-200"
+                                            />
 
-                                    {/* Late Fine */}
-                                    <EditableAmountRow
-                                        label={`Late Fine ${isLate ? '' : '(Not Applied)'}`}
-                                        amount={isLate ? lateFineAmount : 0}
-                                        onChange={(v) => { setLateFineAmount(v); }}
-                                        icon={AlertTriangle}
-                                        bgColor={isLate ? 'bg-red-50/60' : 'bg-gray-50/50'}
-                                        textColor={isLate ? 'text-red-500' : 'text-gray-400'}
-                                        borderColor={isLate ? 'border-red-100' : 'border-transparent'}
-                                        highlight={isLate}
-                                    />
+                                            {/* Transport Fee Amount */}
+                                            <EditableAmountRow
+                                                label="Transport Fee"
+                                                amount={transportFeeAmount}
+                                                onChange={setTransportFeeAmount}
+                                                icon={Calendar}
+                                                bgColor="bg-blue-50/30"
+                                                textColor={transportFeeAmount > 0 ? 'text-blue-600' : 'text-gray-400'}
+                                                borderColor="border-transparent hover:border-blue-100"
+                                            />
 
-                                    {/* Previous Dues */}
-                                    <EditableAmountRow
-                                        label="Previous Dues"
-                                        amount={previousDues}
-                                        onChange={setPreviousDues}
-                                        icon={Wallet}
-                                        bgColor="bg-orange-50/50"
-                                        textColor="text-orange-500"
-                                        borderColor="border-transparent hover:border-orange-100"
-                                    />
+                                            {/* Late Fine */}
+                                            <EditableAmountRow
+                                                label={`Late Fine ${isLate ? '' : '(Not Applied)'}`}
+                                                amount={isLate ? lateFineAmount : 0}
+                                                onChange={(v) => { setLateFineAmount(v); }}
+                                                icon={AlertTriangle}
+                                                bgColor={isLate ? 'bg-red-50/60' : 'bg-gray-50/50'}
+                                                textColor={isLate ? 'text-red-500' : 'text-gray-400'}
+                                                borderColor={isLate ? 'border-red-100' : 'border-transparent'}
+                                                highlight={isLate}
+                                            />
+
+                                            {/* Previous Dues */}
+                                            <EditableAmountRow
+                                                label="Previous Dues"
+                                                amount={previousDues}
+                                                onChange={setPreviousDues}
+                                                icon={Wallet}
+                                                bgColor="bg-orange-50/50"
+                                                textColor="text-orange-500"
+                                                borderColor="border-transparent hover:border-orange-100"
+                                            />
+                                        </>
+                                    ) : (
+                                        <EditableAmountRow
+                                            label={`${feeType}${feeType === 'Monthly Fee' ? ` (${month} ${year})` : ''}`}
+                                            amount={monthlyFeeAmount}
+                                            onChange={setMonthlyFeeAmount}
+                                            icon={FileText}
+                                            bgColor="bg-gray-50"
+                                            borderColor="border-transparent hover:border-gray-200"
+                                        />
+                                    )}
 
                                     <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
 

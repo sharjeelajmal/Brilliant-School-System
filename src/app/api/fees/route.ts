@@ -26,7 +26,7 @@ export async function GET(req: Request) {
             const allStudents = await Student.find({}, {
                 _id: 1, rollNo: 1, firstName: 1, lastName: 1,
                 parentFirstName: 1, parentLastName: 1, parentCnic: 1,
-                monthlyFee: 1, classJoining: 1, section: 1, mobileNo: 1, whatsappNo: 1
+                monthlyFee: 1, transportFee: 1, classJoining: 1, section: 1, mobileNo: 1, whatsappNo: 1
             }).sort({ rollNo: 1 });
 
             // Get ALL fee types for this month/year (not just Monthly Fee)
@@ -57,22 +57,16 @@ export async function GET(req: Request) {
                 let feeDate = null;
                 let feeId = null;
 
-                if (monthlyFeeRecord) {
-                    // Monthly fee found
-                    paidAmount = monthlyFeeRecord.amount || 0;
-                    feeDate = monthlyFeeRecord.date;
-                    feeId = monthlyFeeRecord._id;
-                    if (paidAmount >= totalFee) {
+                if (studentFees.length > 0) {
+                    paidAmount = studentFees.reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+                    const mainFee = studentFees.find((f: any) => f.feeType === 'Monthly Fee') || studentFees[0];
+                    feeDate = mainFee.date;
+                    feeId = mainFee._id;
+                    if (paidAmount >= (totalFee + (s.transportFee || 0))) {
                         status = 'Paid';
                     } else if (paidAmount > 0) {
                         status = 'Partial Paid';
                     }
-                } else if (studentFees.length > 0) {
-                    // Other fee types (Transport, Academy etc.) collected but not Monthly Fee
-                    status = 'Partial Paid';
-                    const lastFee = studentFees[studentFees.length - 1];
-                    feeDate = lastFee?.date;
-                    feeId = lastFee?._id;
                 }
 
                 return {
@@ -84,6 +78,7 @@ export async function GET(req: Request) {
                     className: s.classJoining,
                     section: s.section,
                     totalFee,
+                    transportFee: s.transportFee || 0,
                     paidAmount,
                     status,
                     paidFeeTypes,  // NEW: array of collected fee types this month
