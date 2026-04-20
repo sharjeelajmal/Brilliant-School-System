@@ -114,11 +114,11 @@ const monthMap: { [key: string]: number } = {
     'July': 6, 'August': 7, 'September': 8, 'October': 9, 'November': 10, 'December': 11
 };
 
-export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
+export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSuccess }: any) => {
     const [selectedStudent, setSelectedStudent] = useState<any>(null);
-    const [feeType, setFeeType] = useState('Monthly Fee');
-    const [month, setMonth] = useState('');
-    const [year, setYear] = useState<number>(new Date().getFullYear());
+    const [feeType, setFeeType] = useState('Monthly Fee & Transport Fee');
+    const [month, setMonth] = useState(defaultMonth || '');
+    const [year, setYear] = useState<number>(defaultYear || new Date().getFullYear());
     const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
     const [amountPaying, setAmountPaying] = useState('');
     const [calculating, setCalculating] = useState(false);
@@ -130,6 +130,9 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
     const [transportFeeAmount, setTransportFeeAmount] = useState(0);
     const [lateFineAmount, setLateFineAmount] = useState(500);
     const [previousDues, setPreviousDues] = useState(0);
+
+    // Paid history
+    const [paidHistory, setPaidHistory] = useState<any[]>([]);
 
     // Auto-set first child
     useEffect(() => {
@@ -144,7 +147,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
             return;
         }
         
-        if (feeType === 'Monthly Fee') {
+        if (feeType === 'Monthly Fee & Transport Fee') {
             setMonthlyFeeAmount(parseInt(selectedStudent.monthlyFee) || 0);
             setTransportFeeAmount(parseInt(selectedStudent.transportFee) || 0);
         } else {
@@ -172,6 +175,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
             if (!studentData.success || !feesData.success) return;
 
             const paidFees = feesData.data || [];
+            setPaidHistory(paidFees);
 
             // --- KEY FIX: If NO fee history exists for this student,
             // default to CURRENT month (not joining date month).
@@ -185,33 +189,42 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                 return;
             }
 
-            // Has fee history — find the next unpaid month from joining date
+            let targetMonth = month;
+            let targetYear = year;
             const joiningDate = new Date(studentData.data.joiningDate || new Date().toISOString().split('T')[0]);
-            const paidMonths = new Set(paidFees.map((f: any) => `${f.month} ${f.year}`));
-
             const currentDate = new Date();
-            let checkDate = new Date(joiningDate);
-            checkDate.setDate(1);
-            let targetMonth = '';
-            let targetYear = 0;
 
-            while (true) {
-                const mName = checkDate.toLocaleString('default', { month: 'long' });
-                const yVal = checkDate.getFullYear();
-                if (!paidMonths.has(`${mName} ${yVal}`)) {
-                    targetMonth = mName;
-                    targetYear = yVal;
-                    break;
+            if (defaultMonth && defaultYear) {
+                targetMonth = defaultMonth;
+                targetYear = defaultYear;
+                setMonth(defaultMonth);
+                setYear(defaultYear);
+            } else {
+                // Has fee history — find the next unpaid month from joining date
+                const paidMonths = new Set(paidFees.map((f: any) => `${f.month} ${f.year}`));
+
+                let checkDate = new Date(joiningDate);
+                checkDate.setDate(1);
+
+                while (true) {
+                    const mName = checkDate.toLocaleString('default', { month: 'long' });
+                    const yVal = checkDate.getFullYear();
+                    // If this month is not paid, use it
+                    if (!paidMonths.has(`${mName} ${yVal}`)) {
+                        targetMonth = mName;
+                        targetYear = yVal;
+                        break;
+                    }
+                    if (checkDate > currentDate) { targetMonth = mName; targetYear = yVal; break; }
+                    checkDate.setMonth(checkDate.getMonth() + 1);
                 }
-                if (checkDate > currentDate) { targetMonth = mName; targetYear = yVal; break; }
-                checkDate.setMonth(checkDate.getMonth() + 1);
+
+                setMonth(targetMonth);
+                setYear(targetYear);
             }
 
-            setMonth(targetMonth);
-            setYear(targetYear);
-
             // Late fee logic
-            const targetDateObj = new Date(targetYear, monthMap[targetMonth] ?? 0, 1);
+            const targetDateObj = new Date(targetYear, monthMap[targetMonth as keyof typeof monthMap] ?? 0, 1);
             const currentMonthStart = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1);
             let late = false;
             if (targetDateObj < currentMonthStart) {
@@ -239,7 +252,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
     useEffect(() => { calculateDues(); }, [calculateDues]);
 
     // Real-time calculations
-    const netPayable = feeType === 'Monthly Fee' 
+    const netPayable = feeType === 'Monthly Fee & Transport Fee' 
         ? (monthlyFeeAmount + transportFeeAmount + (isLate ? lateFineAmount : 0) + previousDues)
         : monthlyFeeAmount;
     const paying = parseInt(amountPaying) || 0;
@@ -258,7 +271,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
             await new Promise(resolve => setTimeout(resolve, 500));
 
             // --- CASE A: Combined Monthly Fee Collection ---
-            if (feeType === 'Monthly Fee') {
+            if (feeType === 'Monthly Fee & Transport Fee') {
                 let remainingPaying = parsedAmount;
                 
                 // 1. Monthly Fee Portion (includes Late Fine + Previous Dues)
@@ -352,7 +365,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                         studentName: selectedStudent?.name || 'N/A',
                         parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
                         month: `${month} ${year}`,
-                        monthlyFee: feeType === 'Monthly Fee' ? `${monthlyFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                        monthlyFee: feeType === 'Monthly Fee & Transport Fee' ? `${monthlyFeeAmount.toLocaleString()} PKR` : '0 PKR',
                         transportFee: feeType === 'Transport Fee' ? `${parsedAmount.toLocaleString()} PKR` : '0 PKR',
                         totalFee: `${monthlyFeeAmount.toLocaleString()} PKR`,
                         paidAmount: `${parsedAmount.toLocaleString()} PKR`,
@@ -409,7 +422,7 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                                     placeholder="Select Fee Type"
                                     value={feeType}
                                     onChange={setFeeType}
-                                    options={['Monthly Fee', 'Transport Fee', 'Admission Fee', 'Exam Fee', 'Academy Fee', 'Other']}
+                                    options={['Monthly Fee & Transport Fee', /*'Transport Fee',*/ 'Admission Fee', 'Exam Fee', 'Academy Fee', 'Other']}
                                 />
                             </div>
                             <div>
@@ -477,127 +490,225 @@ export const FeeSubmission = ({ parent, onClose, onSuccess }: any) => {
                     {/* 3. Fee Breakdown + Payment */}
                     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
 
-                        {/* Left: Editable Breakdown */}
+                        {/* Left: Editable Breakdown or Paid Receipt */}
                         <motion.div
                             initial={{ x: -20, opacity: 0 }} animate={{ x: 0, opacity: 1 }} transition={{ delay: 0.2 }}
                             className="lg:col-span-8 bg-white p-0 rounded-[30px] shadow-xl border border-gray-100 relative overflow-hidden flex flex-col md:flex-row group"
                         >
                             <div className="absolute top-0 left-0 w-2 h-full bg-gradient-to-b from-[#B50104] via-red-500 to-orange-500" />
 
-                            <div className="p-8 flex-1">
-                                <h3 className="text-2xl font-black text-[#191919] mb-2 flex items-center gap-3">
-                                    <div className="w-10 h-10 rounded-xl bg-[#191919] text-white flex items-center justify-center text-sm shadow-lg shadow-black/20">2</div>
-                                    Fee Breakdown
-                                </h3>
-                                <p className="text-xs text-gray-400 font-bold mb-6 ml-14 flex items-center gap-1">
-                                    <Edit3 size={11} /> Click any amount to edit it
-                                </p>
+                            {(() => {
+                                // Find if current feeType + Month + Year is paid
+                                let currentStatus = null;
+                                let paidAmountHistory = 0;
+                                let receiptFeeId = '';
+                                
+                                if (feeType === 'Monthly Fee & Transport Fee') {
+                                    const monthly = paidHistory.find(f => f.feeType === 'Monthly Fee' && f.month === month && f.year === year);
+                                    if (monthly) {
+                                        currentStatus = monthly.status;
+                                        paidAmountHistory = monthly.amount || 0;
+                                        receiptFeeId = monthly._id;
+                                    }
+                                } else {
+                                    // For Admission, Exam, Academy, Other: checking by year instead of exact month 
+                                    // (because they are usually annual/one-time)
+                                    let other;
+                                    if (feeType === 'Admission Fee' || feeType === 'Other' || feeType === 'Academy Fee') {
+                                        // Once per lifetime/year, just check if it exists in history
+                                        other = paidHistory.find(f => f.feeType === feeType);
+                                    } else {
+                                        // For Exam fee, check if it exists in the current year
+                                        other = paidHistory.find(f => f.feeType === feeType && f.year === year);
+                                    }
+                                    
+                                    if (other) {
+                                        currentStatus = other.status;
+                                        paidAmountHistory = other.amount || 0;
+                                        receiptFeeId = other._id;
+                                    }
+                                }
 
-                                <div className="space-y-4">
-                                    {feeType === 'Monthly Fee' ? (
-                                        <>
-                                            {/* Monthly Fee Amount */}
-                                            <EditableAmountRow
-                                                label={`Monthly Fee (${month} ${year})`}
-                                                amount={monthlyFeeAmount}
-                                                onChange={setMonthlyFeeAmount}
-                                                icon={FileText}
-                                                bgColor="bg-gray-50"
-                                                borderColor="border-transparent hover:border-gray-200"
-                                            />
-
-                                            {/* Transport Fee Amount */}
-                                            <EditableAmountRow
-                                                label="Transport Fee"
-                                                amount={transportFeeAmount}
-                                                onChange={setTransportFeeAmount}
-                                                icon={Calendar}
-                                                bgColor="bg-blue-50/30"
-                                                textColor={transportFeeAmount > 0 ? 'text-blue-600' : 'text-gray-400'}
-                                                borderColor="border-transparent hover:border-blue-100"
-                                            />
-
-                                            {/* Late Fine */}
-                                            <EditableAmountRow
-                                                label={`Late Fine ${isLate ? '' : '(Not Applied)'}`}
-                                                amount={isLate ? lateFineAmount : 0}
-                                                onChange={(v) => { setLateFineAmount(v); }}
-                                                icon={AlertTriangle}
-                                                bgColor={isLate ? 'bg-red-50/60' : 'bg-gray-50/50'}
-                                                textColor={isLate ? 'text-red-500' : 'text-gray-400'}
-                                                borderColor={isLate ? 'border-red-100' : 'border-transparent'}
-                                                highlight={isLate}
-                                            />
-
-                                            {/* Previous Dues */}
-                                            <EditableAmountRow
-                                                label="Previous Dues"
-                                                amount={previousDues}
-                                                onChange={setPreviousDues}
-                                                icon={Wallet}
-                                                bgColor="bg-orange-50/50"
-                                                textColor="text-orange-500"
-                                                borderColor="border-transparent hover:border-orange-100"
-                                            />
-                                        </>
-                                    ) : (
-                                        <EditableAmountRow
-                                            label={`${feeType}${feeType === 'Monthly Fee' ? ` (${month} ${year})` : ''}`}
-                                            amount={monthlyFeeAmount}
-                                            onChange={setMonthlyFeeAmount}
-                                            icon={FileText}
-                                            bgColor="bg-gray-50"
-                                            borderColor="border-transparent hover:border-gray-200"
-                                        />
-                                    )}
-
-                                    <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
-
-                                    {/* Net Payable — Real-time */}
-                                    <div className="flex justify-between items-end px-2">
-                                        <span className="text-xl font-black text-gray-400 uppercase tracking-widest">Net Payable</span>
-                                        <div className="text-right">
-                                            <span className="text-4xl font-black text-[#B50104] drop-shadow-sm">{netPayable.toLocaleString()}</span>
-                                            <span className="text-xs text-gray-400 font-bold ml-1">PKR</span>
+                                if (currentStatus === 'Paid') {
+                                    return (
+                                        <div className="p-8 flex-1 flex flex-col items-center justify-center text-center">
+                                            <div className="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mb-4">
+                                                <CheckCircle size={40} className="text-green-500" />
+                                            </div>
+                                            <h3 className="text-3xl font-black text-[#191919] mb-2 tracking-tight">Fee Already Paid</h3>
+                                            <p className="text-gray-500 font-medium mb-8">This {feeType} for {month} {year} has been fully paid.</p>
+                                            <button
+                                                onClick={() => {
+                                                    const amountToPrint = feeType === 'Monthly Fee & Transport Fee' ? netPayable : monthlyFeeAmount;
+                                                    onSuccess({
+                                                        receiptNo: String(receiptFeeId || '').slice(-6).toUpperCase() || 'N/A',
+                                                        studentName: selectedStudent?.name || 'N/A',
+                                                        parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
+                                                        month: `${month} ${year}`,
+                                                        monthlyFee: feeType === 'Monthly Fee & Transport Fee' ? `${monthlyFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                                                        transportFee: feeType === 'Monthly Fee & Transport Fee' ? `${transportFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                                                        totalFee: `${amountToPrint.toLocaleString()} PKR`,
+                                                        paidAmount: `${amountToPrint.toLocaleString()} PKR`,
+                                                        remainingAmount: `0 PKR`,
+                                                        remarks: 'Full Payment Received'
+                                                    });
+                                                    onClose();
+                                                }}
+                                                className="px-8 py-4 bg-[#B50104] text-white rounded-xl shadow-lg shadow-red-500/30 hover:scale-105 active:scale-95 transition-all font-bold flex items-center gap-3"
+                                            >
+                                                <Receipt size={20} /> Download Receipt
+                                            </button>
                                         </div>
-                                    </div>
-                                </div>
-                            </div>
+                                    );
+                                }
 
-                            {/* Payment Actions Side */}
-                            <div className="bg-gray-50 p-8 w-full md:w-[320px] border-l border-gray-100 flex flex-col justify-center space-y-6">
-                                <div>
-                                    <label className="text-xs font-black text-gray-400 uppercase ml-1 mb-2 block">Amount Paying Now</label>
-                                    <div className="relative group/input">
-                                        <input
-                                            type="number"
-                                            value={amountPaying}
-                                            onChange={(e) => setAmountPaying(e.target.value)}
-                                            className="w-full bg-white border-2 border-gray-200 focus:border-[#B50104] rounded-2xl py-4 pl-4 pr-12 text-center text-3xl font-black text-[#191919] outline-none shadow-sm transition-all group-hover/input:shadow-md"
-                                            placeholder="0"
-                                        />
-                                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">PKR</span>
-                                    </div>
-                                    {/* Quick fill button */}
-                                    {netPayable > 0 && (
-                                        <button
-                                            onClick={() => setAmountPaying(String(netPayable))}
-                                            className="mt-2 w-full text-xs font-bold text-[#B50104] hover:underline cursor-pointer text-center"
-                                        >
-                                            Pay full amount ({netPayable.toLocaleString()} PKR)
-                                        </button>
-                                    )}
-                                </div>
-                                <button
-                                    onClick={handleSubmit}
-                                    disabled={loading}
-                                    className="w-full py-5 bg-gradient-to-r from-[#B50104] to-[#950002] text-white font-bold rounded-2xl shadow-xl shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-3 group/btn relative overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 rounded-2xl" />
-                                    <span className="relative z-10">{loading ? "Processing..." : "Confirm Payment"}</span>
-                                    {!loading && <ArrowRight size={20} className="relative z-10 group-hover/btn:translate-x-1 transition-transform" />}
-                                </button>
-                            </div>
+                                return (
+                                    <>
+                                        <div className="p-8 flex-1">
+                                            <div className="flex justify-between items-start">
+                                                <h3 className="text-2xl font-black text-[#191919] mb-2 flex items-center gap-3">
+                                                    <div className="w-10 h-10 rounded-xl bg-[#191919] text-white flex items-center justify-center text-sm shadow-lg shadow-black/20">2</div>
+                                                    Fee Breakdown
+                                                </h3>
+                                                {currentStatus === 'Partial Paid' && (
+                                                    <button
+                                                        onClick={() => {
+                                                            const amountToPrint = feeType === 'Monthly Fee & Transport Fee' ? netPayable : monthlyFeeAmount;
+                                                            onSuccess({
+                                                                receiptNo: String(receiptFeeId || '').slice(-6).toUpperCase() || 'N/A',
+                                                                studentName: selectedStudent?.name || 'N/A',
+                                                                parentName: `${parent?.parentFirstName || ''} ${parent?.parentLastName || ''}`.trim() || 'N/A',
+                                                                month: `${month} ${year}`,
+                                                                monthlyFee: feeType === 'Monthly Fee & Transport Fee' ? `${monthlyFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                                                                transportFee: feeType === 'Monthly Fee & Transport Fee' ? `${transportFeeAmount.toLocaleString()} PKR` : '0 PKR',
+                                                                totalFee: `${amountToPrint.toLocaleString()} PKR`,
+                                                                paidAmount: `${paidAmountHistory.toLocaleString()} PKR`,
+                                                                remainingAmount: `${(amountToPrint - paidAmountHistory).toLocaleString()} PKR`,
+                                                                remarks: 'Partial Payment Receipt'
+                                                            });
+                                                            onClose();
+                                                        }}
+                                                        className="px-4 py-2 bg-orange-50 text-orange-600 rounded-lg border border-orange-200 text-xs font-bold shadow-sm hover:bg-orange-100 flex items-center gap-2"
+                                                    >
+                                                        <Receipt size={14} /> Pending Half Receipt
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-gray-400 font-bold mb-6 ml-14 flex items-center gap-1">
+                                                <Edit3 size={11} /> Click any amount to edit it
+                                            </p>
+
+                                            <div className="space-y-4">
+                                                {feeType === 'Monthly Fee & Transport Fee' ? (
+                                                    <>
+                                                        {/* Monthly Fee Amount */}
+                                                        <EditableAmountRow
+                                                            label={`Monthly Fee (${month} ${year})`}
+                                                            amount={monthlyFeeAmount}
+                                                            onChange={setMonthlyFeeAmount}
+                                                            icon={FileText}
+                                                            bgColor="bg-gray-50"
+                                                            borderColor="border-transparent hover:border-gray-200"
+                                                        />
+
+                                                        {/* Transport Fee Amount */}
+                                                        <EditableAmountRow
+                                                            label="Transport Fee"
+                                                            amount={transportFeeAmount}
+                                                            onChange={setTransportFeeAmount}
+                                                            icon={Calendar}
+                                                            bgColor="bg-blue-50/30"
+                                                            textColor={transportFeeAmount > 0 ? 'text-blue-600' : 'text-gray-400'}
+                                                            borderColor="border-transparent hover:border-blue-100"
+                                                        />
+
+                                                        {/* Late Fine */}
+                                                        <EditableAmountRow
+                                                            label={`Late Fine ${isLate ? '' : '(Not Applied)'}`}
+                                                            amount={isLate ? lateFineAmount : 0}
+                                                            onChange={(v) => { setLateFineAmount(v); }}
+                                                            icon={AlertTriangle}
+                                                            bgColor={isLate ? 'bg-red-50/60' : 'bg-gray-50/50'}
+                                                            textColor={isLate ? 'text-red-500' : 'text-gray-400'}
+                                                            borderColor={isLate ? 'border-red-100' : 'border-transparent'}
+                                                            highlight={isLate}
+                                                        />
+
+                                                        {/* Previous Dues */}
+                                                        <EditableAmountRow
+                                                            label="Previous Dues"
+                                                            amount={previousDues}
+                                                            onChange={setPreviousDues}
+                                                            icon={Wallet}
+                                                            bgColor="bg-orange-50/50"
+                                                            textColor="text-orange-500"
+                                                            borderColor="border-transparent hover:border-orange-100"
+                                                        />
+                                                    </>
+                                                ) : (
+                                                    <EditableAmountRow
+                                                        label={`${feeType}${feeType === 'Monthly Fee & Transport Fee' ? ` (${month} ${year})` : ''}`}
+                                                        amount={monthlyFeeAmount}
+                                                        onChange={setMonthlyFeeAmount}
+                                                        icon={FileText}
+                                                        bgColor="bg-gray-50"
+                                                        borderColor="border-transparent hover:border-gray-200"
+                                                    />
+                                                )}
+
+                                                <div className="h-px w-full bg-gradient-to-r from-transparent via-gray-200 to-transparent" />
+
+                                                {/* Net Payable — Real-time */}
+                                                <div className="flex justify-between items-end px-2">
+                                                    <span className="text-xl font-black text-gray-400 uppercase tracking-widest">Net Payable</span>
+                                                    <div className="text-right">
+                                                        <span className="text-4xl font-black text-[#B50104] drop-shadow-sm">{netPayable.toLocaleString()}</span>
+                                                        <span className="text-xs text-gray-400 font-bold ml-1">PKR</span>
+                                                        {currentStatus === 'Partial Paid' && (
+                                                            <div className="text-xs text-orange-500 font-bold mt-1">(Already Paid: {paidAmountHistory} PKR)</div>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* Payment Actions Side */}
+                                        <div className="bg-gray-50 p-8 w-full md:w-[320px] border-l border-gray-100 flex flex-col justify-center space-y-6">
+                                            <div>
+                                                <label className="text-xs font-black text-gray-400 uppercase ml-1 mb-2 block">Amount Paying Now</label>
+                                                <div className="relative group/input">
+                                                    <input
+                                                        type="number"
+                                                        value={amountPaying}
+                                                        onChange={(e) => setAmountPaying(e.target.value)}
+                                                        className="w-full bg-white border-2 border-gray-200 focus:border-[#B50104] rounded-2xl py-4 pl-4 pr-12 text-center text-3xl font-black text-[#191919] outline-none shadow-sm transition-all group-hover/input:shadow-md"
+                                                        placeholder="0"
+                                                    />
+                                                    <span className="absolute right-4 top-1/2 -translate-y-1/2 text-xs font-bold text-gray-400">PKR</span>
+                                                </div>
+                                                {/* Quick fill button */}
+                                                {netPayable > 0 && (
+                                                    <button
+                                                        onClick={() => setAmountPaying(String(netPayable - paidAmountHistory > 0 ? netPayable - paidAmountHistory : 0))}
+                                                        className="mt-2 w-full text-xs font-bold text-[#B50104] hover:underline cursor-pointer text-center"
+                                                    >
+                                                        Pay Remaining ({netPayable - paidAmountHistory > 0 ? (netPayable - paidAmountHistory).toLocaleString() : 0} PKR)
+                                                    </button>
+                                                )}
+                                            </div>
+                                            <button
+                                                onClick={handleSubmit}
+                                                disabled={loading}
+                                                className="w-full py-5 bg-gradient-to-r from-[#B50104] to-[#950002] text-white font-bold rounded-2xl shadow-xl shadow-red-500/30 hover:shadow-red-500/50 hover:scale-[1.02] active:scale-95 transition-all disabled:opacity-70 flex items-center justify-center gap-3 group/btn relative overflow-hidden"
+                                            >
+                                                <div className="absolute inset-0 bg-white/20 translate-y-full group-hover/btn:translate-y-0 transition-transform duration-300 rounded-2xl" />
+                                                <span className="relative z-10">{loading ? "Processing..." : "Confirm Payment"}</span>
+                                                {!loading && <ArrowRight size={20} className="relative z-10 group-hover/btn:translate-x-1 transition-transform" />}
+                                            </button>
+                                        </div>
+                                    </>
+                                );
+                            })()}
                         </motion.div>
 
                         {/* Right: Real-time Outstanding Card */}

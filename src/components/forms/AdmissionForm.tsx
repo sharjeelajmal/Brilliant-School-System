@@ -209,7 +209,7 @@ export default function AdmissionForm() {
 
       if (res.ok) {
         const previewData = { ...formData, rollNo: data.data.rollNo };
-        toast.success(`Student Registered! Roll No: ${data.data.rollNo}`);
+        toast.success(`Student Registered! Sr No: ${data.data.rollNo}`);
         setFormData(previewData);
         window.sessionStorage.setItem("admission-preview-data", JSON.stringify(previewData));
         router.push("/admission-preview");

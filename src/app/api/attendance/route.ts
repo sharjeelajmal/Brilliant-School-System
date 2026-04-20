@@ -37,14 +37,20 @@ export async function GET(req: Request) {
     const date = searchParams.get('date');
     const className = searchParams.get('class');
     const section = searchParams.get('section');
-
-    // Validation: Class & Section zaroori hain
-    if (!className || !section) {
-        return NextResponse.json({ success: false, error: "Class and Section required" });
-    }
+    const studentId = searchParams.get('studentId');
 
     // Query Builder
-    let query: any = { class: className, section };
+    let query: any = {};
+
+    if (studentId) {
+        query.studentId = studentId;
+    } else {
+        // Validation: Class & Section zaroori hain
+        if (!className || !section) {
+            return NextResponse.json({ success: false, error: "Class and Section required" });
+        }
+        query = { class: className, section };
+    }
     
     // Agar Date mili to specific din ka data, warna sara data (Trend ke liye)
     if (date) {

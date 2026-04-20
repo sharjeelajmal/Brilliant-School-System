@@ -41,7 +41,16 @@ export async function GET(req: Request) {
     if (id) {
       const student = await Student.findById(id);
       if (!student) return NextResponse.json({ success: false, error: "Student not found" }, { status: 404 });
-      return NextResponse.json({ success: true, data: student }, { status: 200 });
+      
+      const classRollNo = await Student.countDocuments({
+        classJoining: student.classJoining,
+        section: student.section,
+        rollNo: { $lte: student.rollNo }
+      });
+      const data = student.toObject();
+      data.classRollNo = classRollNo;
+      
+      return NextResponse.json({ success: true, data }, { status: 200 });
     }
 
     // 2. Build Match Query
@@ -111,6 +120,14 @@ export async function GET(req: Request) {
       },
       { $sort: { rollNo: 1 } } // Sort by Roll No
     ]);
+
+    // Calculate dynamic Class Roll No
+    const counters: Record<string, number> = {};
+    students.forEach(student => {
+        const key = `${student.classJoining}-${student.section}`;
+        counters[key] = (counters[key] || 0) + 1;
+        student.classRollNo = counters[key];
+    });
 
     return NextResponse.json({ success: true, data: students }, { status: 200 });
 

@@ -442,7 +442,7 @@ export const SectionDetails = ({ sectionName, onBack, onSelectStudent }: any) =>
                                         </div>
                                         <div>
                                             <p className="font-bold text-[#191919]">{s.firstName} {s.lastName}</p>
-                                            <p className="text-[10px] text-gray-400">Roll No: {s.rollNo}</p>
+                                            <p className="text-[10px] text-gray-400">Roll No: {s.classRollNo || s.rollNo}</p>
                                         </div>
                                     </div>
                                     <div className="text-right">
@@ -478,7 +478,7 @@ export const SectionDetails = ({ sectionName, onBack, onSelectStudent }: any) =>
                                     onClick={() => setSelectedStudentId(s._id)}
                                     className="grid grid-cols-12 gap-4 py-4 px-6 border-b border-gray-100 hover:bg-red-50 items-center transition-colors cursor-pointer group"
                                 >
-                                    <div className="col-span-2 font-bold text-gray-400">#{s.rollNo}</div>
+                                    <div className="col-span-2 font-bold text-gray-400">#{s.classRollNo || s.rollNo}</div>
                                     <div className="col-span-3 font-bold text-[#191919] group-hover:text-[#B70003]">{s.firstName} {s.lastName}</div>
                                     <div className="col-span-2 text-gray-500 font-medium">{s.parentFirstName || '-'}</div>
                                     <div className="col-span-2 text-center font-bold text-gray-700">{s.gender}</div>

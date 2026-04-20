@@ -9,7 +9,8 @@ import {
 import { toast, Toaster } from 'sonner';
 import { CustomDatePicker } from '@/components/ui/CustomDatePicker';
 import { CustomDropdown } from '@/components/ui/CustomDropdown';
-import { FeeSubmission } from './FeeSubmission'; // Added
+import { FeeSubmission } from './FeeSubmission';
+import { StudentAcademicSummary } from './StudentAcademicSummary';
 
 // --- ANIMATION VARIANTS ---
 const containerVariants: any = {
@@ -72,6 +73,10 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
     const [showFeeForm, setShowFeeForm] = useState(false);
     const [fees, setFees] = useState([]);
 
+    // Classes and Sections for Edit
+    const [classes, setClasses] = useState<string[]>([]);
+    const [sections, setSections] = useState<string[]>([]);
+
     const fetchFees = async () => {
         try {
             const res = await fetch(`/api/fees?studentId=${studentId}`);
@@ -100,6 +105,25 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
     const handleChange = (name: string, value: string) => {
         setFormData((prev: any) => ({ ...prev, [name]: value }));
     };
+
+    // Fetch Classes and Sections
+    useEffect(() => {
+        if (isEditing) {
+            fetch('/api/classes').then(r => r.json()).then(data => {
+                if(data.success) setClasses(data.data.map((c: any) => c.name));
+            }).catch(console.error);
+        }
+    }, [isEditing]);
+
+    useEffect(() => {
+        if (isEditing && formData?.classJoining) {
+            fetch(`/api/sections?class=${encodeURIComponent(formData.classJoining)}`).then(r => r.json()).then(data => {
+                if(data.success) setSections(data.data.map((s: any) => s.name));
+            }).catch(console.error);
+        } else {
+            setSections([]);
+        }
+    }, [isEditing, formData?.classJoining]);
 
     const handleSave = async () => {
         setSaving(true);
@@ -152,16 +176,28 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                     </button>
                     <div className="overflow-hidden">
                         <h2 className="text-lg md:text-xl font-black text-[#191919] leading-none truncate">Student Profile</h2>
-                        <div className="flex items-center gap-2">
-                            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Roll No: </p>
-                            {isEditing ? (
-                                <input
-                                    value={formData.rollNo}
-                                    onChange={(e) => handleChange("rollNo", e.target.value)}
-                                    className="bg-gray-100 rounded px-1 text-xs font-bold w-20 border border-gray-200 outline-none focus:border-red-500"
-                                />
-                            ) : (
-                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">{data.rollNo || "Pending"}</p>
+                        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 mt-1">
+                            <div className="flex items-center gap-2">
+                                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Sr No: </p>
+                                {isEditing ? (
+                                    <input
+                                        value={formData.rollNo}
+                                        onChange={(e) => handleChange("rollNo", e.target.value)}
+                                        className="bg-gray-100 rounded px-1 text-xs font-bold w-20 border border-gray-200 outline-none focus:border-red-500"
+                                    />
+                                ) : (
+                                    <p className="text-[10px] items-center font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">#{data.rollNo || "Pending"}</p>
+                                )}
+                            </div>
+                            
+                            {!isEditing && data.classRollNo && (
+                                <>
+                                    <div className="hidden sm:block w-px h-4 bg-gray-200"></div>
+                                    <div className="flex items-center gap-2">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest whitespace-nowrap">Roll No: </p>
+                                        <p className="text-[10px] items-center font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-0.5 rounded-md border border-gray-100">#{data.classRollNo}</p>
+                                    </div>
+                                </>
                             )}
                         </div>
                     </div>
@@ -222,12 +258,22 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                         <div className="flex flex-wrap justify-center md:justify-start items-center gap-3 text-xs md:text-sm font-bold text-white/90">
                             <span className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 flex items-center gap-2 backdrop-blur-md hover:bg-white/20 transition-colors">
                                 <School size={16} className="text-yellow-400" />
-                                {isEditing ? <input name="classJoining" value={formData.classJoining} onChange={(e) => handleChange("classJoining", e.target.value)} className="bg-transparent outline-none w-24 text-white placeholder-white/50" placeholder="Class" /> : (data.classJoining || 'No Class')}
+                                {isEditing ? 
+                                    <select name="classJoining" value={formData.classJoining} onChange={(e) => handleChange("classJoining", e.target.value)} className="bg-white/20 outline-none w-28 text-white focus:bg-white/30 rounded px-1 transition-colors appearance-none cursor-pointer">
+                                        <option value="" className="text-black">Select Class</option>
+                                        {classes.map(c => <option key={c} value={c} className="text-black">{c}</option>)}
+                                    </select>
+                                : (data.classJoining || 'No Class')}
                             </span>
                             <span className="px-4 py-2 bg-white/10 rounded-xl border border-white/10 flex items-center gap-2 backdrop-blur-md hover:bg-white/20 transition-colors">
                                 <Star size={16} className="text-yellow-400" />
                                 Section:
-                                {isEditing ? <input name="section" value={formData.section} onChange={(e) => handleChange("section", e.target.value)} className="bg-transparent outline-none w-16 text-white placeholder-white/50" placeholder="Sec" /> : (data.section || 'A')}
+                                {isEditing ? 
+                                    <select name="section" value={formData.section} onChange={(e) => handleChange("section", e.target.value)} className="bg-white/20 outline-none w-20 text-white focus:bg-white/30 rounded px-1 transition-colors appearance-none cursor-pointer">
+                                        <option value="" className="text-black">Sec</option>
+                                        {sections.map(s => <option key={s} value={s} className="text-black">{s}</option>)}
+                                    </select>
+                                : (data.section || 'A')}
                             </span>
                             {/* Address Edit */}
                             <span className="flex items-center gap-2 bg-white/10 px-4 py-2 rounded-xl border border-white/10 backdrop-blur-md hover:bg-white/20 transition-colors">
@@ -359,6 +405,15 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                     )}
                 </motion.div>
 
+            </motion.div>
+
+            {/* --- NEW EXPERT LEVEL ACADEMIC SUMMARY --- */}
+            <motion.div variants={itemVariants} initial="hidden" animate="visible">
+                <StudentAcademicSummary 
+                    studentId={studentId} 
+                    studentName={`${data.firstName} ${data.lastName}`} 
+                    parentName={`${data.parentFirstName} ${data.parentLastName}`} 
+                />
             </motion.div>
 
             {/* Fee Submission Modal */}

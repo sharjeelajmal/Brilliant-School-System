@@ -38,10 +38,17 @@ export async function GET(req: Request) {
     const subject = searchParams.get('subject');
     const className = searchParams.get('class');
     const section = searchParams.get('section');
+    const studentId = searchParams.get('studentId');
 
-    if (!date || !subject || !className || !section) return NextResponse.json({ success: false, data: [] });
+    let query: any = {};
+    if (studentId) {
+        query.studentId = studentId;
+    } else {
+        if (!date || !subject || !className || !section) return NextResponse.json({ success: false, data: [] });
+        query = { date, subject, class: className, section };
+    }
 
-    const records = await TestReport.find({ date, subject, class: className, section });
+    const records = await TestReport.find(query);
     return NextResponse.json({ success: true, data: records }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ error: "Fetch failed" }, { status: 500 });

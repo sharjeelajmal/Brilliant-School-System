@@ -29,7 +29,7 @@ export const TestReportRow = ({ index, student, obtainedMarks, totalMarks, passi
       transition={{ delay: index * 0.05 }}
       className="grid grid-cols-12 gap-4 items-center py-4 px-4 border-b border-gray-100 hover:bg-gray-50 transition-colors"
     >
-       <div className="col-span-1 font-bold text-gray-400 text-xs">#{student.rollNo}</div>
+       <div className="col-span-1 font-bold text-gray-400 text-xs">#{student.classRollNo || student.rollNo}</div>
        <div className="col-span-2 font-bold text-[#191919] text-sm">{student.firstName} {student.lastName}</div>
        <div className="col-span-2 text-xs text-gray-500 font-medium">{student.parentFirstName}</div>
        

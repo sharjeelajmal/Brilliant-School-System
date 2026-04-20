@@ -308,7 +308,7 @@ export const ComplaintList = ({ onAddNew }: ListProps) => {
 
                 {/* DESKTOP HEADER (Hidden on Mobile) */}
                 <div className="hidden md:grid grid-cols-12 gap-4 py-4 px-6 bg-gray-50/80 border-b border-gray-100">
-                    <div className="col-span-1 text-gray-500 font-bold text-xs uppercase tracking-wider">Roll no.</div>
+                    <div className="col-span-1 text-gray-500 font-bold text-xs uppercase tracking-wider">Sr no.</div>
                     <div className="col-span-2 text-gray-500 font-bold text-xs uppercase tracking-wider">Date</div>
                     <div className="col-span-2 text-gray-500 font-bold text-xs uppercase tracking-wider">Full Name</div>
                     <div className="col-span-2 text-gray-500 font-bold text-xs uppercase tracking-wider">Class</div>
