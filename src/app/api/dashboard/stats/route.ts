@@ -32,19 +32,19 @@ export async function GET() {
             allSections,
             activeStudentsList
         ] = await Promise.all([
-            Student.countDocuments({ status: 'Active' }),
+            Student.countDocuments({}),
             Teacher.countDocuments({ status: 'Active' }),
-            Student.countDocuments({ status: 'Active' }),
+            Student.countDocuments({}),
             Student.distinct('parentCnic'),
             Fee.find({}),
             Purchase.find({}),
-            Student.countDocuments({ gender: { $regex: /^male$/i }, status: 'Active' }),
-            Student.countDocuments({ gender: { $regex: /^female$/i }, status: 'Active' }),
+            Student.countDocuments({ gender: { $in: [/^male$/i, /^boy$/i] } }),
+            Student.countDocuments({ gender: { $in: [/^female$/i, /^girl$/i] } }),
             ClassModel.find({}),
             Attendance.find({ date: todayStr }),
-            Student.find({ status: 'Active' }).sort({ createdAt: -1 }).limit(5),
+            Student.find({}).sort({ createdAt: -1 }).limit(5),
             SectionModel.find({}),
-            Student.find({ status: 'Active' }, { _id: 1 })
+            Student.find({}, { _id: 1 })
         ]);
 
         const activeIds = new Set(activeStudentsList.map((s: any) => s._id.toString()));

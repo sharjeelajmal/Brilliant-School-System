@@ -55,8 +55,8 @@ export const StudentAcademicSummary = ({ studentId, studentName, parentName }: S
         : 0;
 
     const totalDays = attendance.length;
-    const presentDays = attendance.filter(a => a.status === 'Present').length;
-    const absents = attendance.filter(a => a.status === 'Absent').length;
+    const presentDays = attendance.filter(a => a.status?.toLowerCase() === 'present').length;
+    const absents = attendance.filter(a => a.status?.toLowerCase() === 'absent').length;
     const attendancePercent = totalDays > 0 ? Math.round((presentDays / totalDays) * 100) : 0;
 
     const tabs = [
@@ -179,8 +179,8 @@ export const StudentAcademicSummary = ({ studentId, studentName, parentName }: S
                                         {attendance.map(att => (
                                             <div key={att._id} className="bg-white border border-gray-100 rounded-xl p-3 text-center flex flex-col items-center gap-2 hover:border-[#B50104] transition-colors">
                                                 <span className="text-[10px] font-bold text-gray-400">{att.date.split('-').slice(1).join('/')}</span>
-                                                {att.status === 'Present' ? <CheckCircle size={16} className="text-green-500" /> :
-                                                 att.status === 'Absent' ? <XCircle size={16} className="text-red-500" /> :
+                                                {att.status?.toLowerCase() === 'present' ? <CheckCircle size={16} className="text-green-500" /> :
+                                                 att.status?.toLowerCase() === 'absent' ? <XCircle size={16} className="text-red-500" /> :
                                                  <AlertCircle size={16} className="text-orange-500" />}
                                             </div>
                                         ))}

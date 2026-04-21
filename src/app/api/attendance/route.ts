@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import Attendance from '@/models/Attendance';
+import mongoose from 'mongoose';
 
 // POST: Save Attendance (Same as before)
 export async function POST(req: Request) {
@@ -43,7 +44,10 @@ export async function GET(req: Request) {
     let query: any = {};
 
     if (studentId) {
-        query.studentId = studentId;
+        query.$or = [
+            { studentId: studentId },
+            { studentId: mongoose.Types.ObjectId.isValid(studentId) ? new mongoose.Types.ObjectId(studentId) : studentId }
+        ];
     } else {
         // Validation: Class & Section zaroori hain
         if (!className || !section) {

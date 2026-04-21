@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/db';
 import TestReport from '@/models/TestReport';
+import mongoose from 'mongoose';
 
 // POST: Save Marks (Bulk)
 export async function POST(req: Request) {
@@ -42,7 +43,10 @@ export async function GET(req: Request) {
 
     let query: any = {};
     if (studentId) {
-        query.studentId = studentId;
+        query.$or = [
+            { studentId: studentId },
+            { studentId: mongoose.Types.ObjectId.isValid(studentId) ? new mongoose.Types.ObjectId(studentId) : studentId }
+        ];
     } else {
         if (!date || !subject || !className || !section) return NextResponse.json({ success: false, data: [] });
         query = { date, subject, class: className, section };
