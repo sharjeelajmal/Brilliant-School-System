@@ -254,20 +254,19 @@ export function AdmissionPrintPreview({ data, className = "" }: { data: Admissio
             Fee Structure (Continued):
           </div>
 
-          <F label="Academy Fee:" value={data.academyFee} top={126} left={25} width={259} />
+          <F label="Uniform & Books Fee:" value={data.uniformBooksCharges} top={126} left={25} width={259} />
           <F label="Nazra Fee:" value={data.nazraFee} top={126} left={312} width={258} />
           
-          <F label="Uniform & Books Charges:" value={data.uniformBooksCharges} top={162} left={25} width={256} />
-          <F label="Stationary Charges:" value={data.stationaryCharges} top={162} left={312} width={258} />
+          <F label="Stationary Charges:" value={data.stationaryCharges} top={162} left={25} width={256} />
+          <F label="Other Charges:" value={data.otherCharges} top={162} left={312} width={258} />
           
-          <F label="Other Charges:" value={data.otherCharges} top={198} left={25} width={260} />
-          <F label="Discount:" value={data.discount} top={198} left={312} width={259} />
+          <F label="Discount:" value={data.discount} top={198} left={25} width={260} />
+          <F label="Late Fee Fine:" value={data.lateFeeFine} top={198} left={312} width={259} />
           
-          <F label="Late Fee Fine:" value={data.lateFeeFine} top={234} left={25} width={257} />
-          <F label="Total Amount:" value={data.totalPayable} top={234} left={312} width={260} />
+          <F label="Total Amount:" value={data.totalPayable} top={234} left={25} width={257} />
+          <F label="Paid Amount:" value={data.amountPaying} top={234} left={312} width={260} />
           
-          <F label="Paid Amount:" value={data.amountPaying} top={270} left={25} width={258} />
-          <F label="Remaining Amount:" value={data.remainingAmount} top={270} left={312} width={262} />
+          <F label="Remaining Amount:" value={data.remainingAmount} top={270} left={25} width={258} />
 
           <Div top={306} label="Required Documents:" />
           <div

@@ -155,7 +155,7 @@ export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSu
                 feeType === 'Transport Fee' ? (parseInt(selectedStudent.transportFee) || 0) :
                 feeType === 'Admission Fee' ? (parseInt(selectedStudent.admissionFee) || 0) :
                 feeType === 'Exam Fee' ? (parseInt(selectedStudent.examFee) || 0) :
-                feeType === 'Academy Fee' ? (parseInt(selectedStudent.academyFee) || 0) : 0;
+                feeType === 'Uniform and Books Fee' ? (parseInt(selectedStudent.uniformBooksCharges) || 0) : 0;
             setMonthlyFeeAmount(amount);
             setTransportFeeAmount(0);
         }
@@ -422,7 +422,7 @@ export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSu
                                     placeholder="Select Fee Type"
                                     value={feeType}
                                     onChange={setFeeType}
-                                    options={['Monthly Fee & Transport Fee', /*'Transport Fee',*/ 'Admission Fee', 'Exam Fee', 'Academy Fee', 'Other']}
+                                    options={['Monthly Fee & Transport Fee', /*'Transport Fee',*/ 'Admission Fee', 'Exam Fee', 'Uniform and Books Fee', 'Other']}
                                 />
                             </div>
                             <div>
@@ -514,7 +514,7 @@ export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSu
                                     // For Admission, Exam, Academy, Other: checking by year instead of exact month 
                                     // (because they are usually annual/one-time)
                                     let other;
-                                    if (feeType === 'Admission Fee' || feeType === 'Other' || feeType === 'Academy Fee') {
+                                    if (feeType === 'Admission Fee' || feeType === 'Other' || feeType === 'Uniform and Books Fee') {
                                         // Once per lifetime/year, just check if it exists in history
                                         other = paidHistory.find(f => f.feeType === feeType);
                                     } else {

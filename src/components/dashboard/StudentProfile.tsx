@@ -370,10 +370,10 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                         </div>
                         <div className="space-y-1">
                             <InfoRow label="Transport Fee" name="transportFee" value={formData.transportFee ?? formData.annualFee ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
-                            <InfoRow label="Academy Fee" name="academyFee" value={formData.academyFee ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            {/* Academy Fee Removed */}
                         </div>
                         <div className="space-y-1">
-                            <InfoRow label="Exam/Books Charges" name="uniformBooksCharges" value={formData.uniformBooksCharges ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
+                            <InfoRow label="Uniform & Books Fee" name="uniformBooksCharges" value={formData.uniformBooksCharges ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
                             <InfoRow label="Other Charges" name="otherCharges" value={formData.otherCharges ?? 0} isEditing={isEditing} onChange={handleChange} icon={DollarSign} />
                         </div>
                         {/* Highlighted Total */}

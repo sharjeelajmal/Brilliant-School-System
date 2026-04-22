@@ -14,6 +14,7 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
   const [classes, setClasses] = useState<string[]>([]);
   const [sections, setSections] = useState<string[]>([]);
   const [students, setStudents] = useState<string[]>([]);
+  const [studentsData, setStudentsData] = useState<any[]>([]);
   const [teacherName, setTeacherName] = useState("");
 
   const [formData, setFormData] = useState({
@@ -50,7 +51,11 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
       try {
         const sRes = await fetch(`/api/students?class=${formData.className}&section=${formData.section}`);
         const sData = await sRes.json();
-        if (sData.success) setStudents(sData.data.map((s: any) => `${s.firstName} ${s.lastName}`));
+        if (sData.success) {
+          setStudentsData(sData.data);
+          // Show Roll No to differentiate same names
+          setStudents(sData.data.map((s: any) => `${s.firstName} ${s.lastName} (Roll: ${s.classRollNo || s.rollNo})`));
+        }
 
         const tRes = await fetch(`/api/teacher?class=${formData.className}&section=${formData.section}`);
         const tData = await tRes.json();
@@ -71,11 +76,15 @@ export const ComplaintForm = ({ onSuccess }: { onSuccess?: () => void }) => {
     }
     setLoading(true);
     try {
+      // Find selected student
+      const selectedStudent = studentsData.find(s => `${s.firstName} ${s.lastName} (Roll: ${s.classRollNo || s.rollNo})` === formData.student);
+      
       const res = await fetch('/api/complaints', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          studentName: formData.student,
+          studentId: selectedStudent?._id,
+          studentName: selectedStudent ? `${selectedStudent.firstName} ${selectedStudent.lastName}` : formData.student,
           className: formData.className,
           section: formData.section,
           date: formData.date,

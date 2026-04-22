@@ -51,11 +51,18 @@ export async function POST(req: Request) {
         await connectDB();
         const body = await req.json();
     
-        const student = await Student.findOne({ 
-            firstName: body.studentName.split(' ')[0], 
-            classJoining: body.className,
-            section: body.section
-        });
+        let student = null;
+        if (body.studentId) {
+            student = await Student.findById(body.studentId);
+        } else {
+            // Find by exact first name & last name instead of just first word
+            // or try to match if old payload is sent
+            student = await Student.findOne({ 
+                firstName: body.studentName.split(' ')[0], 
+                classJoining: body.className,
+                section: body.section
+            });
+        }
     
         if (!student) {
             return NextResponse.json({ success: false, error: "Student not found!" }, { status: 404 });
