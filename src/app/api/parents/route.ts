@@ -43,7 +43,9 @@ export async function GET() {
             transportFee: student.transportFee || 0,
             academyFee: student.academyFee || 0,
             admissionFee: student.admissionFee || 0,
-            examFee: student.uniformBooksCharges || 0,
+            examFee: student.examFee || 0,
+            uniformBooksCharges: student.uniformBooksCharges || 0,
+            otherCharges: student.otherCharges || 0,
         });
     });
 

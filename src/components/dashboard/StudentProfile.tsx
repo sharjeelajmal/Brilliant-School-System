@@ -429,7 +429,11 @@ export const StudentProfile = ({ studentId, onBack }: ProfileProps) => {
                             class: data.classJoining,
                             photo: data.photoUrl,
                             monthlyFee: data.monthlyFee,
-                            transportFee: data.transportFee
+                            transportFee: data.transportFee,
+                            admissionFee: data.admissionFee || 0,
+                            examFee: data.examFee || 0,
+                            uniformBooksCharges: data.uniformBooksCharges || 0,
+                            otherCharges: data.otherCharges || 0,
                         }]
                     }}
                     onClose={() => setShowFeeForm(false)}
