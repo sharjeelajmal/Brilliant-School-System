@@ -1,3 +1,4 @@
+// src/models/Fee.ts
 import mongoose from 'mongoose';
 
 const FeeSchema = new mongoose.Schema({
@@ -10,7 +11,8 @@ const FeeSchema = new mongoose.Schema({
     parentCnic: { type: String, required: true },
     feeType: {
         type: String,
-        enum: ['Monthly Fee', 'Admission Fee', 'Exam Fee', 'Transport Fee', 'Other'],
+        // YAHAN PAR 'Uniform and Books Fee' ADD KRNA HAI 👇
+        enum: ['Monthly Fee', 'Admission Fee', 'Exam Fee', 'Transport Fee', 'Uniform and Books Fee', 'Other'],
         default: 'Monthly Fee',
     },
     amount: { type: Number, required: true },
