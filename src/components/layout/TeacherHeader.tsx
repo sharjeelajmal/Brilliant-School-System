@@ -1,12 +1,13 @@
 "use client";
 import React from 'react';
 import { LogOut, ClipboardList, FileBarChart2, MessageSquare, BookOpen } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
 interface HeaderProps {
   title: string;
-  activePage: 'attendance' | 'test-report' | 'complaints' | 'diary';
+  activePage: 'attendance' | 'test-report' | 'complaints' | 'diary' | 'syllabus';
 }
 
 export const TeacherHeader = ({ title, activePage }: HeaderProps) => {
@@ -80,6 +81,22 @@ export const TeacherHeader = ({ title, activePage }: HeaderProps) => {
           <LogOut size={18} className="md:w-5 md:h-5 group-hover:-translate-x-0.5 transition-transform" />
         </button>
       </div>
+
+      {/* Floating Syllabus Button for Teachers */}
+      {activePage !== 'syllabus' && (
+        <Link href="/syllabus">
+          <motion.div
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: 1, opacity: 1, y: 0 }}
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            className="fixed bottom-6 right-6 w-14 h-14 bg-[#B70003] text-white rounded-full shadow-[0_10px_30px_-10px_rgba(183,0,3,0.5)] flex flex-col items-center justify-center cursor-pointer z-[9999] border-2 border-white group"
+          >
+            <BookOpen size={24} />
+            <span className="text-[7px] font-black uppercase tracking-tighter mt-0.5 group-hover:scale-110 transition-transform">Syllabus</span>
+          </motion.div>
+        </Link>
+      )}
     </header>
   );
 };

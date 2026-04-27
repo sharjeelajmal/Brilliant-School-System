@@ -20,7 +20,7 @@ const FeeSchema = new mongoose.Schema({
     year: { type: Number },
     status: {
         type: String,
-        enum: ['Paid', 'Pending', 'Late'],
+        enum: ['Paid', 'Pending', 'Late', 'Partial Paid'],
         default: 'Paid',
     },
     date: { type: Date, default: Date.now },

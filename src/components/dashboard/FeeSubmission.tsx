@@ -234,16 +234,25 @@ export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSu
             }
             setIsLate(late);
 
-            // Previous dues: count unpaid months since joining vs paid monthly fee count
-            const paidMonthlyCount = paidFees.filter((f: any) => f.feeType === 'Monthly Fee').length;
+            // Previous dues: Calculate by actual amounts (Expected Dues vs Paid Amount)
+            const paidMonthlyAmount = paidFees
+                .filter((f: any) => f.feeType === 'Monthly Fee')
+                .reduce((sum: number, f: any) => sum + (f.amount || 0), 0);
+
             const joiningMonth = joiningDate.getMonth();
             const joiningYr = joiningDate.getFullYear();
             const currentMonthIdx = currentDate.getMonth();
             const currentYearIdx = currentDate.getFullYear();
-            const totalMonthsElapsed = (currentYearIdx - joiningYr) * 12 + (currentMonthIdx - joiningMonth);
-            const unpaidMonths = Math.max(0, totalMonthsElapsed - paidMonthlyCount);
+
+            // Calculate elapsed months excluding the current month being paid
+            const totalMonthsElapsed = Math.max(0, (currentYearIdx - joiningYr) * 12 + (currentMonthIdx - joiningMonth));
             const studentFee = parseInt(studentData.data.monthlyFee) || 0;
-            setPreviousDues(unpaidMonths > 1 ? (unpaidMonths - 1) * studentFee : 0);
+
+            // If they haven't paid the expected sum for past months, it becomes previous dues
+            const expectedPaidSoFar = totalMonthsElapsed * studentFee;
+            const actualPreviousDues = Math.max(0, expectedPaidSoFar - paidMonthlyAmount);
+
+            setPreviousDues(actualPreviousDues);
 
         } catch (e) { console.error(e); }
         finally { setCalculating(false); }
@@ -504,11 +513,11 @@ export const FeeSubmission = ({ parent, defaultMonth, defaultYear, onClose, onSu
                                 let receiptFeeId = '';
                                 
                                 if (feeType === 'Monthly Fee & Transport Fee') {
-                                    const monthly = paidHistory.find(f => f.feeType === 'Monthly Fee' && f.month === month && f.year === year);
-                                    if (monthly) {
-                                        currentStatus = monthly.status;
-                                        paidAmountHistory = monthly.amount || 0;
-                                        receiptFeeId = monthly._id;
+                                    const monthlyFeesForMonth = paidHistory.filter(f => f.feeType === 'Monthly Fee' && f.month === month && f.year === year);
+                                    if (monthlyFeesForMonth.length > 0) {
+                                        paidAmountHistory = monthlyFeesForMonth.reduce((sum, f) => sum + (f.amount || 0), 0);
+                                        currentStatus = paidAmountHistory >= monthlyFeeAmount ? 'Paid' : 'Partial Paid';
+                                        receiptFeeId = monthlyFeesForMonth[0]._id;
                                     }
                                 } else {
                                     // For Admission, Exam, Academy, Other: checking by year instead of exact month 

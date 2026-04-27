@@ -36,6 +36,7 @@ export const Sidebar = ({ isOpen, setIsOpen, activePage, setActivePage, role = '
     // SHARED / TEACHER ACCESSIBLE
     { id: 'attendance', label: 'Attendance', icon: ClipboardList, roles: ['admin', 'teacher'] },
     { id: 'diary', label: 'Class Diary', icon: BookOpen, roles: ['admin', 'teacher'] },
+    { id: 'syllabus', label: 'Syllabus', icon: BookOpen, roles: ['admin', 'teacher'] },
     { id: 'test-report', label: 'Test Reports', icon: FileBarChart2, roles: ['admin', 'teacher'] },
     { id: 'complaints', label: 'Complaints', icon: MessageSquare, roles: ['admin', 'teacher'] }, // Shared
 

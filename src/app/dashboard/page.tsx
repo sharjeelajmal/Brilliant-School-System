@@ -24,6 +24,7 @@ import { VendorList } from "@/components/vendors/VendorList";
 import { PurchasesList } from "@/components/vendors/PurchasesList";
 import { SettingsPage } from "@/components/settings/SettingsPage";
 import { DeletedStudentsList } from "@/components/students/DeletedStudentsList";
+import { SyllabusManager } from "@/components/syllabus/SyllabusManager";
 
 function DashboardContent() {
   const [isOpen, setIsOpen] = useState(true);
@@ -78,6 +79,7 @@ function DashboardContent() {
     if (activePage === "payroll") return "Staff Payroll";
     if (activePage === "vendors") return "Supplier Management";
     if (activePage === "purchases") return "Purchase History";
+    if (activePage === "syllabus") return "Syllabus Management";
     if (activePage === "settings") return "System Settings";
     if (activePage === "deleted-students") return "Deleted Students";
     return activePage.replace("-", " ");
@@ -277,6 +279,15 @@ function DashboardContent() {
                 exit={{ opacity: 0, y: -20 }}
               >
                 <DeletedStudentsList />
+              </motion.div>
+            ) : activePage === "syllabus" ? (
+              <motion.div
+                key="syllabus"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+              >
+                <SyllabusManager role={userRole} />
               </motion.div>
             ) : (
               <div className="p-20 text-center font-bold text-gray-200 text-4xl italic">
